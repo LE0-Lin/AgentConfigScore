@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-config-score"
+version = "0.1.0"
+description = "Lighthouse for AI coding-agent configs: score AGENTS.md, CLAUDE.md, Cursor and Copilot instructions."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Zhibo Lin"}]
+keywords = ["agents-md", "claude-code", "cursor", "copilot", "ai-agents", "lint", "developer-tools"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.scripts]
+agent-config-score = "agent_config_score.cli:main"
+acs = "agent_config_score.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

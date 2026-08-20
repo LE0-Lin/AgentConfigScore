@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Prefer existing helper functions over new abstractions.
