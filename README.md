@@ -1,26 +1,63 @@
 # AgentConfigScore
 
-![Agent config score](assets/agent-config-score.svg)
+<p align="center">
+  <img src="assets/agent-config-score.svg" alt="AgentConfigScore A 100" />
+</p>
 
-**Lighthouse for AI coding-agent configs.**
+<p align="center"><strong>Codecov for AI coding-agent instructions.</strong></p>
 
-[![CI](https://github.com/LE0-Lin/AgentConfigScore/actions/workflows/ci.yml/badge.svg)](https://github.com/LE0-Lin/AgentConfigScore/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.10%2B-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+<p align="center">
+  Stop pull requests from quietly making <code>AGENTS.md</code>, <code>CLAUDE.md</code>, Cursor, Copilot and Gemini instructions worse.
+</p>
 
-Score and audit `AGENTS.md`, `CLAUDE.md`, Cursor rules, GitHub Copilot instructions, Gemini instructions, and common agent config files — locally, deterministically, and without sending your repository anywhere.
+<p align="center">
+  <a href="https://github.com/LE0-Lin/AgentConfigScore/actions/workflows/ci.yml"><img src="https://github.com/LE0-Lin/AgentConfigScore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+" />
+  <img src="https://img.shields.io/badge/runtime_dependencies-0-brightgreen" alt="0 runtime dependencies" />
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
+</p>
 
-> Status: **v0.1 MVP** — small rule set, deliberately conservative. The goal is explainable findings rather than an opaque AI score.
+AgentConfigScore is a tiny, deterministic CLI that scores coding-agent configuration **and compares a PR against its base revision**. Instead of asking only “is this config good?”, it answers the question teams actually need in CI:
 
-## Why this exists
+> **Did this change make our agent instructions worse?**
 
-Coding-agent instructions are becoming part of the codebase. They also quietly accumulate problems:
+## The 10-second demo
 
-- duplicated rules across `AGENTS.md`, `CLAUDE.md`, Cursor and Copilot;
-- stale file paths after refactors;
-- contradictory "always" / "never" instructions;
-- huge persistent context files that burn tokens every session;
-- dangerous shell snippets or accidentally committed credentials.
+```bash
+# Scan one repository
+agent-config-score .
 
-AgentConfigScore turns those problems into one simple number and an actionable report.
+# Compare a baseline with a candidate
+agent-config-score compare /tmp/base . --max-drop 0 --fail-on-new-errors
+```
+
+```text
+AgentConfigScore regression  A 96 → B 84 (-12)
+New findings: 2   Resolved: 0
+
++ ERROR   curl-pipe-shell      Remote script piped directly to a shell
+          .github/copilot-instructions.md:12
++ WARNING dead-path            Referenced path does not exist: src/legacy_auth.py
+          AGENTS.md:31
+```
+
+That command exits non-zero, so the regression can block a pull request.
+
+## Why another agent-config tool?
+
+There are already good projects for linting the **current state** of agent instructions. AgentConfigScore deliberately focuses on a narrower job:
+
+| | AgentConfigScore |
+|---|---|
+| Primary question | **Did this PR regress agent configuration?** |
+| CI model | Baseline → candidate comparison |
+| Output | Score delta + new/resolved findings |
+| Runtime | Python standard library only |
+| Network / API key | Not required |
+| Scoring | Deterministic and explainable |
+| Supported configs | AGENTS.md, CLAUDE.md, Cursor, Copilot, Gemini and more |
+
+Think **regression gate**, not another AI reviewer.
 
 ## Quick start
 
@@ -31,24 +68,7 @@ python -m pip install -e .
 agent-config-score .
 ```
 
-Or scan another repository directly after installation:
-
-```bash
-agent-config-score /path/to/repository
-```
-
-Example:
-
-```text
-AgentConfigScore  B  84/100
-Files: 4   Estimated tokens: 1,248   Duplication: 22%
-
-! WARNING duplication          22% of meaningful instruction lines are duplicated across files
-✖ ERROR   contradiction        Conflicting directives about: 'modify generated files'
-! WARNING dead-path            Referenced path does not exist: src/legacy_auth.py
-```
-
-Generate a shareable offline report and badge:
+Generate a local HTML report and badge:
 
 ```bash
 agent-config-score . \
@@ -56,30 +76,39 @@ agent-config-score . \
   --badge .agent-config-score/badge.svg
 ```
 
-Use it in CI:
+Enforce an absolute score floor:
 
 ```bash
-agent-config-score . --fail-under 80
+agent-config-score . --fail-under 90
 ```
 
-Ignore intentional fixtures or generated examples with `.agentconfigscoreignore`:
+## PR regression gate
 
-```gitignore
-examples/demo/**
-vendor/**
+For local use, compare any two checked-out trees:
+
+```bash
+agent-config-score compare ../repo-base . \
+  --max-drop 0 \
+  --fail-on-new-errors \
+  --markdown regression.md
 ```
 
-## What v0.1 checks
+`--max-drop 0` means the score may not decrease at all. Set `--max-drop 3` if a small temporary drop is acceptable.
+
+The repository includes `.github/workflows/config-regression.yml`, which automatically checks every pull request against `${{ github.event.pull_request.base.sha }}` and writes the result to the GitHub Actions Step Summary.
+
+## What it checks today
 
 | Check | What it catches |
 |---|---|
 | Context size | Oversized persistent instruction files |
 | Cross-file duplication | Repeated meaningful rules across agent configs |
 | Contradictions | Conservative exact-body `always` vs `never` conflicts |
-| Dead paths | Referenced repo paths that no longer exist |
-| Dangerous shell | `curl | bash`, `wget | sh`, `rm -rf`, `sudo`, `chmod 777` |
+| Dead paths | Referenced repository paths that no longer exist |
+| Dangerous shell | `curl \| bash`, `wget \| sh`, `rm -rf`, `sudo`, `chmod 777` |
 | Secret patterns | Common API token/private-key signatures |
 | Canonical config | Multiple tool-specific files without a root `AGENTS.md` |
+| **Regression diff** | New findings and score drops introduced by a change |
 
 Supported discovery includes:
 
@@ -95,26 +124,30 @@ Supported discovery includes:
 
 ## Design principles
 
-1. **Local-first.** No network request is required to scan a repository.
-2. **Explainable.** Every point deduction maps to a visible finding.
-3. **Conservative.** Prefer a missed warning over noisy fake certainty.
-4. **Fast.** v0.1 uses Python's standard library only at runtime.
-5. **CI-friendly.** JSON output and `--fail-under` make the score enforceable.
+1. **Regression-first.** A legacy repo does not need to become perfect before CI becomes useful.
+2. **Local-first.** No repository content is uploaded anywhere.
+3. **Explainable.** Every score change maps to visible findings.
+4. **Conservative.** Prefer a missed warning over noisy fake certainty.
+5. **Zero runtime dependencies.** Python 3.10+ standard library only.
 
 ## Roadmap
 
-- [ ] smarter semantic contradiction detection with an optional local-model mode;
-- [ ] GitHub Action that comments the score on pull requests;
-- [ ] historical score trend (`git`-aware regression detection);
-- [ ] token-cost breakdown per coding agent;
-- [ ] auto-fix for duplicated canonical instructions;
-- [ ] hosted badge endpoint for public repositories;
-- [ ] SARIF output for GitHub code scanning.
+- [x] deterministic 0–100 scoring
+- [x] baseline → candidate regression comparison
+- [x] Markdown PR/Step Summary report
+- [x] GitHub Actions regression gate
+- [ ] first-class reusable GitHub Action (`uses: LE0-Lin/AgentConfigScore@v1`)
+- [ ] Git-aware `--base-ref origin/main` without manual worktrees
+- [ ] SARIF output for GitHub code scanning
+- [ ] score-history badge for public repositories
+- [ ] optional semantic contradiction plugin
 
 ## Development
 
 ```bash
 python -m pip install -e .
 python -m unittest discover -s tests -v
-agent-config-score examples/demo --html /tmp/agent-config-score.html
+agent-config-score . --fail-under 90
 ```
+
+MIT licensed. Contributions and real-world agent-config failure examples are welcome.
