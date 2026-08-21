@@ -17,19 +17,41 @@
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
 </p>
 
-AgentConfigScore is a tiny, deterministic CLI that scores coding-agent configuration **and compares a PR against its base revision**. Instead of asking only “is this config good?”, it answers the question teams actually need in CI:
+AgentConfigScore is a small, deterministic regression gate for coding-agent configuration. It compares a pull request with its base revision and answers one CI-friendly question:
 
 > **Did this change make our agent instructions worse?**
 
-## The 10-second demo
+## Add it to any repository
 
-```bash
-# Scan one repository
-agent-config-score .
+Create `.github/workflows/agent-config-score.yml`:
 
-# Compare a baseline with a candidate
-agent-config-score compare /tmp/base . --max-drop 0 --fail-on-new-errors
+```yaml
+name: agent-config-regression
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: LE0-Lin/AgentConfigScore@v0
+        with:
+          max-drop: "0"
+          fail-on-new-errors: "true"
 ```
+
+That is the whole integration. `v0` is the rolling stable ref for the current pre-1.0 series.
+
+The action installs AgentConfigScore, finds the PR base commit, compares it with the candidate, writes a Markdown report to the GitHub Actions Step Summary, and fails the job when the configured regression policy is violated.
+
+## What a failing PR looks like
 
 ```text
 AgentConfigScore regression  A 96 → B 84 (-12)
@@ -41,17 +63,18 @@ New findings: 2   Resolved: 0
           AGENTS.md:31
 ```
 
-That command exits non-zero, so the regression can block a pull request.
+This is intentionally different from an absolute quality gate. A legacy repository can start at 72/100 and still adopt AgentConfigScore immediately: a PR that stays at 72 passes, while a PR that drops to 65 fails.
 
-## Why another agent-config tool?
+## Why regression-first?
 
-There are already good projects for linting the **current state** of agent instructions. AgentConfigScore deliberately focuses on a narrower job:
+There are already good tools for linting the **current state** of AI-agent instructions. AgentConfigScore deliberately focuses on a narrower job:
 
 | | AgentConfigScore |
 |---|---|
 | Primary question | **Did this PR regress agent configuration?** |
 | CI model | Baseline → candidate comparison |
 | Output | Score delta + new/resolved findings |
+| Adoption | Existing imperfect repos can use it immediately |
 | Runtime | Python standard library only |
 | Network / API key | Not required |
 | Scoring | Deterministic and explainable |
@@ -59,7 +82,7 @@ There are already good projects for linting the **current state** of agent instr
 
 Think **regression gate**, not another AI reviewer.
 
-## Quick start
+## CLI quick start
 
 ```bash
 git clone https://github.com/LE0-Lin/AgentConfigScore.git
@@ -67,6 +90,17 @@ cd AgentConfigScore
 python -m pip install -e .
 agent-config-score .
 ```
+
+Compare two checked-out trees:
+
+```bash
+agent-config-score compare ../repo-base . \
+  --max-drop 0 \
+  --fail-on-new-errors \
+  --markdown regression.md
+```
+
+`--max-drop 0` means the score may not decrease. Set `--max-drop 3` if a small temporary drop is acceptable.
 
 Generate a local HTML report and badge:
 
@@ -76,26 +110,11 @@ agent-config-score . \
   --badge .agent-config-score/badge.svg
 ```
 
-Enforce an absolute score floor:
+Enforce an absolute score floor when you want one:
 
 ```bash
 agent-config-score . --fail-under 90
 ```
-
-## PR regression gate
-
-For local use, compare any two checked-out trees:
-
-```bash
-agent-config-score compare ../repo-base . \
-  --max-drop 0 \
-  --fail-on-new-errors \
-  --markdown regression.md
-```
-
-`--max-drop 0` means the score may not decrease at all. Set `--max-drop 3` if a small temporary drop is acceptable.
-
-The repository includes `.github/workflows/config-regression.yml`, which automatically checks every pull request against `${{ github.event.pull_request.base.sha }}` and writes the result to the GitHub Actions Step Summary.
 
 ## What it checks today
 
@@ -122,10 +141,19 @@ Supported discovery includes:
 - `.claude/**/*.md`
 - `.clinerules` / `.windsurfrules`
 
+## Action inputs
+
+| Input | Default | Meaning |
+|---|---:|---|
+| `base-sha` | PR base SHA | Explicit baseline commit SHA |
+| `max-drop` | `0` | Maximum allowed score decrease |
+| `fail-on-new-errors` | `true` | Fail on any newly introduced error |
+| `python-version` | `3.12` | Python used by the composite action |
+
 ## Design principles
 
 1. **Regression-first.** A legacy repo does not need to become perfect before CI becomes useful.
-2. **Local-first.** No repository content is uploaded anywhere.
+2. **Local-first.** Repository content is not uploaded to a hosted analysis service.
 3. **Explainable.** Every score change maps to visible findings.
 4. **Conservative.** Prefer a missed warning over noisy fake certainty.
 5. **Zero runtime dependencies.** Python 3.10+ standard library only.
@@ -134,9 +162,9 @@ Supported discovery includes:
 
 - [x] deterministic 0–100 scoring
 - [x] baseline → candidate regression comparison
-- [x] Markdown PR/Step Summary report
-- [x] GitHub Actions regression gate
-- [ ] first-class reusable GitHub Action (`uses: LE0-Lin/AgentConfigScore@v1`)
+- [x] Markdown PR / Step Summary report
+- [x] first-class reusable GitHub Action
+- [x] self-dogfooding PR regression workflow
 - [ ] Git-aware `--base-ref origin/main` without manual worktrees
 - [ ] SARIF output for GitHub code scanning
 - [ ] score-history badge for public repositories
@@ -151,3 +179,5 @@ agent-config-score . --fail-under 90
 ```
 
 MIT licensed. Contributions and real-world agent-config failure examples are welcome.
+
+If AgentConfigScore catches a regression in your repository, a ⭐ helps other maintainers discover it.

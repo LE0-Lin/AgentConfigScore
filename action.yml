@@ -1,0 +1,101 @@
+name: "AgentConfigScore Regression Gate"
+description: "Block pull requests that make AGENTS.md, CLAUDE.md, Cursor, Copilot, Gemini, or other coding-agent instructions worse."
+author: "Zhibo Lin"
+
+branding:
+  icon: "shield"
+  color: "green"
+
+inputs:
+  base-sha:
+    description: "Baseline commit SHA. Defaults to the pull request base SHA."
+    required: false
+    default: ""
+  max-drop:
+    description: "Maximum allowed score drop before the action fails."
+    required: false
+    default: "0"
+  fail-on-new-errors:
+    description: "Fail when the candidate introduces any new error finding."
+    required: false
+    default: "true"
+  python-version:
+    description: "Python version used to run AgentConfigScore."
+    required: false
+    default: "3.12"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install AgentConfigScore
+      shell: bash
+      run: python -m pip install --disable-pip-version-check "${{ github.action_path }}"
+
+    - name: Check agent-config regression
+      shell: bash
+      env:
+        ACS_BASE_SHA: ${{ inputs.base-sha }}
+        ACS_EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        ACS_MAX_DROP: ${{ inputs.max-drop }}
+        ACS_FAIL_ON_NEW_ERRORS: ${{ inputs.fail-on-new-errors }}
+      run: |
+        set -euo pipefail
+
+        base_sha="${ACS_BASE_SHA:-$ACS_EVENT_BASE_SHA}"
+        if [[ -z "$base_sha" ]]; then
+          echo "::error::AgentConfigScore needs a base SHA. Use this action on pull_request or set 'base-sha'."
+          exit 2
+        fi
+        if ! [[ "$base_sha" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+          echo "::error::Invalid base SHA: $base_sha"
+          exit 2
+        fi
+        if ! [[ "$ACS_MAX_DROP" =~ ^[0-9]+$ ]]; then
+          echo "::error::max-drop must be a non-negative integer"
+          exit 2
+        fi
+        if [[ "$ACS_FAIL_ON_NEW_ERRORS" != "true" && "$ACS_FAIL_ON_NEW_ERRORS" != "false" ]]; then
+          echo "::error::fail-on-new-errors must be 'true' or 'false'"
+          exit 2
+        fi
+
+        if ! git cat-file -e "${base_sha}^{commit}" 2>/dev/null; then
+          git fetch --no-tags --depth=1 origin "$base_sha"
+        fi
+
+        base_dir="$RUNNER_TEMP/agent-config-score-base-${GITHUB_RUN_ID:-run}"
+        summary="$RUNNER_TEMP/agent-config-score-summary-${GITHUB_RUN_ID:-run}.md"
+        git worktree remove --force "$base_dir" >/dev/null 2>&1 || true
+        git worktree prune
+        git worktree add --detach "$base_dir" "$base_sha"
+
+        cleanup() {
+          git worktree remove --force "$base_dir" >/dev/null 2>&1 || true
+          git worktree prune >/dev/null 2>&1 || true
+        }
+        trap cleanup EXIT
+
+        args=(
+          compare "$base_dir" "$GITHUB_WORKSPACE"
+          --max-drop "$ACS_MAX_DROP"
+          --markdown "$summary"
+        )
+        if [[ "$ACS_FAIL_ON_NEW_ERRORS" == "true" ]]; then
+          args+=(--fail-on-new-errors)
+        fi
+
+        set +e
+        agent-config-score "${args[@]}"
+        status=$?
+        set -e
+
+        if [[ -f "$summary" && -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+          cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+        exit "$status"
