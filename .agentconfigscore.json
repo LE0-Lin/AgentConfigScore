@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/v0/schema/agentconfigscore.schema.json",
   "version": 1,
   "policy": {
     "max_drop": 0,
