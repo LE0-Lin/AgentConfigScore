@@ -59,8 +59,38 @@ jobs:
           assert data["runs"][0]["tool"]["driver"]["name"] == "AgentConfigScore"
           PY
 
-  score-history:
+  score_history:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/score-history.yml
     with:
       retention_days: 1
+
+  score_history_contract:
+    if: github.event_name == 'pull_request'
+    needs: score_history
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate reusable workflow outputs
+        env:
+          ACS_SCORE: ${{ needs.score_history.outputs.score }}
+          ACS_GRADE: ${{ needs.score_history.outputs.grade }}
+          ACS_ARTIFACT_ID: ${{ needs.score_history.outputs.artifact-id }}
+          ACS_ARTIFACT_URL: ${{ needs.score_history.outputs.artifact-url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+
+          score = os.environ["ACS_SCORE"]
+          grade = os.environ["ACS_GRADE"]
+          artifact_id = os.environ["ACS_ARTIFACT_ID"]
+          artifact_url = os.environ["ACS_ARTIFACT_URL"]
+
+          assert score.isdigit(), score
+          assert 0 <= int(score) <= 100, score
+          assert grade in {"A", "B", "C", "D", "F"}, grade
+          assert artifact_id.isdigit() and int(artifact_id) > 0, artifact_id
+          assert artifact_url.startswith("https://github.com/"), artifact_url
+          assert "/actions/runs/" in artifact_url, artifact_url
+          PY
