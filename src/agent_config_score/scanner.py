@@ -9,6 +9,8 @@ import html
 import json
 import re
 
+from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
+
 TARGET_NAMES = {
     "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursorrules", ".clinerules",
     ".windsurfrules", "copilot-instructions.md",
@@ -18,19 +20,6 @@ SKIP_DIRS = {
     "target", "vendor", ".idea", ".vscode", "__pycache__",
 }
 
-DANGEROUS_RULES = [
-    ("curl-pipe-shell", re.compile(r"\bcurl\b[^\n|]{0,300}\|\s*(?:ba)?sh\b", re.I), 18, "Remote script piped directly to a shell"),
-    ("wget-pipe-shell", re.compile(r"\bwget\b[^\n|]{0,300}\|\s*(?:ba)?sh\b", re.I), 18, "Remote script piped directly to a shell"),
-    ("rm-rf", re.compile(r"\brm\s+-rf\b", re.I), 10, "Destructive recursive deletion command"),
-    ("sudo", re.compile(r"(^|\s)sudo\s+", re.I | re.M), 6, "Privileged command in persistent agent instructions"),
-    ("chmod-777", re.compile(r"\bchmod\s+777\b", re.I), 8, "World-writable permissions"),
-]
-SECRET_RULES = [
-    ("openai-key", re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"), 25, "Possible OpenAI-style API key"),
-    ("github-token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"), 25, "Possible GitHub token"),
-    ("aws-access-key", re.compile(r"\bAKIA[0-9A-Z]{16}\b"), 25, "Possible AWS access key"),
-    ("private-key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"), 30, "Private key material detected"),
-]
 PATH_CANDIDATE = re.compile(
     r"`([^`\n]{1,160})`|\b((?:src|app|apps|packages|lib|libs|test|tests|docs|scripts|config|configs)/[A-Za-z0-9_./@+\-]+)"
 )
@@ -70,6 +59,18 @@ class Report:
             "duplicate_ratio": round(self.duplicate_ratio, 4),
             "findings": [f.to_dict() for f in self.findings],
         }
+
+
+def _finding(code: str, file: str, line: int | None = None, message: str | None = None) -> Finding:
+    rule = RULES_BY_CODE[code]
+    return Finding(
+        severity=rule.severity,
+        code=rule.code,
+        message=rule.summary if message is None else message,
+        file=file,
+        line=line,
+        penalty=rule.penalty,
+    )
 
 
 def _ignore_patterns(root: Path) -> list[str]:
@@ -158,20 +159,19 @@ def analyze(root: Path) -> Report:
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError as exc:
-            findings.append(Finding("warning", "read-error", str(exc), rel, penalty=2))
+            findings.append(_finding("read-error", rel, message=str(exc)))
             continue
         texts[path] = text
         tokens = estimate_tokens(text)
         total_tokens += tokens
         if tokens > 8000:
-            findings.append(Finding("warning", "context-too-large", f"Estimated {tokens:,} tokens; large persistent instructions waste context", rel, penalty=12))
+            findings.append(_finding("context-too-large", rel, message=f"Estimated {tokens:,} tokens; large persistent instructions waste context"))
         elif tokens > 5000:
-            findings.append(Finding("warning", "context-large", f"Estimated {tokens:,} tokens; consider trimming persistent instructions", rel, penalty=6))
+            findings.append(_finding("context-large", rel, message=f"Estimated {tokens:,} tokens; consider trimming persistent instructions"))
 
-        for code, regex, penalty, message in DANGEROUS_RULES + SECRET_RULES:
-            for match in regex.finditer(text):
-                severity = "error" if penalty >= 10 else "warning"
-                findings.append(Finding(severity, code, message, rel, _line(text, match.start()), penalty))
+        for pattern_rule in PATTERN_RULES:
+            for match in pattern_rule.pattern.finditer(text):
+                findings.append(_finding(pattern_rule.rule.code, rel, _line(text, match.start())))
 
         seen_refs: set[tuple[str, int]] = set()
         for candidate, lineno in _candidate_paths(text):
@@ -180,7 +180,7 @@ def analyze(root: Path) -> Report:
                 continue
             seen_refs.add(key)
             if not (root / candidate).exists():
-                findings.append(Finding("warning", "dead-path", f"Referenced path does not exist: {candidate}", rel, lineno, 4))
+                findings.append(_finding("dead-path", rel, lineno, f"Referenced path does not exist: {candidate}"))
 
     line_locations: dict[str, list[tuple[str, int]]] = defaultdict(list)
     total_meaningful = 0
@@ -194,9 +194,9 @@ def analyze(root: Path) -> Report:
     duplicates = sum(len(v) for v in line_locations.values() if len({r[0] for r in v}) > 1)
     duplicate_ratio = duplicates / total_meaningful if total_meaningful else 0.0
     if duplicate_ratio >= 0.35:
-        findings.append(Finding("warning", "high-duplication", f"{duplicate_ratio:.0%} of meaningful instruction lines are duplicated across files", "(repo)", penalty=12))
+        findings.append(_finding("high-duplication", "(repo)", message=f"{duplicate_ratio:.0%} of meaningful instruction lines are duplicated across files"))
     elif duplicate_ratio >= 0.15:
-        findings.append(Finding("warning", "duplication", f"{duplicate_ratio:.0%} of meaningful instruction lines are duplicated across files", "(repo)", penalty=7))
+        findings.append(_finding("duplication", "(repo)", message=f"{duplicate_ratio:.0%} of meaningful instruction lines are duplicated across files"))
 
     directives: dict[str, list[tuple[str, str, int]]] = defaultdict(list)
     for path, text in texts.items():
@@ -206,33 +206,21 @@ def analyze(root: Path) -> Report:
     for body, rows in directives.items():
         if {row[0] for row in rows} >= {"pos", "neg"}:
             files_str = ", ".join(sorted({row[1] for row in rows}))
-            findings.append(Finding("error", "contradiction", f"Conflicting directives about: '{body}' ({files_str})", "(repo)", penalty=15))
+            findings.append(_finding("contradiction", "(repo)", message=f"Conflicting directives about: '{body}' ({files_str})"))
 
     rels = [p.relative_to(root).as_posix() for p in files]
     if len(files) >= 2 and "AGENTS.md" not in rels:
-        findings.append(Finding("info", "no-agents-md", "Multiple tool-specific configs exist without a canonical root AGENTS.md", "(repo)", penalty=3))
+        findings.append(_finding("no-agents-md", "(repo)"))
     if not files:
-        findings.append(Finding("info", "no-config", "No supported coding-agent instruction files found", "(repo)"))
+        findings.append(_finding("no-config", "(repo)"))
 
-    caps = {"secret": 35, "danger": 35, "dead": 18, "size": 18, "quality": 30, "other": 15}
     used = Counter()
     penalty = 0
-    secret_codes = {r[0] for r in SECRET_RULES}
-    danger_codes = {r[0] for r in DANGEROUS_RULES}
     for finding in findings:
-        if finding.code in secret_codes:
-            category = "secret"
-        elif finding.code in danger_codes:
-            category = "danger"
-        elif finding.code == "dead-path":
-            category = "dead"
-        elif finding.code.startswith("context-"):
-            category = "size"
-        elif finding.code in {"contradiction", "duplication", "high-duplication", "no-agents-md"}:
-            category = "quality"
-        else:
-            category = "other"
-        applied = min(finding.penalty, max(0, caps[category] - used[category]))
+        rule = RULES_BY_CODE.get(finding.code)
+        category = rule.category if rule is not None else "other"
+        cap = CATEGORY_CAPS.get(category, CATEGORY_CAPS["other"])
+        applied = min(finding.penalty, max(0, cap - used[category]))
         used[category] += applied
         penalty += applied
 
