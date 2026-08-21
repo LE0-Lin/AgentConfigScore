@@ -12,8 +12,11 @@ The command is read-only and offline. It checks:
 - whether the config uses the canonical AgentConfigScore JSON Schema;
 - whether supported coding-agent instruction files are discoverable;
 - whether the directory is inside a Git repository for `diff` workflows;
+- whether `agent-config-score diff` can automatically resolve a safe local baseline;
 - whether the standard GitHub Actions workflow exists and invokes AgentConfigScore correctly;
 - whether any active suppression expires within the next 30 days.
+
+When automatic baseline detection succeeds, doctor reports the selected ref, for example `main` or `origin/main`. If Git works but no safe default-branch baseline can be detected, doctor emits a warning. That warning is non-fatal because you can still pass an explicit baseline such as `agent-config-score diff origin/main`.
 
 Warnings are advisory and keep exit status `0`. Concrete configuration or standard-workflow errors return a non-zero exit status.
 
@@ -28,13 +31,13 @@ Example fields:
 ```json
 {
   "ok": true,
-  "warnings": 1,
+  "warnings": 0,
   "errors": 0,
   "checks": [
     {
-      "name": "config",
+      "name": "baseline",
       "status": "pass",
-      "message": ".agentconfigscore.json is valid (...)"
+      "message": "Automatic diff baseline resolves to main."
     }
   ]
 }

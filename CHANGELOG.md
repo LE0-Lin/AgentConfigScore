@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.13.1
+
+### Added
+
+- `agent-config-score doctor` now verifies whether automatic local diff baseline detection is ready.
+- A dedicated `baseline` doctor check that reports the selected ref when detection succeeds.
+- Warning-only diagnostics when Git is available but no safe automatic baseline can be selected.
+- Git-backed tests covering both baseline-ready and feature-only repositories.
+
+### Changed
+
+- Doctor now surfaces local baseline readiness before users run `agent-config-score diff`.
+- Baseline warnings remain non-fatal because explicit refs such as `agent-config-score diff origin/main` are still valid fallbacks.
+- Package version bumped to `0.13.1`.
+
 ## v0.13.0
 
 ### Added
