@@ -12,8 +12,9 @@ import re
 from .config import Suppression
 from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
 
-TARGET_NAMES = {
-    "AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursorrules", ".clinerules",
+AGENTS_FILENAMES = {"AGENTS.md", "AGENTS.override.md"}
+TARGET_NAMES = AGENTS_FILENAMES | {
+    "CLAUDE.md", "GEMINI.md", ".cursorrules", ".clinerules",
     ".windsurfrules", "copilot-instructions.md",
 }
 SKIP_DIRS = {
@@ -173,10 +174,10 @@ def _repo_candidate(root: Path, base: Path, candidate: str) -> Path | None:
 
 def _candidate_exists(root: Path, source: Path, candidate: str) -> bool | None:
     # Repository-root relative paths remain the primary interpretation. For a
-    # nested AGENTS.md, also accept a path relative to that file's directory,
-    # which is the root of the AGENTS.md instruction scope.
+    # nested AGENTS-family file, also accept a path relative to that file's
+    # directory, which is the root of its instruction scope.
     bases = [root]
-    if source.name == "AGENTS.md" and source.parent != root:
+    if source.name in AGENTS_FILENAMES and source.parent != root:
         bases.append(source.parent)
 
     checked = False
@@ -200,16 +201,16 @@ def _directives(text: str):
 
 
 def _agents_precedence_resolves(left: str, right: str) -> bool:
-    # Two different AGENTS.md files cannot create an ambiguous directive for
-    # the same target: their scopes are either disjoint, or one is nested under
-    # the other and the deeper file has explicit precedence. A contradiction
-    # inside one AGENTS.md is still a real conflict.
+    # Different AGENTS-family files cannot create an ambiguous directive for
+    # one Codex target: directory scopes are disjoint or deeper instructions
+    # have precedence; AGENTS.override.md also has deterministic same-directory
+    # priority over AGENTS.md. A contradiction inside one file remains real.
     left_path = PurePosixPath(left)
     right_path = PurePosixPath(right)
     return (
         left != right
-        and left_path.name == "AGENTS.md"
-        and right_path.name == "AGENTS.md"
+        and left_path.name in AGENTS_FILENAMES
+        and right_path.name in AGENTS_FILENAMES
     )
 
 
