@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.7.0
+
+### Added
+
+- Repository-level policy configuration via `.agentconfigscore.json`.
+- Versioned policy schema with `max_drop`, `fail_on_new_errors`, and `fail_under` settings.
+- Strict validation for malformed JSON, unknown keys, invalid types, and out-of-range thresholds.
+- Baseline-governed regression policy: a candidate PR can change future policy but cannot weaken the gate that evaluates itself.
+- Candidate policy validation so broken configuration is caught before merge.
+- Repository policy dogfooding in AgentConfigScore's own CI.
+
+### Changed
+
+- Explicit CLI flags override repository policy when provided.
+- The reusable GitHub Action uses baseline repository policy when present while preserving its historical defaults for repositories without a policy file.
+- Package version bumped to `0.7.0`.
+
 ## v0.6.0
 
 ### Added
