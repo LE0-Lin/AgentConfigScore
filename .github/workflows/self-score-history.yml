@@ -1,0 +1,20 @@
+name: self-score-history
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/self-score-history.yml
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    uses: ./.github/workflows/score-history.yml
+    with:
+      retention_days: 90
+      tool_ref: ${{ github.event_name == 'push' && github.sha || 'v0' }}
