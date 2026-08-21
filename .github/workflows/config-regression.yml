@@ -1,0 +1,32 @@
+name: agent-config-regression
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e .
+      - name: Compare agent config with PR base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add "$RUNNER_TEMP/agent-config-base" "$BASE_SHA"
+          set +e
+          agent-config-score compare "$RUNNER_TEMP/agent-config-base" . \
+            --max-drop 0 \
+            --fail-on-new-errors \
+            --markdown "$RUNNER_TEMP/agent-config-regression.md"
+          status=$?
+          cat "$RUNNER_TEMP/agent-config-regression.md" >> "$GITHUB_STEP_SUMMARY"
+          exit $status
