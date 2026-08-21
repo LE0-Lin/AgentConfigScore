@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.1
+
+### Changed
+
+- Upgrade `actions/checkout` and `actions/setup-python` usage to the current v7 release line across the reusable action and repository workflows.
+- Remove the Node 20 deprecation warnings observed on current GitHub-hosted runners.
+- Package version bumped to `0.5.1`.
+
 ## v0.5.0
 
 ### Added
