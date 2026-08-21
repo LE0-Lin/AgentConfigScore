@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.6.0
+
+### Added
+
+- Git-aware local regression checks via `agent-config-score diff BASE_REF`.
+- Automatic detached baseline worktree creation and cleanup.
+- Support for comparing a local branch, tag, or commit against the current working tree, including uncommitted agent-config changes.
+- Clear offline error messages for missing Git refs instead of fetching implicitly.
+- Test coverage for dirty working trees, nested repository paths, missing refs, non-Git directories, CLI JSON/exit behavior, and worktree cleanup.
+
+### Changed
+
+- Local regression checks no longer require users to manually prepare two repository directories.
+- Package version bumped to `0.6.0`.
+
 ## v0.5.2
 
 ### Changed
