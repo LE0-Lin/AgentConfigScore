@@ -158,9 +158,10 @@ def _candidate_paths(text: str):
 
 
 def _repo_candidate(root: Path, base: Path, candidate: str) -> Path | None:
-    # Never probe absolute paths or paths that escape the repository. The
+    # Never probe absolute, Windows drive-qualified, or escaping paths. The
     # scanner is about repository instructions, not the caller's filesystem.
-    if Path(candidate).is_absolute() or PureWindowsPath(candidate).is_absolute():
+    windows_candidate = PureWindowsPath(candidate)
+    if Path(candidate).is_absolute() or windows_candidate.is_absolute() or windows_candidate.drive:
         return None
     target = (base / candidate).resolve(strict=False)
     try:
