@@ -24,6 +24,26 @@ inputs:
     required: false
     default: "3.12"
 
+outputs:
+  base-score:
+    description: "AgentConfigScore for the baseline revision."
+    value: ${{ steps.regression.outputs.base-score }}
+  head-score:
+    description: "AgentConfigScore for the candidate revision."
+    value: ${{ steps.regression.outputs.head-score }}
+  delta:
+    description: "Candidate score minus baseline score."
+    value: ${{ steps.regression.outputs.delta }}
+  new-findings:
+    description: "Number of newly introduced findings."
+    value: ${{ steps.regression.outputs.new-findings }}
+  new-errors:
+    description: "Number of newly introduced error-severity findings."
+    value: ${{ steps.regression.outputs.new-errors }}
+  resolved-findings:
+    description: "Number of findings resolved by the candidate revision."
+    value: ${{ steps.regression.outputs.resolved-findings }}
+
 runs:
   using: "composite"
   steps:
@@ -37,6 +57,7 @@ runs:
       run: python -m pip install --disable-pip-version-check "${{ github.action_path }}"
 
     - name: Check agent-config regression
+      id: regression
       shell: bash
       env:
         ACS_BASE_SHA: ${{ inputs.base-sha }}
@@ -70,6 +91,7 @@ runs:
 
         base_dir="$RUNNER_TEMP/agent-config-score-base-${GITHUB_RUN_ID:-run}"
         summary="$RUNNER_TEMP/agent-config-score-summary-${GITHUB_RUN_ID:-run}.md"
+        result_json="$RUNNER_TEMP/agent-config-score-result-${GITHUB_RUN_ID:-run}.json"
         git worktree remove --force "$base_dir" >/dev/null 2>&1 || true
         git worktree prune
         git worktree add --detach "$base_dir" "$base_sha"
@@ -84,18 +106,43 @@ runs:
           compare "$base_dir" "$GITHUB_WORKSPACE"
           --max-drop "$ACS_MAX_DROP"
           --markdown "$summary"
+          --json
         )
         if [[ "$ACS_FAIL_ON_NEW_ERRORS" == "true" ]]; then
           args+=(--fail-on-new-errors)
         fi
 
         set +e
-        agent-config-score "${args[@]}"
+        agent-config-score "${args[@]}" > "$result_json"
         status=$?
         set -e
 
         if [[ -f "$summary" && -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
           cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+        if [[ -s "$result_json" ]]; then
+          python - "$result_json" "$GITHUB_OUTPUT" <<'PY'
+        import json
+        import sys
+
+        result_path, output_path = sys.argv[1:]
+        with open(result_path, encoding="utf-8") as handle:
+            data = json.load(handle)
+
+        outputs = {
+            "base-score": data["base"]["score"],
+            "head-score": data["head"]["score"],
+            "delta": data["delta"],
+            "new-findings": len(data["new_findings"]),
+            "new-errors": sum(1 for finding in data["new_findings"] if finding["severity"] == "error"),
+            "resolved-findings": len(data["resolved_findings"]),
+        }
+
+        with open(output_path, "a", encoding="utf-8") as handle:
+            for key, value in outputs.items():
+                print(f"{key}={value}", file=handle)
+        PY
         fi
 
         exit "$status"

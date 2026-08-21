@@ -152,6 +152,34 @@ Supported discovery includes:
 | `fail-on-new-errors` | `true` | Fail on any newly introduced error |
 | `python-version` | `3.12` | Python used by the composite action |
 
+## Action outputs
+
+The reusable action exposes structured numeric outputs so later workflow steps can build comments, dashboards, badges, or custom policy around the same deterministic comparison.
+
+| Output | Meaning |
+|---|---|
+| `base-score` | Baseline AgentConfigScore |
+| `head-score` | Candidate AgentConfigScore |
+| `delta` | Candidate minus baseline score |
+| `new-findings` | Number of newly introduced findings |
+| `new-errors` | Number of newly introduced error-severity findings |
+| `resolved-findings` | Number of findings resolved by the candidate |
+
+```yaml
+- name: Check agent config
+  id: acs
+  uses: LE0-Lin/AgentConfigScore@v0
+
+- name: Print regression metrics
+  if: always()
+  run: |
+    echo "score: ${{ steps.acs.outputs.base-score }} -> ${{ steps.acs.outputs.head-score }}"
+    echo "delta: ${{ steps.acs.outputs.delta }}"
+    echo "new errors: ${{ steps.acs.outputs.new-errors }}"
+```
+
+The action emits these values before returning the final regression exit status. Use `if: always()` on a later step when you want to consume the metrics even after AgentConfigScore intentionally fails the job.
+
 ## Design principles
 
 1. **Regression-first.** A legacy repo does not need to become perfect before CI becomes useful.
@@ -166,6 +194,7 @@ Supported discovery includes:
 - [x] baseline → candidate regression comparison
 - [x] Markdown PR / Step Summary report
 - [x] first-class reusable GitHub Action
+- [x] structured GitHub Action outputs
 - [x] self-dogfooding PR regression workflow
 - [ ] Git-aware `--base-ref origin/main` without manual worktrees
 - [ ] SARIF output for GitHub code scanning
