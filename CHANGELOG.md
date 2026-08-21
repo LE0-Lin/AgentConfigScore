@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.16.0
+
+### Added
+
+- First-class recursive discovery and analysis of Codex `AGENTS.override.md` files.
+- Tests for override discovery, dangerous-command findings, nested scope-relative paths, same-directory override precedence, and nested override precedence.
+
+### Changed
+
+- Nested `AGENTS.override.md` files use the same repository-root / scope-relative path resolution and repository-boundary protections as nested `AGENTS.md`.
+- Exact contradictions across AGENTS-family files are treated as deterministically resolved when directory scope or Codex override precedence defines the winner.
+- Same-file contradictions and cross-system contradictions such as AGENTS-family instructions versus `CLAUDE.md` remain active findings.
+- Rule IDs, severities, penalties, and scoring category caps are unchanged.
+- Package version bumped to `0.16.0`.
+
 ## v0.15.0
 
 ### Added
