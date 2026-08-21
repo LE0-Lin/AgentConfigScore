@@ -23,7 +23,7 @@ AgentConfigScore is a deterministic regression gate for coding-agent configurati
 
 It is regression-first rather than perfection-first: an existing repository can start at 72/100 and adopt the gate immediately. A pull request that stays at 72 can pass; one that drops to 65 can fail.
 
-## Get running in two commands
+## Get running
 
 ```bash
 python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
@@ -36,6 +36,15 @@ agent-config-score init
 - `.github/workflows/agent-config-score.yml` — pull-request regression gate
 
 Review and commit those files. Pull requests are then checked automatically.
+
+Validate the integration and run the same regression check locally before pushing:
+
+```bash
+agent-config-score doctor
+agent-config-score diff
+```
+
+`diff` auto-detects a safe local default-branch baseline when possible. You can still pass an explicit ref such as `origin/main` whenever you want full control.
 
 Initialization is conservative: every target is preflighted before anything is written, conflicting files are never overwritten by default, and rerunning against matching generated files is idempotent.
 
@@ -137,20 +146,39 @@ Suppressions are baseline-governed too: a PR cannot add a suppression and use it
 
 ## Check locally before you push
 
-Compare the current working tree—including uncommitted changes—with a local Git branch, tag, or commit:
+The common path is now zero-config:
+
+```bash
+agent-config-score doctor
+agent-config-score diff
+```
+
+`doctor` validates the repository integration. `diff` compares the current working tree—including uncommitted changes—with a safe local default-branch baseline.
+
+When no `BASE_REF` is provided, AgentConfigScore detects a baseline conservatively in this order:
+
+1. locally configured `origin/HEAD`
+2. local `main`
+3. local `master`
+4. local `trunk`
+5. an upstream whose branch name itself is `main`, `master`, or `trunk`
+
+It deliberately does **not** use a feature-branch upstream such as `origin/my-feature` as the baseline, because doing so could hide committed changes relative to the real default branch.
+
+AgentConfigScore creates an isolated detached baseline worktree, compares it with your current repository, then removes the temporary worktree automatically. Automatic detection is fully offline and never runs `git fetch`.
+
+If no safe local baseline can be identified, pass one explicitly:
 
 ```bash
 agent-config-score diff origin/main
 ```
 
-AgentConfigScore creates an isolated detached baseline worktree, compares it with your current repository, then removes the temporary worktree automatically.
-
-It stays offline and never fetches a missing ref behind your back. If `origin/main` is unavailable locally, fetch it yourself and retry.
+If that ref is not available locally, fetch it yourself and retry. AgentConfigScore never fetches a missing ref behind your back.
 
 Trusted threshold overrides are explicit:
 
 ```bash
-agent-config-score diff origin/main \
+agent-config-score diff \
   --max-drop 3 \
   --no-fail-on-new-errors
 ```
@@ -230,10 +258,29 @@ Score the current repository:
 agent-config-score .
 ```
 
+Validate the repository integration:
+
+```bash
+agent-config-score doctor
+agent-config-score doctor --json
+```
+
+Run a local regression check with automatic baseline detection:
+
+```bash
+agent-config-score diff
+```
+
 Save a regression Markdown report:
 
 ```bash
-agent-config-score diff origin/main --markdown regression.md
+agent-config-score diff --markdown regression.md
+```
+
+Use an explicit baseline when needed:
+
+```bash
+agent-config-score diff origin/main
 ```
 
 Advanced: compare two already checked-out trees directly:
@@ -257,7 +304,7 @@ Override an absolute floor:
 agent-config-score . --fail-under 90
 ```
 
-Machine-readable output is available with `--json` for scans, `diff`, `compare`, and the rule catalog.
+Machine-readable output is available with `--json` for scans, `doctor`, `diff`, `compare`, and the rule catalog.
 
 ```bash
 agent-config-score --version
@@ -353,7 +400,7 @@ The Action emits outputs before returning its final regression status. Use `if: 
 1. **Regression-first.** Existing repositories do not have to become perfect before CI becomes useful.
 2. **Baseline-governed policy.** A candidate cannot weaken the gate evaluating itself.
 3. **Auditable exceptions.** Suppressions need a reason and expiry, remain visible, and cannot self-authorize.
-4. **Local-first.** Repository content is not uploaded to a hosted analysis service.
+4. **Local-first.** Repository content is not uploaded to a hosted analysis service, and automatic Git baseline detection does not fetch.
 5. **Explainable.** Scores map to stable rule IDs and visible findings.
 6. **Conservative.** Prefer a missed warning over noisy fake certainty.
 7. **Zero runtime dependencies.** Python 3.10+ standard library only.
@@ -367,11 +414,14 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] structured GitHub Action outputs
 - [x] SARIF output for GitHub code scanning
 - [x] Git-aware local diff without manual worktrees
+- [x] automatic local default-branch baseline detection
 - [x] baseline-governed repository policy
 - [x] safe one-command repository initialization
+- [x] repository integration doctor
 - [x] stable Rule Catalog and rule inspection
 - [x] reasoned / expiring suppressions
 - [x] JSON Schema + editor validation
+- [x] end-to-end behavior contract fixtures
 - [ ] score-history artifact / badge workflow
 - [ ] optional semantic contradiction plugin
 

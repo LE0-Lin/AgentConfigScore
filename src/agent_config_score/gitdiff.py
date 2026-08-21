@@ -12,6 +12,9 @@ class GitError(RuntimeError):
     """Raised when a Git-backed comparison cannot be prepared safely."""
 
 
+_DEFAULT_BRANCH_NAMES = ("main", "master", "trunk")
+
+
 def _run_git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     try:
         return subprocess.run(
@@ -33,6 +36,43 @@ def repository_root(path: Path) -> Path:
     if proc.returncode != 0:
         raise GitError(f"not a Git repository: {path}")
     return Path(proc.stdout.strip()).resolve()
+
+
+def _ref_exists(repo: Path, ref: str) -> bool:
+    proc = _run_git(repo, "rev-parse", "--verify", "--quiet", "--end-of-options", f"{ref}^{{commit}}")
+    return proc.returncode == 0
+
+
+def detect_base_ref(repo: Path) -> str:
+    """Detect a conservative local baseline without fetching from the network."""
+    repo = repository_root(repo)
+
+    # A locally configured origin/HEAD is the closest Git-native signal for
+    # the repository's default branch and does not require network access.
+    origin_head = _run_git(repo, "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD")
+    if origin_head.returncode == 0:
+        ref = origin_head.stdout.strip()
+        if ref and _ref_exists(repo, ref):
+            return ref
+
+    # Prefer conventional local default-branch names over a feature branch's
+    # upstream. Comparing a feature branch with origin/feature would hide the
+    # very committed changes a regression gate is supposed to evaluate.
+    for name in _DEFAULT_BRANCH_NAMES:
+        if _ref_exists(repo, name):
+            return name
+
+    upstream = _run_git(repo, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+    if upstream.returncode == 0:
+        ref = upstream.stdout.strip()
+        leaf = ref.rsplit("/", 1)[-1]
+        if leaf in _DEFAULT_BRANCH_NAMES and _ref_exists(repo, ref):
+            return ref
+
+    raise GitError(
+        "cannot detect a baseline Git ref. Pass one explicitly (for example: "
+        "agent-config-score diff origin/main), or configure origin/HEAD / a local main, master, or trunk branch."
+    )
 
 
 def resolve_commit(repo: Path, ref: str) -> str:
