@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.11.0
+
+### Added
+
+- First-party Draft 2020-12 JSON Schema for `.agentconfigscore.json`.
+- Editor validation for policy fields, suppression structure, stable rule IDs, date shape, reason constraints, and path scopes.
+- `$schema` annotations in newly initialized repositories.
+- AgentConfigScore now dogfoods the same schema in its own repository configuration.
+- Schema drift tests that compare the suppression rule enum directly with the stable Rule Catalog.
+- Tests that keep schema policy bounds and auditable suppression requirements aligned with parser behavior.
+
+### Changed
+
+- The configuration parser accepts an optional non-empty `$schema` annotation without using it as policy input.
+- `agent-config-score init` generates schema-annotated configuration while preserving zero runtime dependencies.
+- Package version bumped to `0.11.0`.
+
 ## v0.10.0
 
 ### Added
