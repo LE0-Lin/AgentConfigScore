@@ -45,6 +45,17 @@ Use `agent-config-score --version` to print the version.
 _DIFF_VALUE_OPTIONS = {"--path", "--markdown", "--max-drop"}
 
 
+def _configure_console_streams() -> None:
+    """Prevent unsupported terminal encodings from crashing the installed CLI."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(errors="backslashreplace")
+            except (AttributeError, ValueError):
+                pass
+
+
 def _doctor_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="agent-config-score doctor",
@@ -64,9 +75,9 @@ def _main_doctor(argv: list[str]) -> int:
     else:
         print("AgentConfigScore doctor")
         print(f"Repository: {report.root}\n")
-        symbols = {"pass": "✓", "warning": "!", "error": "✖"}
+        symbols = {"pass": "OK", "warning": "!", "error": "X"}
         for check in report.checks:
-            print(f"{symbols.get(check.status, '-')} {check.name:14} {check.message}")
+            print(f"{symbols.get(check.status, '-'):2} {check.name:14} {check.message}")
         print(f"\n{report.errors} error(s), {report.warnings} warning(s)")
 
     return 0 if report.ok else 1
@@ -121,6 +132,7 @@ def _main_diff(argv: list[str]) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _configure_console_streams()
     args = list(sys.argv[1:] if argv is None else argv)
     if args == ["--version"] or args == ["-V"]:
         print(f"AgentConfigScore {__version__}")
