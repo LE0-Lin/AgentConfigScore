@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 import sys
 
-from .gitdiff import GitError, compare_git_ref
+from .config import ConfigError, Policy, load_policy
+from .gitdiff import GitError, baseline_worktree, repository_root
 from .regression import compare, markdown_report
 from .sarif import sarif_report
 from .scanner import analyze, badge_svg, html_report
@@ -66,15 +67,20 @@ def build_scan_parser() -> argparse.ArgumentParser:
     p.add_argument("--html", metavar="FILE", help="Write a self-contained HTML report")
     p.add_argument("--badge", metavar="FILE", help="Write an SVG score badge")
     p.add_argument("--sarif", metavar="FILE", help="Write a SARIF 2.1.0 report for GitHub code scanning")
-    p.add_argument("--fail-under", type=int, default=None, metavar="N", help="Exit non-zero when score is below N")
+    p.add_argument("--fail-under", type=int, default=None, metavar="N", help="Override the repository policy score floor")
     return p
 
 
 def _add_regression_options(p: argparse.ArgumentParser) -> None:
     p.add_argument("--json", action="store_true", help="Print JSON instead of text")
     p.add_argument("--markdown", metavar="FILE", help="Write a Markdown regression summary")
-    p.add_argument("--max-drop", type=int, default=0, metavar="N", help="Allowed score drop before failing (default: 0)")
-    p.add_argument("--fail-on-new-errors", action="store_true", help="Fail when the candidate introduces any new error finding")
+    p.add_argument("--max-drop", type=int, default=None, metavar="N", help="Override the repository policy score-drop budget")
+    p.add_argument(
+        "--fail-on-new-errors",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Override whether newly introduced error findings fail the check",
+    )
 
 
 def build_compare_parser() -> argparse.ArgumentParser:
@@ -104,6 +110,13 @@ def _existing_dir(value: str) -> Path | None:
     return path if path.exists() and path.is_dir() else None
 
 
+def _resolve_regression_policy(args, policy: Policy) -> None:
+    args.max_drop = policy.max_drop if args.max_drop is None else args.max_drop
+    args.fail_on_new_errors = policy.fail_on_new_errors if args.fail_on_new_errors is None else args.fail_on_new_errors
+    if args.max_drop < 0:
+        raise ConfigError("--max-drop must be >= 0")
+
+
 def _finish_regression(report, args) -> int:
     if args.markdown:
         out = Path(args.markdown)
@@ -124,13 +137,6 @@ def _finish_regression(report, args) -> int:
     return 0
 
 
-def _validate_regression_options(args) -> bool:
-    if args.max_drop < 0:
-        print("error: --max-drop must be >= 0", file=sys.stderr)
-        return False
-    return True
-
-
 def _main_compare(argv: list[str]) -> int:
     args = build_compare_parser().parse_args(argv)
     base = _existing_dir(args.base)
@@ -141,7 +147,13 @@ def _main_compare(argv: list[str]) -> int:
     if head is None:
         print(f"error: not a directory: {args.head}", file=sys.stderr)
         return 2
-    if not _validate_regression_options(args):
+
+    try:
+        policy = load_policy(base)
+        load_policy(head)  # Validate candidate config, but never let it govern its own PR.
+        _resolve_regression_policy(args, policy)
+    except ConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
         return 2
 
     return _finish_regression(compare(base, head), args)
@@ -149,14 +161,20 @@ def _main_compare(argv: list[str]) -> int:
 
 def _main_diff(argv: list[str]) -> int:
     args = build_diff_parser().parse_args(argv)
-    if not _validate_regression_options(args):
-        return 2
 
     try:
-        report = compare_git_ref(Path(args.path), args.base_ref)
-    except GitError as exc:
+        repo = repository_root(Path(args.path))
+        with baseline_worktree(repo, args.base_ref) as (base, sha):
+            policy = load_policy(base)
+            load_policy(repo)  # Validate candidate config without trusting it yet.
+            _resolve_regression_policy(args, policy)
+            report = compare(base, repo)
+        report.base.root = f"git:{args.base_ref}@{sha[:12]}"
+        report.head.root = str(repo)
+    except (GitError, ConfigError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+
     return _finish_regression(report, args)
 
 
@@ -165,6 +183,17 @@ def _main_scan(argv: list[str]) -> int:
     root = Path(args.path)
     if not root.exists() or not root.is_dir():
         print(f"error: not a directory: {root}", file=sys.stderr)
+        return 2
+
+    try:
+        policy = load_policy(root)
+    except ConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    fail_under = policy.fail_under if args.fail_under is None else args.fail_under
+    if fail_under is not None and not 0 <= fail_under <= 100:
+        print("error: --fail-under must be between 0 and 100", file=sys.stderr)
         return 2
 
     report = analyze(root)
@@ -193,7 +222,7 @@ def _main_scan(argv: list[str]) -> int:
         if args.sarif:
             print(f"SARIF report: {Path(args.sarif).resolve()}")
 
-    if args.fail_under is not None and report.score < args.fail_under:
+    if fail_under is not None and report.score < fail_under:
         return 1
     return 0
 

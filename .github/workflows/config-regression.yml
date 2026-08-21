@@ -16,9 +16,6 @@ jobs:
       - name: Dogfood the local AgentConfigScore action
         id: acs
         uses: ./
-        with:
-          max-drop: "0"
-          fail-on-new-errors: "true"
       - name: Validate structured action outputs
         shell: bash
         env:
