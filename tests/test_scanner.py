@@ -16,6 +16,16 @@ class ScannerTests(unittest.TestCase):
             names = [p.relative_to(root).as_posix() for p in discover(root)]
             self.assertEqual(names, [".github/copilot-instructions.md", "AGENTS.md"])
 
+    def test_discovery_includes_nested_agents(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            nested = root / "packages" / "api"
+            nested.mkdir(parents=True)
+            (root / "AGENTS.md").write_text("Root instructions.\n", encoding="utf-8")
+            (nested / "AGENTS.md").write_text("API instructions.\n", encoding="utf-8")
+            names = [p.relative_to(root).as_posix() for p in discover(root)]
+            self.assertEqual(names, ["AGENTS.md", "packages/api/AGENTS.md"])
+
     def test_dangerous_command_reduces_score(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -30,6 +40,43 @@ class ScannerTests(unittest.TestCase):
             (root / "AGENTS.md").write_text("Always edit `src/missing.py` before tests.\n", encoding="utf-8")
             report = analyze(root)
             self.assertTrue(any(f.code == "dead-path" for f in report.findings))
+
+    def test_nested_agents_accepts_scope_relative_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            nested = root / "packages" / "api"
+            docs = nested / "docs"
+            docs.mkdir(parents=True)
+            (root / "AGENTS.md").write_text("Root instructions.\n", encoding="utf-8")
+            (nested / "AGENTS.md").write_text("Always read `docs/guide.md` before edits.\n", encoding="utf-8")
+            (docs / "guide.md").write_text("guide\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertFalse(any(f.code == "dead-path" for f in report.findings))
+
+    def test_nested_agents_still_accepts_repo_root_relative_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            nested = root / "packages" / "api"
+            nested.mkdir(parents=True)
+            src = root / "src"
+            src.mkdir()
+            (src / "core.py").write_text("pass\n", encoding="utf-8")
+            (root / "AGENTS.md").write_text("Root instructions.\n", encoding="utf-8")
+            (nested / "AGENTS.md").write_text("Always inspect `src/core.py` before edits.\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertFalse(any(f.code == "dead-path" for f in report.findings))
+
+    def test_dead_path_does_not_probe_outside_repository(self):
+        with tempfile.TemporaryDirectory() as d:
+            workspace = Path(d)
+            root = workspace / "repo"
+            nested = root / "packages" / "api"
+            nested.mkdir(parents=True)
+            (workspace / "outside.txt").write_text("outside\n", encoding="utf-8")
+            (root / "AGENTS.md").write_text("Root instructions.\n", encoding="utf-8")
+            (nested / "AGENTS.md").write_text("Always inspect `../../../outside.txt` first.\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertFalse(any(f.code == "dead-path" for f in report.findings))
 
     def test_shell_snippet_is_not_dead_path(self):
         with tempfile.TemporaryDirectory() as d:
@@ -70,6 +117,39 @@ class ScannerTests(unittest.TestCase):
             root = Path(d)
             (root / "AGENTS.md").write_text("Always modify generated files\n", encoding="utf-8")
             (root / "CLAUDE.md").write_text("Never modify generated files\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertTrue(any(f.code == "contradiction" for f in report.findings))
+
+    def test_nested_agents_override_is_not_contradiction(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            nested = root / "packages" / "api"
+            nested.mkdir(parents=True)
+            (root / "AGENTS.md").write_text("Always modify generated files\n", encoding="utf-8")
+            (nested / "AGENTS.md").write_text("Never modify generated files\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertFalse(any(f.code == "contradiction" for f in report.findings))
+
+    def test_sibling_agents_scopes_are_not_contradiction(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            api = root / "packages" / "api"
+            web = root / "packages" / "web"
+            api.mkdir(parents=True)
+            web.mkdir(parents=True)
+            (root / "AGENTS.md").write_text("Root instructions.\n", encoding="utf-8")
+            (api / "AGENTS.md").write_text("Always modify generated files\n", encoding="utf-8")
+            (web / "AGENTS.md").write_text("Never modify generated files\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertFalse(any(f.code == "contradiction" for f in report.findings))
+
+    def test_contradiction_inside_one_agents_file_still_fails(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "Always modify generated files\nNever modify generated files\n",
+                encoding="utf-8",
+            )
             report = analyze(root)
             self.assertTrue(any(f.code == "contradiction" for f in report.findings))
 
@@ -153,7 +233,7 @@ class RegressionTests(unittest.TestCase):
             head = Path(head_dir)
             (base / "AGENTS.md").write_text("Run tests before submitting.\n", encoding="utf-8")
             (head / "AGENTS.md").write_text("Run tests before submitting.\n", encoding="utf-8")
-            text = markdown_report(compare(base, head))
+            text = markdown_report(compare(base, head)
             self.assertIn("AgentConfigScore regression", text)
             self.assertIn("100/100", text)
 
