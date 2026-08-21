@@ -22,6 +22,22 @@ Python 3.10+ is supported.
 - Real-world examples of agent-instruction failures that can be reduced to safe test fixtures.
 - Documentation that makes adoption simpler.
 
+## Contribute a real-world regression fixture
+
+Issue [#8](https://github.com/LE0-Lin/AgentConfigScore/issues/8) collects real failures from `AGENTS.md`, `CLAUDE.md`, Cursor, Copilot, Gemini, and similar instruction files. Sanitized examples are especially useful because they can turn into deterministic regression tests.
+
+A useful fixture contribution is intentionally small:
+
+1. Remove company names, credentials, private paths, and unrelated instructions.
+2. Keep only the minimum text needed to reproduce the failure mode.
+3. Add or update a test in `tests/` that fails before the fix and passes after it.
+4. Run `python -m unittest discover -s tests -v` and `agent-config-score . --fail-under 90`.
+5. In the pull request, explain the real-world failure in one or two sentences and why the proposed check is conservative.
+
+You do **not** need to share a private repository. A synthetic fixture that faithfully reproduces the failure is preferred.
+
+Good examples include stale referenced paths after a refactor, conflicting instructions across tools, unsafe shell guidance, accidental secret-like content, or instruction growth/duplication that creates a clear deterministic regression.
+
 ## Pull requests
 
 Keep PRs focused. Describe the behavior change, add tests when behavior changes, and run the full unit suite before submitting.
