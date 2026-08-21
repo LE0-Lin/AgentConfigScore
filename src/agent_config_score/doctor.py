@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from .config import CONFIG_NAME, SCHEMA_URL, ConfigError, load_policy
-from .gitdiff import GitError, repository_root
+from .gitdiff import GitError, detect_base_ref, repository_root
 from .scanner import discover
 
 
@@ -164,6 +164,20 @@ def diagnose(root: Path) -> DoctorReport:
         checks.append(DoctorCheck("git", "warning", f"Git-native diff is unavailable: {exc}"))
     else:
         checks.append(DoctorCheck("git", "pass", f"Git repository detected at {git_root}."))
+        try:
+            base_ref = detect_base_ref(git_root)
+        except GitError as exc:
+            checks.append(DoctorCheck(
+                "baseline",
+                "warning",
+                f"Automatic diff baseline is unavailable: {exc}",
+            ))
+        else:
+            checks.append(DoctorCheck(
+                "baseline",
+                "pass",
+                f"Automatic diff baseline resolves to {base_ref}.",
+            ))
 
     checks.append(_check_workflow(root))
     return DoctorReport(str(root), tuple(checks))
