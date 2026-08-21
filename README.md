@@ -17,13 +17,13 @@
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
 </p>
 
-AgentConfigScore is a small, deterministic regression gate for coding-agent configuration. It compares a pull request with its base revision and answers one CI-friendly question:
+AgentConfigScore is a deterministic regression gate for coding-agent configuration. It compares a change with its baseline and answers one CI-friendly question:
 
 > **Did this change make our agent instructions worse?**
 
-## Get running in two commands
+It is regression-first rather than perfection-first: an existing repository can start at 72/100 and adopt the gate immediately. A pull request that stays at 72 can pass; one that drops to 65 can fail.
 
-Install the rolling pre-1.0 release and initialize your repository:
+## Get running in two commands
 
 ```bash
 python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
@@ -32,22 +32,148 @@ agent-config-score init
 
 `init` safely creates:
 
-- `.agentconfigscore.json` — version-controlled regression policy
+- `.agentconfigscore.json` — version-controlled policy, suppressions, and editor schema annotation
 - `.github/workflows/agent-config-score.yml` — pull-request regression gate
 
-Review and commit those two files. From then on, pull requests are checked automatically.
+Review and commit those files. Pull requests are then checked automatically.
 
-Initialization is deliberately conservative: it preflights every target before writing, never overwrites a conflicting file by default, and is idempotent when the generated files already match.
+Initialization is conservative: every target is preflighted before anything is written, conflicting files are never overwritten by default, and rerunning against matching generated files is idempotent.
 
 ```bash
 agent-config-score init --dry-run      # preview without writing
-agent-config-score init --no-workflow  # policy file only
+agent-config-score init --no-workflow  # config only
 agent-config-score init --force        # intentionally replace conflicting generated files
 ```
 
-### Manual GitHub Actions setup
+`v0` is the rolling stable ref for the current pre-1.0 series.
 
-If you prefer to create the workflow yourself, add `.github/workflows/agent-config-score.yml`:
+## Repository policy + editor validation
+
+A generated config looks like this:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/v0/schema/agentconfigscore.schema.json",
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true
+  }
+}
+```
+
+The `$schema` annotation enables live validation and completion in editors that support JSON Schema. It can catch misspelled policy keys, wrong value types, unknown suppression rule IDs, missing suppression fields, and malformed path scopes before CI runs.
+
+The schema is Draft 2020-12 and lives at `schema/agentconfigscore.schema.json`. AgentConfigScore's tests verify that its suppression rule enum stays exactly aligned with the stable Rule Catalog, so editor hints cannot silently drift away from scanner behavior.
+
+Policy fields:
+
+| Key | Default | Meaning |
+|---|---:|---|
+| `max_drop` | `0` | Maximum score decrease allowed by `diff` / `compare` |
+| `fail_on_new_errors` | `false` in the CLI; `true` in the Action when no policy file exists | Fail on newly introduced active error findings |
+| `fail_under` | unset | Optional absolute score floor for a normal scan |
+
+An absolute floor is optional:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/v0/schema/agentconfigscore.schema.json",
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true,
+    "fail_under": 90
+  }
+}
+```
+
+### Why the baseline policy governs a PR
+
+A pull request must not be able to weaken the gate that reviews it.
+
+For `diff`, `compare`, and the reusable GitHub Action, AgentConfigScore uses the **baseline** policy to decide pass/fail. The candidate config is still parsed and validated, but new thresholds only become active after that config is reviewed, merged, and becomes a later baseline.
+
+A candidate changing `max_drop` to `100` therefore cannot use that weaker value to pass itself. Explicit CLI or Action inputs remain available as trusted invocation-time overrides.
+
+## Auditable exceptions
+
+Sometimes a finding is understood and intentionally accepted. AgentConfigScore supports suppressions, but does not treat them as a permanent ignore list.
+
+Every suppression must name a stable rule, explain the exception, and expire:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/v0/schema/agentconfigscore.schema.json",
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true
+  },
+  "suppressions": [
+    {
+      "rule": "dead-path",
+      "reason": "Generated docs reference paths that only exist after deployment.",
+      "expires": "2026-12-31",
+      "paths": ["docs/**"]
+    }
+  ]
+}
+```
+
+Rules for suppressions:
+
+- `rule` must be a known stable AgentConfigScore rule ID
+- `reason` must be non-empty and is limited to 500 characters
+- `expires` must be `YYYY-MM-DD`
+- an expired suppression is a configuration error; remove it or explicitly renew it
+- `paths` is optional and accepts unique instruction-file glob patterns
+- path-scoped suppressions never hide repository-level findings such as cross-file contradiction
+- duplicate rule/path scopes are rejected
+
+Suppressions are **not silent**. A matching finding stops contributing to score and regression decisions, but remains visible in the `suppressed_findings` audit trail in JSON and is shown with its reason and expiry in terminal, HTML, and Markdown output.
+
+Suppressions are baseline-governed too: a PR cannot add a suppression and use it to excuse a finding introduced by that same PR. The baseline suppression set is applied to both sides of a regression comparison.
+
+## Check locally before you push
+
+Compare the current working tree—including uncommitted changes—with a local Git branch, tag, or commit:
+
+```bash
+agent-config-score diff origin/main
+```
+
+AgentConfigScore creates an isolated detached baseline worktree, compares it with your current repository, then removes the temporary worktree automatically.
+
+It stays offline and never fetches a missing ref behind your back. If `origin/main` is unavailable locally, fetch it yourself and retry.
+
+Trusted threshold overrides are explicit:
+
+```bash
+agent-config-score diff origin/main \
+  --max-drop 3 \
+  --no-fail-on-new-errors
+```
+
+You can run `diff` from any subdirectory inside the repository. Use `--path DIR` to point at another local repository.
+
+## What a failing PR looks like
+
+```text
+AgentConfigScore regression  A 96 → B 84 (-12)
+New findings: 2   Resolved: 0   Suppressed: 0
+
++ ERROR   curl-pipe-shell      Remote script piped directly to a shell
+          .github/copilot-instructions.md:12
++ WARNING dead-path            Referenced path does not exist: src/legacy_auth.py
+          AGENTS.md:31
+```
+
+**Live proof:** [PR #6](https://github.com/LE0-Lin/AgentConfigScore/pull/6) deliberately added an unsafe `curl | bash` instruction. AgentConfigScore changed the score from **A 100 → B 82 (-18)**, reported a new `curl-pipe-shell` error, failed the GitHub Actions job, and the PR was closed without merging.
+
+## Manual GitHub Actions setup
+
+If you do not want to use `init`, create `.github/workflows/agent-config-score.yml` yourself:
 
 ```yaml
 name: agent-config-regression
@@ -68,221 +194,13 @@ jobs:
       - uses: LE0-Lin/AgentConfigScore@v0
 ```
 
-`v0` is the rolling stable ref for the current pre-1.0 series. Without a policy file, the Action keeps its conservative compatibility defaults: no score drop is allowed and newly introduced error findings fail the job.
+The Action installs AgentConfigScore, resolves the PR base commit, applies baseline policy and suppressions, writes a Markdown report to the GitHub Actions Step Summary, exposes structured outputs, and returns the final regression status.
 
-The action installs AgentConfigScore, finds the PR base commit, compares it with the candidate, writes a Markdown report to the GitHub Actions Step Summary, and fails the job when the configured regression policy is violated.
+Without a policy file, the Action preserves its conservative compatibility defaults: `max_drop = 0` and `fail_on_new_errors = true`.
 
-## Keep policy in the repository
+## Stable rule catalog
 
-`agent-config-score init` starts with a conservative policy:
-
-```json
-{
-  "version": 1,
-  "policy": {
-    "max_drop": 0,
-    "fail_on_new_errors": true
-  }
-}
-```
-
-You can optionally add an absolute scan floor:
-
-```json
-{
-  "version": 1,
-  "policy": {
-    "max_drop": 0,
-    "fail_on_new_errors": true,
-    "fail_under": 90
-  }
-}
-```
-
-| Policy key | Default | Meaning |
-|---|---:|---|
-| `max_drop` | `0` | Maximum score decrease allowed by `diff` / `compare` |
-| `fail_on_new_errors` | `false` in CLI, `true` in the Action when no policy file exists | Fail regression checks on newly introduced error findings |
-| `fail_under` | unset | Optional absolute score floor for a normal scan |
-
-### Why baseline policy governs a PR
-
-A pull request must not be able to disable the gate that reviews it.
-
-For `diff` and `compare`, AgentConfigScore uses the **baseline** `.agentconfigscore.json` to decide pass/fail. The candidate policy is still parsed and validated, but its new thresholds only become active after the change is merged and becomes the baseline for a later PR.
-
-That means a PR changing:
-
-```json
-{"policy":{"max_drop":100,"fail_on_new_errors":false}}
-```
-
-cannot use those weaker values to pass itself.
-
-Explicit CLI or Action inputs remain available as trusted invocation-time overrides.
-
-## Make exceptions auditable
-
-Sometimes a rule is correct in general but a repository has a reviewed exception. AgentConfigScore supports suppressions, but deliberately does **not** treat them like a permanent ignore list.
-
-Every suppression must name a stable rule, explain why it exists, and have an expiry date:
-
-```json
-{
-  "version": 1,
-  "policy": {
-    "max_drop": 0,
-    "fail_on_new_errors": true
-  },
-  "suppressions": [
-    {
-      "rule": "dead-path",
-      "reason": "Generated docs reference paths that only exist after deployment.",
-      "expires": "2026-12-31",
-      "paths": ["docs/**"]
-    }
-  ]
-}
-```
-
-`paths` is optional. Without it, the suppression applies to that rule throughout the repository. With it, only findings whose instruction-file path matches one of the globs are suppressed. Repository-level findings such as cross-file contradiction or duplication cannot be hidden by a path-scoped suppression; omit `paths` when a reviewed repository-level exception is genuinely required.
-
-AgentConfigScore validates suppressions strictly:
-
-- unknown rule IDs are rejected
-- `reason` must be non-empty
-- `expires` must use `YYYY-MM-DD`
-- expired suppressions are configuration errors and must be removed or explicitly renewed
-- duplicate rule/path scopes are rejected
-
-A suppression does not erase history. Suppressed findings are removed from scoring and regression decisions, but remain visible under `suppressed_findings` in JSON and are shown with their reason and expiry in terminal, HTML, and Markdown reports.
-
-### Suppressions are baseline-governed too
-
-A candidate PR cannot add a suppression and use it to excuse a finding introduced by that same PR.
-
-For `diff`, `compare`, and the reusable GitHub Action, AgentConfigScore validates the candidate config but applies the **baseline suppression set to both repository trees**. A new suppression only starts governing later changes after it has been reviewed, merged, and become part of the baseline.
-
-That makes suppression changes reviewable policy decisions instead of an escape hatch inside a failing PR.
-
-## Check locally before you push
-
-Compare your current working tree with any local Git branch, tag, or commit:
-
-```bash
-agent-config-score diff origin/main
-```
-
-If the repository contains `.agentconfigscore.json`, the baseline policy and baseline suppressions are applied automatically. You can still override regression thresholds explicitly when you intend to:
-
-```bash
-agent-config-score diff origin/main \
-  --max-drop 3 \
-  --no-fail-on-new-errors
-```
-
-`diff` includes **uncommitted changes** in the current working tree. AgentConfigScore creates an isolated detached worktree for the baseline ref, compares it with your repository, then removes the temporary worktree automatically.
-
-It stays offline and never fetches a missing ref behind your back. If `origin/main` is not available locally, run `git fetch origin` yourself and retry.
-
-You can run the command from any subdirectory inside the repository. Use `--path DIR` when you want to point at a different local repository.
-
-## What a failing PR looks like
-
-```text
-AgentConfigScore regression  A 96 → B 84 (-12)
-New findings: 2   Resolved: 0
-
-+ ERROR   curl-pipe-shell      Remote script piped directly to a shell
-          .github/copilot-instructions.md:12
-+ WARNING dead-path            Referenced path does not exist: src/legacy_auth.py
-          AGENTS.md:31
-```
-
-**Live proof:** [PR #6](https://github.com/LE0-Lin/AgentConfigScore/pull/6) deliberately added an unsafe `curl | bash` instruction. AgentConfigScore changed the score from **A 100 → B 82 (-18)**, reported one new `curl-pipe-shell` error, and failed the GitHub Actions job. The PR was then closed without merging.
-
-This is intentionally different from an absolute quality gate. A legacy repository can start at 72/100 and still adopt AgentConfigScore immediately: a PR that stays at 72 passes, while a PR that drops to 65 fails.
-
-## Why regression-first?
-
-There are already good tools for linting the **current state** of AI-agent instructions. AgentConfigScore deliberately focuses on a narrower job:
-
-| | AgentConfigScore |
-|---|---|
-| Primary question | **Did this PR regress agent configuration?** |
-| CI model | Baseline → candidate comparison |
-| Output | Score delta + new/resolved findings |
-| Adoption | Existing imperfect repos can use it immediately |
-| Runtime | Python standard library only |
-| Network / API key | Not required |
-| Scoring | Deterministic and explainable |
-| Supported configs | AGENTS.md, CLAUDE.md, Cursor, Copilot, Gemini and more |
-
-Think **regression gate**, not another AI reviewer.
-
-## CLI reference
-
-Initialize a repository:
-
-```bash
-agent-config-score init
-```
-
-Score the current repository without a baseline:
-
-```bash
-agent-config-score .
-```
-
-Inspect the complete rule catalog or one specific rule:
-
-```bash
-agent-config-score rules
-agent-config-score rules curl-pipe-shell
-agent-config-score rules --json
-```
-
-Run the Git-native regression check and save a Markdown report:
-
-```bash
-agent-config-score diff origin/main \
-  --markdown regression.md
-```
-
-For scripts and custom integrations, add `--json` to either `diff` or `compare`.
-
-Advanced: compare two already checked-out directory trees directly:
-
-```bash
-agent-config-score compare ../repo-base . \
-  --markdown regression.md
-```
-
-Generate local HTML, badge, and SARIF reports:
-
-```bash
-agent-config-score . \
-  --html .agent-config-score/report.html \
-  --badge .agent-config-score/badge.svg \
-  --sarif .agent-config-score/results.sarif
-```
-
-Enforce an absolute score floor directly when you want to override repository policy:
-
-```bash
-agent-config-score . --fail-under 90
-```
-
-Inspect the installed version and command overview:
-
-```bash
-agent-config-score --version
-agent-config-score --help
-```
-
-## Understand every rule
-
-AgentConfigScore has a stable rule catalog instead of hiding scoring logic inside the scanner. Every rule has one canonical definition containing:
+Scoring logic is not hidden inside prose. Every rule has one canonical definition containing:
 
 - rule ID
 - default severity
@@ -291,26 +209,64 @@ AgentConfigScore has a stable rule catalog instead of hiding scoring logic insid
 - short summary
 - longer explanation
 
-For example:
+Inspect all rules or one rule:
 
 ```bash
+agent-config-score rules
 agent-config-score rules curl-pipe-shell
-```
-
-prints the rule's severity, category, penalty, summary, and explanation. Use JSON when another tool needs the same contract:
-
-```bash
 agent-config-score rules --json
 agent-config-score rules dead-path --json
 ```
 
-The scanner, scoring categories, CLI rule inspection, SARIF rule metadata, and suppression validation all read from the same catalog. This keeps human-facing explanations, machine-facing output, and policy configuration aligned.
+The scanner, scoring categories, CLI rule inspection, SARIF metadata, suppression validation, and config JSON Schema all derive from or are tested against the same stable catalog.
+
+Current rule families include context size, cross-file duplication, contradictions, dead paths, dangerous shell commands, common credential patterns, and missing canonical `AGENTS.md` coordination.
+
+## CLI reference
+
+Score the current repository:
+
+```bash
+agent-config-score .
+```
+
+Save a regression Markdown report:
+
+```bash
+agent-config-score diff origin/main --markdown regression.md
+```
+
+Advanced: compare two already checked-out trees directly:
+
+```bash
+agent-config-score compare ../repo-base . --markdown regression.md
+```
+
+Generate local reports:
+
+```bash
+agent-config-score . \
+  --html .agent-config-score/report.html \
+  --badge .agent-config-score/badge.svg \
+  --sarif .agent-config-score/results.sarif
+```
+
+Override an absolute floor:
+
+```bash
+agent-config-score . --fail-under 90
+```
+
+Machine-readable output is available with `--json` for scans, `diff`, `compare`, and the rule catalog.
+
+```bash
+agent-config-score --version
+agent-config-score --help
+```
 
 ## GitHub code scanning with SARIF
 
-`--sarif` writes a SARIF 2.1.0 report with AgentConfigScore rule IDs, severity levels, source locations, descriptions, categories, and scoring penalties. That means active findings can be uploaded into GitHub code scanning instead of living only in terminal output. Suppressed findings remain in AgentConfigScore's own audit output rather than being emitted as active SARIF results.
-
-A minimal upload workflow for a public repository looks like this:
+`--sarif` writes SARIF 2.1.0 with rule IDs, severity, source location, descriptions, categories, and scoring penalties. Active findings can therefore be uploaded into GitHub code scanning. Suppressed findings remain in AgentConfigScore's explicit audit output rather than being emitted as active SARIF results.
 
 ```yaml
 name: agent-config-code-scanning
@@ -338,20 +294,9 @@ jobs:
           category: agent-config-score
 ```
 
-The SARIF generator keeps repository-level findings such as cross-file duplication or missing canonical `AGENTS.md` as repository-level results instead of inventing fake file locations.
+Repository-level findings remain repository-level SARIF results instead of receiving invented file locations.
 
-## What it checks today
-
-| Check | What it catches |
-|---|---|
-| Context size | Oversized persistent instruction files |
-| Cross-file duplication | Repeated meaningful rules across agent configs |
-| Contradictions | Conservative exact-body `always` vs `never` conflicts |
-| Dead paths | Referenced repository paths that no longer exist |
-| Dangerous shell | `curl \| bash`, `wget \| sh`, `rm -rf`, `sudo`, `chmod 777` |
-| Secret patterns | Common API token/private-key signatures |
-| Canonical config | Multiple tool-specific files without a root `AGENTS.md` |
-| **Regression diff** | New findings and score drops introduced by a change |
+## What it scans
 
 Supported discovery includes:
 
@@ -363,7 +308,10 @@ Supported discovery includes:
 - `.github/copilot-instructions.md`
 - `.github/instructions/*.md`
 - `.claude/**/*.md`
-- `.clinerules` / `.windsurfrules`
+- `.clinerules`
+- `.windsurfrules`
+
+`.agentconfigscoreignore` can exclude discovery paths when needed.
 
 ## Action inputs
 
@@ -374,11 +322,7 @@ Supported discovery includes:
 | `fail-on-new-errors` | empty | Optional trusted override for baseline `policy.fail_on_new_errors` |
 | `python-version` | `3.12` | Python used by the composite action |
 
-When the override inputs are empty, the Action uses the baseline repository policy. If no policy file exists, it preserves the historical Action defaults: `max_drop = 0` and `fail_on_new_errors = true`.
-
 ## Action outputs
-
-The reusable action exposes structured numeric outputs so later workflow steps can build comments, dashboards, badges, or custom policy around the same deterministic comparison.
 
 | Output | Meaning |
 |---|---|
@@ -386,7 +330,7 @@ The reusable action exposes structured numeric outputs so later workflow steps c
 | `head-score` | Candidate AgentConfigScore |
 | `delta` | Candidate minus baseline score |
 | `new-findings` | Number of newly introduced active findings |
-| `new-errors` | Number of newly introduced active error-severity findings |
+| `new-errors` | Number of newly introduced active error findings |
 | `resolved-findings` | Number of active findings resolved by the candidate |
 
 ```yaml
@@ -402,15 +346,15 @@ The reusable action exposes structured numeric outputs so later workflow steps c
     echo "new errors: ${{ steps.acs.outputs.new-errors }}"
 ```
 
-The action emits these values before returning the final regression exit status. Use `if: always()` on a later step when you want to consume the metrics even after AgentConfigScore intentionally fails the job.
+The Action emits outputs before returning its final regression status. Use `if: always()` when a downstream step must consume metrics even after the gate intentionally fails.
 
 ## Design principles
 
-1. **Regression-first.** A legacy repo does not need to become perfect before CI becomes useful.
-2. **Baseline-governed policy.** A candidate change cannot weaken the gate evaluating itself.
-3. **Auditable exceptions.** Suppressions require a reason and expiry, remain visible, and cannot self-authorize in the same PR.
+1. **Regression-first.** Existing repositories do not have to become perfect before CI becomes useful.
+2. **Baseline-governed policy.** A candidate cannot weaken the gate evaluating itself.
+3. **Auditable exceptions.** Suppressions need a reason and expiry, remain visible, and cannot self-authorize.
 4. **Local-first.** Repository content is not uploaded to a hosted analysis service.
-5. **Explainable.** Every score change maps to visible findings and stable rule metadata.
+5. **Explainable.** Scores map to stable rule IDs and visible findings.
 6. **Conservative.** Prefer a missed warning over noisy fake certainty.
 7. **Zero runtime dependencies.** Python 3.10+ standard library only.
 
@@ -421,15 +365,14 @@ The action emits these values before returning the final regression exit status.
 - [x] Markdown PR / Step Summary report
 - [x] first-class reusable GitHub Action
 - [x] structured GitHub Action outputs
-- [x] self-dogfooding PR regression workflow
 - [x] SARIF output for GitHub code scanning
 - [x] Git-aware local diff without manual worktrees
-- [x] baseline-governed repository policy/config file
+- [x] baseline-governed repository policy
 - [x] safe one-command repository initialization
-- [x] stable rule catalog and rule-inspection command
-- [x] reasoned / expiring rule suppression
-- [ ] JSON Schema and editor validation for `.agentconfigscore.json`
-- [ ] score-history badge for public repositories
+- [x] stable Rule Catalog and rule inspection
+- [x] reasoned / expiring suppressions
+- [x] JSON Schema + editor validation
+- [ ] score-history artifact / badge workflow
 - [ ] optional semantic contradiction plugin
 
 ## Development
