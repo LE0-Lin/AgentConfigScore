@@ -190,6 +190,14 @@ Score the current repository without a baseline:
 agent-config-score .
 ```
 
+Inspect the complete rule catalog or one specific rule:
+
+```bash
+agent-config-score rules
+agent-config-score rules curl-pipe-shell
+agent-config-score rules --json
+```
+
 Run the Git-native regression check and save a Markdown report:
 
 ```bash
@@ -228,9 +236,35 @@ agent-config-score --version
 agent-config-score --help
 ```
 
+## Understand every rule
+
+AgentConfigScore has a stable rule catalog instead of hiding scoring logic inside the scanner. Every rule has one canonical definition containing:
+
+- rule ID
+- default severity
+- scoring category
+- penalty before category caps
+- short summary
+- longer explanation
+
+For example:
+
+```bash
+agent-config-score rules curl-pipe-shell
+```
+
+prints the rule's severity, category, penalty, summary, and explanation. Use JSON when another tool needs the same contract:
+
+```bash
+agent-config-score rules --json
+agent-config-score rules dead-path --json
+```
+
+The scanner, scoring categories, CLI rule inspection, and SARIF rule metadata all read from the same catalog. This keeps the human-facing explanation and machine-facing output aligned and provides a stable base for future rule suppression and policy controls.
+
 ## GitHub code scanning with SARIF
 
-`--sarif` writes a SARIF 2.1.0 report with AgentConfigScore rule IDs, severity levels, and source locations. That means findings can be uploaded into GitHub code scanning instead of living only in terminal output.
+`--sarif` writes a SARIF 2.1.0 report with AgentConfigScore rule IDs, severity levels, source locations, descriptions, categories, and scoring penalties. That means findings can be uploaded into GitHub code scanning instead of living only in terminal output.
 
 A minimal upload workflow for a public repository looks like this:
 
@@ -331,7 +365,7 @@ The action emits these values before returning the final regression exit status.
 1. **Regression-first.** A legacy repo does not need to become perfect before CI becomes useful.
 2. **Baseline-governed policy.** A candidate change cannot weaken the gate evaluating itself.
 3. **Local-first.** Repository content is not uploaded to a hosted analysis service.
-4. **Explainable.** Every score change maps to visible findings.
+4. **Explainable.** Every score change maps to visible findings and stable rule metadata.
 5. **Conservative.** Prefer a missed warning over noisy fake certainty.
 6. **Zero runtime dependencies.** Python 3.10+ standard library only.
 
@@ -347,7 +381,8 @@ The action emits these values before returning the final regression exit status.
 - [x] Git-aware local diff without manual worktrees
 - [x] baseline-governed repository policy/config file
 - [x] safe one-command repository initialization
-- [ ] stable rule catalog and rule-inspection command
+- [x] stable rule catalog and rule-inspection command
+- [ ] reasoned / expiring rule suppression
 - [ ] score-history badge for public repositories
 - [ ] optional semantic contradiction plugin
 

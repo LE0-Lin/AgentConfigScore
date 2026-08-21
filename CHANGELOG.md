@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.9.0
+
+### Added
+
+- Stable rule catalog with one metadata source for rule ID, severity, scoring category, penalty, summary, and description.
+- `agent-config-score rules` for human-readable rule discovery.
+- `agent-config-score rules RULE_ID` for detailed rule explanations.
+- JSON rule-catalog output for scripts and future policy tooling.
+- Catalog integrity tests covering scanner and SARIF metadata alignment.
+
+### Changed
+
+- Scanner pattern rules now reference shared catalog metadata instead of duplicating severity, penalty, and message fields.
+- Scoring category caps are centralized with the rule catalog.
+- SARIF rule descriptions, categories, severities, and penalties are generated from the shared catalog.
+- The rule-catalog refactor is score-neutral for existing findings.
+- Package version bumped to `0.9.0`.
+
 ## v0.8.0
 
 ### Added
