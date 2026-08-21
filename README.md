@@ -21,9 +21,33 @@ AgentConfigScore is a small, deterministic regression gate for coding-agent conf
 
 > **Did this change make our agent instructions worse?**
 
-## Add it to any repository
+## Get running in two commands
 
-Create `.github/workflows/agent-config-score.yml`:
+Install the rolling pre-1.0 release and initialize your repository:
+
+```bash
+python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
+agent-config-score init
+```
+
+`init` safely creates:
+
+- `.agentconfigscore.json` — version-controlled regression policy
+- `.github/workflows/agent-config-score.yml` — pull-request regression gate
+
+Review and commit those two files. From then on, pull requests are checked automatically.
+
+Initialization is deliberately conservative: it preflights every target before writing, never overwrites a conflicting file by default, and is idempotent when the generated files already match.
+
+```bash
+agent-config-score init --dry-run      # preview without writing
+agent-config-score init --no-workflow  # policy file only
+agent-config-score init --force        # intentionally replace conflicting generated files
+```
+
+### Manual GitHub Actions setup
+
+If you prefer to create the workflow yourself, add `.github/workflows/agent-config-score.yml`:
 
 ```yaml
 name: agent-config-regression
@@ -44,15 +68,25 @@ jobs:
       - uses: LE0-Lin/AgentConfigScore@v0
 ```
 
-That is the whole integration. `v0` is the rolling stable ref for the current pre-1.0 series.
-
-Without a policy file, the Action keeps the conservative defaults used since the first reusable release: no score drop is allowed and newly introduced error findings fail the job.
+`v0` is the rolling stable ref for the current pre-1.0 series. Without a policy file, the Action keeps its conservative compatibility defaults: no score drop is allowed and newly introduced error findings fail the job.
 
 The action installs AgentConfigScore, finds the PR base commit, compares it with the candidate, writes a Markdown report to the GitHub Actions Step Summary, and fails the job when the configured regression policy is violated.
 
 ## Keep policy in the repository
 
-Add `.agentconfigscore.json` when you want one version-controlled policy shared by local checks and CI:
+`agent-config-score init` starts with a conservative policy:
+
+```json
+{
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true
+  }
+}
+```
+
+You can optionally add an absolute scan floor:
 
 ```json
 {
@@ -89,13 +123,7 @@ Explicit CLI or Action inputs remain available as trusted invocation-time overri
 
 ## Check locally before you push
 
-Install the rolling pre-1.0 release directly from GitHub:
-
-```bash
-python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
-```
-
-Then compare your current working tree with any local Git branch, tag, or commit:
+Compare your current working tree with any local Git branch, tag, or commit:
 
 ```bash
 agent-config-score diff origin/main
@@ -150,6 +178,12 @@ Think **regression gate**, not another AI reviewer.
 
 ## CLI reference
 
+Initialize a repository:
+
+```bash
+agent-config-score init
+```
+
 Score the current repository without a baseline:
 
 ```bash
@@ -185,6 +219,13 @@ Enforce an absolute score floor directly when you want to override repository po
 
 ```bash
 agent-config-score . --fail-under 90
+```
+
+Inspect the installed version and command overview:
+
+```bash
+agent-config-score --version
+agent-config-score --help
 ```
 
 ## GitHub code scanning with SARIF
@@ -305,6 +346,8 @@ The action emits these values before returning the final regression exit status.
 - [x] SARIF output for GitHub code scanning
 - [x] Git-aware local diff without manual worktrees
 - [x] baseline-governed repository policy/config file
+- [x] safe one-command repository initialization
+- [ ] stable rule catalog and rule-inspection command
 - [ ] score-history badge for public repositories
 - [ ] optional semantic contradiction plugin
 
