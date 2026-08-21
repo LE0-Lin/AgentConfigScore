@@ -24,6 +24,15 @@ class PatternRule:
     pattern: Pattern[str]
 
 
+CATEGORY_CAPS = {
+    "secret": 35,
+    "danger": 35,
+    "dead": 18,
+    "size": 18,
+    "quality": 30,
+    "other": 15,
+}
+
 RULES = (
     Rule("curl-pipe-shell", "error", "danger", 18, "Remote script piped directly to a shell", "Flags persistent instructions that pipe curl output directly into sh or bash."),
     Rule("wget-pipe-shell", "error", "danger", 18, "Remote script piped directly to a shell", "Flags persistent instructions that pipe wget output directly into sh or bash."),
@@ -49,6 +58,12 @@ RULES_BY_CODE = {rule.code: rule for rule in RULES}
 
 if len(RULES_BY_CODE) != len(RULES):
     raise RuntimeError("AgentConfigScore rule IDs must be unique")
+
+if any(rule.category not in CATEGORY_CAPS for rule in RULES):
+    raise RuntimeError("Every AgentConfigScore rule must use a known scoring category")
+
+if any(rule.severity not in {"error", "warning", "info"} for rule in RULES):
+    raise RuntimeError("Every AgentConfigScore rule must use a known severity")
 
 
 PATTERN_RULES = (
