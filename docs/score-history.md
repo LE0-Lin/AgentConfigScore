@@ -35,7 +35,7 @@ The workflow needs no secrets, API keys, or write permission. It checks out the 
 
 ## Artifact contents
 
-Each artifact is named `agent-config-score-<commit SHA>` and contains:
+Each artifact is named `agent-config-score-<commit SHA>-attempt-<run attempt>` so workflow reruns cannot collide with an existing immutable artifact. It contains:
 
 | File | Purpose |
 |---|---|
