@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.10.0
+
+### Added
+
+- Auditable rule suppressions in `.agentconfigscore.json`.
+- Required `rule`, `reason`, and ISO `expires` fields for every suppression.
+- Optional path-scoped suppressions through `paths` glob patterns.
+- Strict validation for unknown rules, malformed dates, expired suppressions, duplicate scopes, and invalid path lists.
+- `suppressed_findings` in structured reports, preserving the finding together with its reason, expiry, and path scope.
+- Suppression visibility in terminal, JSON, HTML, and Markdown regression output.
+- Tests covering parsing, expiry, path scoping, scan behavior, baseline governance, and anti-self-exemption behavior.
+
+### Changed
+
+- Suppressed findings no longer contribute penalties or regression findings, but remain visible in the audit trail.
+- Regression comparisons apply only the **baseline** repository suppression set to both base and candidate trees, so a pull request cannot add a suppression that exempts itself.
+- Expired suppressions are configuration errors and must be removed or renewed explicitly.
+- Package version bumped to `0.10.0`.
+
 ## v0.9.0
 
 ### Added

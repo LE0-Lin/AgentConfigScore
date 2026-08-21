@@ -55,19 +55,39 @@ def _c(text: str, color: str) -> str:
     return f"{color}{text}{RESET}" if _supports_color() else text
 
 
+def _print_suppressed(report) -> None:
+    if not report.suppressed_findings:
+        return
+    print(f"\nSuppressed findings: {len(report.suppressed_findings)}")
+    for item in report.suppressed_findings:
+        finding = item.finding
+        suppression = item.suppression
+        location = finding.file + (f":{finding.line}" if finding.line else "")
+        print(f"~ SUPPRESSED {finding.code:20} {finding.message}")
+        print(f"             {location}")
+        print(f"             reason: {suppression.reason}")
+        print(f"             expires: {suppression.expires.isoformat()}")
+        if suppression.paths:
+            print(f"             paths: {', '.join(suppression.paths)}")
+
+
 def print_report(report) -> None:
     grade = _c(report.grade, GRADE_COLORS[report.grade])
     print(f"\n{BOLD if _supports_color() else ''}AgentConfigScore{RESET if _supports_color() else ''}  {grade}  {report.score}/100")
-    print(f"Files: {len(report.files)}   Estimated tokens: {report.estimated_tokens:,}   Duplication: {report.duplicate_ratio:.0%}\n")
+    print(
+        f"Files: {len(report.files)}   Estimated tokens: {report.estimated_tokens:,}   "
+        f"Duplication: {report.duplicate_ratio:.0%}   Suppressed: {len(report.suppressed_findings)}\n"
+    )
     if not report.findings:
-        print(_c("✓ No findings", "\033[32m"))
-        return
-    for f in report.findings:
-        icon = {"error": "✖", "warning": "!", "info": "i"}.get(f.severity, "-")
-        loc = f.file + (f":{f.line}" if f.line else "")
-        prefix = _c(f"{icon} {f.severity.upper():7}", COLORS.get(f.severity, ""))
-        print(f"{prefix} {f.code:20} {f.message}")
-        print(f"           {loc}")
+        print(_c("✓ No active findings", "\033[32m"))
+    else:
+        for f in report.findings:
+            icon = {"error": "✖", "warning": "!", "info": "i"}.get(f.severity, "-")
+            loc = f.file + (f":{f.line}" if f.line else "")
+            prefix = _c(f"{icon} {f.severity.upper():7}", COLORS.get(f.severity, ""))
+            print(f"{prefix} {f.code:20} {f.message}")
+            print(f"           {loc}")
+    _print_suppressed(report)
 
 
 def print_regression(report) -> None:
@@ -76,7 +96,10 @@ def print_regression(report) -> None:
         f"\n{BOLD if _supports_color() else ''}AgentConfigScore regression{RESET if _supports_color() else ''}  "
         f"{report.base.grade} {report.base.score} → {report.head.grade} {report.head.score} ({sign}{report.delta})"
     )
-    print(f"New findings: {len(report.new_findings)}   Resolved: {len(report.resolved_findings)}\n")
+    print(
+        f"New findings: {len(report.new_findings)}   Resolved: {len(report.resolved_findings)}   "
+        f"Suppressed: {len(report.head.suppressed_findings)}\n"
+    )
     for finding in report.new_findings:
         location = finding.file + (f":{finding.line}" if finding.line else "")
         prefix = _c(f"+ {finding.severity.upper():7}", COLORS.get(finding.severity, ""))
@@ -87,7 +110,8 @@ def print_regression(report) -> None:
         print(f"- RESOLVED {finding.code:20} {finding.message}")
         print(f"           {location}")
     if not report.new_findings and not report.resolved_findings:
-        print("✓ No agent-config changes detected")
+        print("✓ No active agent-config changes detected")
+    _print_suppressed(report.head)
 
 
 def build_scan_parser() -> argparse.ArgumentParser:
@@ -266,7 +290,7 @@ def _main_compare(argv: list[str]) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    return _finish_regression(compare(base, head), args)
+    return _finish_regression(compare(base, head, suppressions=policy.suppressions), args)
 
 
 def _main_diff(argv: list[str]) -> int:
@@ -278,7 +302,7 @@ def _main_diff(argv: list[str]) -> int:
             policy = load_policy(base)
             load_policy(repo)  # Validate candidate config without trusting it yet.
             _resolve_regression_policy(args, policy)
-            report = compare(base, repo)
+            report = compare(base, repo, suppressions=policy.suppressions)
         report.base.root = f"git:{args.base_ref}@{sha[:12]}"
         report.head.root = str(repo)
     except (GitError, ConfigError) as exc:
@@ -306,7 +330,7 @@ def _main_scan(argv: list[str]) -> int:
         print("error: --fail-under must be between 0 and 100", file=sys.stderr)
         return 2
 
-    report = analyze(root)
+    report = analyze(root, suppressions=policy.suppressions)
 
     if args.html:
         out = Path(args.html)

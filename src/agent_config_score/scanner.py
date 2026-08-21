@@ -9,6 +9,7 @@ import html
 import json
 import re
 
+from .config import Suppression
 from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
 
 TARGET_NAMES = {
@@ -40,6 +41,18 @@ class Finding:
 
 
 @dataclass
+class SuppressedFinding:
+    finding: Finding
+    suppression: Suppression
+
+    def to_dict(self) -> dict:
+        return {
+            "finding": self.finding.to_dict(),
+            "suppression": self.suppression.to_dict(),
+        }
+
+
+@dataclass
 class Report:
     root: str
     files: list[str]
@@ -48,6 +61,7 @@ class Report:
     estimated_tokens: int
     duplicate_ratio: float
     findings: list[Finding]
+    suppressed_findings: list[SuppressedFinding]
 
     def to_dict(self) -> dict:
         return {
@@ -58,6 +72,7 @@ class Report:
             "estimated_tokens": self.estimated_tokens,
             "duplicate_ratio": round(self.duplicate_ratio, 4),
             "findings": [f.to_dict() for f in self.findings],
+            "suppressed_findings": [item.to_dict() for item in self.suppressed_findings],
         }
 
 
@@ -147,7 +162,14 @@ def _directives(text: str):
         yield polarity, body, _line(text, m.start())
 
 
-def analyze(root: Path) -> Report:
+def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...]) -> Suppression | None:
+    for suppression in suppressions:
+        if suppression.applies_to(finding.code, finding.file):
+            return suppression
+    return None
+
+
+def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report:
     root = root.resolve()
     files = discover(root)
     texts: dict[Path, str] = {}
@@ -214,6 +236,16 @@ def analyze(root: Path) -> Report:
     if not files:
         findings.append(_finding("no-config", "(repo)"))
 
+    active_findings: list[Finding] = []
+    suppressed_findings: list[SuppressedFinding] = []
+    for finding in findings:
+        suppression = _matching_suppression(finding, suppressions)
+        if suppression is None:
+            active_findings.append(finding)
+        else:
+            suppressed_findings.append(SuppressedFinding(finding=finding, suppression=suppression))
+    findings = active_findings
+
     used = Counter()
     penalty = 0
     for finding in findings:
@@ -231,6 +263,15 @@ def analyze(root: Path) -> Report:
         root=str(root), files=rels, score=score, grade=grade,
         estimated_tokens=total_tokens, duplicate_ratio=duplicate_ratio,
         findings=sorted(findings, key=lambda f: (order.get(f.severity, 3), f.file, f.line or 0)),
+        suppressed_findings=sorted(
+            suppressed_findings,
+            key=lambda item: (
+                order.get(item.finding.severity, 3),
+                item.finding.file,
+                item.finding.line or 0,
+                item.finding.code,
+            ),
+        ),
     )
 
 
@@ -247,10 +288,27 @@ def html_report(report: Report) -> str:
     for f in report.findings:
         loc = html.escape(f.file + (f":{f.line}" if f.line else ""))
         rows.append(f"<tr><td>{html.escape(f.severity)}</td><td><code>{html.escape(f.code)}</code></td><td>{html.escape(f.message)}</td><td><code>{loc}</code></td></tr>")
+    suppressed_rows = []
+    for item in report.suppressed_findings:
+        f = item.finding
+        loc = html.escape(f.file + (f":{f.line}" if f.line else ""))
+        reason = html.escape(item.suppression.reason)
+        expires = html.escape(item.suppression.expires.isoformat())
+        suppressed_rows.append(
+            f"<tr><td><code>{html.escape(f.code)}</code></td><td>{html.escape(f.message)}</td><td><code>{loc}</code></td><td>{reason}</td><td>{expires}</td></tr>"
+        )
     file_rows = "".join(f"<li><code>{html.escape(p)}</code></li>" for p in report.files) or "<li>No supported files found</li>"
     fingerprint = hashlib.sha256(json.dumps(report.to_dict(), sort_keys=True).encode()).hexdigest()[:12]
+    suppressed_section = ""
+    if suppressed_rows:
+        suppressed_section = (
+            "<h2>Suppressed findings</h2>"
+            "<table><tr><th>Rule</th><th>Message</th><th>Location</th><th>Reason</th><th>Expires</th></tr>"
+            + "".join(suppressed_rows)
+            + "</table>"
+        )
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentConfigScore report</title>
 <style>body{{margin:0;background:#0b1020;color:#edf3ff;font:15px/1.55 system-ui,sans-serif}}main{{max-width:1000px;margin:auto;padding:40px 20px}}h1{{font-size:42px}}.score{{font-size:52px;font-weight:800}}.muted{{color:#93a4bd}}table{{width:100%;border-collapse:collapse;background:#121a2f}}th,td{{padding:12px;border-bottom:1px solid #263451;text-align:left;vertical-align:top}}code{{color:#cfe0ff}}ul{{background:#121a2f;padding:18px 18px 18px 40px}}</style></head><body><main>
-<div class="score">{report.grade} · {report.score}/100</div><h1>AgentConfigScore</h1><p class="muted">{len(report.files)} config files · {report.estimated_tokens:,} estimated tokens · {report.duplicate_ratio:.0%} duplication</p>
+<div class="score">{report.grade} · {report.score}/100</div><h1>AgentConfigScore</h1><p class="muted">{len(report.files)} config files · {report.estimated_tokens:,} estimated tokens · {report.duplicate_ratio:.0%} duplication · {len(report.suppressed_findings)} suppressed</p>
 <h2>Findings</h2><table><tr><th>Severity</th><th>Rule</th><th>Message</th><th>Location</th></tr>{''.join(rows) or '<tr><td colspan="4">No findings 🎉</td></tr>'}</table>
-<h2>Files scanned</h2><ul>{file_rows}</ul><p class="muted">Report fingerprint {fingerprint} · Generated by AgentConfigScore</p></main></body></html>'''
+{suppressed_section}<h2>Files scanned</h2><ul>{file_rows}</ul><p class="muted">Report fingerprint {fingerprint} · Generated by AgentConfigScore</p></main></body></html>'''

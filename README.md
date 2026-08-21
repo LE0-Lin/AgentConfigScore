@@ -121,6 +121,50 @@ cannot use those weaker values to pass itself.
 
 Explicit CLI or Action inputs remain available as trusted invocation-time overrides.
 
+## Make exceptions auditable
+
+Sometimes a rule is correct in general but a repository has a reviewed exception. AgentConfigScore supports suppressions, but deliberately does **not** treat them like a permanent ignore list.
+
+Every suppression must name a stable rule, explain why it exists, and have an expiry date:
+
+```json
+{
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true
+  },
+  "suppressions": [
+    {
+      "rule": "dead-path",
+      "reason": "Generated docs reference paths that only exist after deployment.",
+      "expires": "2026-12-31",
+      "paths": ["docs/**"]
+    }
+  ]
+}
+```
+
+`paths` is optional. Without it, the suppression applies to that rule throughout the repository. With it, only findings whose instruction-file path matches one of the globs are suppressed. Repository-level findings such as cross-file contradiction or duplication cannot be hidden by a path-scoped suppression; omit `paths` when a reviewed repository-level exception is genuinely required.
+
+AgentConfigScore validates suppressions strictly:
+
+- unknown rule IDs are rejected
+- `reason` must be non-empty
+- `expires` must use `YYYY-MM-DD`
+- expired suppressions are configuration errors and must be removed or explicitly renewed
+- duplicate rule/path scopes are rejected
+
+A suppression does not erase history. Suppressed findings are removed from scoring and regression decisions, but remain visible under `suppressed_findings` in JSON and are shown with their reason and expiry in terminal, HTML, and Markdown reports.
+
+### Suppressions are baseline-governed too
+
+A candidate PR cannot add a suppression and use it to excuse a finding introduced by that same PR.
+
+For `diff`, `compare`, and the reusable GitHub Action, AgentConfigScore validates the candidate config but applies the **baseline suppression set to both repository trees**. A new suppression only starts governing later changes after it has been reviewed, merged, and become part of the baseline.
+
+That makes suppression changes reviewable policy decisions instead of an escape hatch inside a failing PR.
+
 ## Check locally before you push
 
 Compare your current working tree with any local Git branch, tag, or commit:
@@ -129,7 +173,7 @@ Compare your current working tree with any local Git branch, tag, or commit:
 agent-config-score diff origin/main
 ```
 
-If the repository contains `.agentconfigscore.json`, the baseline policy is applied automatically. You can still override it explicitly when you intend to:
+If the repository contains `.agentconfigscore.json`, the baseline policy and baseline suppressions are applied automatically. You can still override regression thresholds explicitly when you intend to:
 
 ```bash
 agent-config-score diff origin/main \
@@ -260,11 +304,11 @@ agent-config-score rules --json
 agent-config-score rules dead-path --json
 ```
 
-The scanner, scoring categories, CLI rule inspection, and SARIF rule metadata all read from the same catalog. This keeps the human-facing explanation and machine-facing output aligned and provides a stable base for future rule suppression and policy controls.
+The scanner, scoring categories, CLI rule inspection, SARIF rule metadata, and suppression validation all read from the same catalog. This keeps human-facing explanations, machine-facing output, and policy configuration aligned.
 
 ## GitHub code scanning with SARIF
 
-`--sarif` writes a SARIF 2.1.0 report with AgentConfigScore rule IDs, severity levels, source locations, descriptions, categories, and scoring penalties. That means findings can be uploaded into GitHub code scanning instead of living only in terminal output.
+`--sarif` writes a SARIF 2.1.0 report with AgentConfigScore rule IDs, severity levels, source locations, descriptions, categories, and scoring penalties. That means active findings can be uploaded into GitHub code scanning instead of living only in terminal output. Suppressed findings remain in AgentConfigScore's own audit output rather than being emitted as active SARIF results.
 
 A minimal upload workflow for a public repository looks like this:
 
@@ -341,9 +385,9 @@ The reusable action exposes structured numeric outputs so later workflow steps c
 | `base-score` | Baseline AgentConfigScore |
 | `head-score` | Candidate AgentConfigScore |
 | `delta` | Candidate minus baseline score |
-| `new-findings` | Number of newly introduced findings |
-| `new-errors` | Number of newly introduced error-severity findings |
-| `resolved-findings` | Number of findings resolved by the candidate |
+| `new-findings` | Number of newly introduced active findings |
+| `new-errors` | Number of newly introduced active error-severity findings |
+| `resolved-findings` | Number of active findings resolved by the candidate |
 
 ```yaml
 - name: Check agent config
@@ -364,10 +408,11 @@ The action emits these values before returning the final regression exit status.
 
 1. **Regression-first.** A legacy repo does not need to become perfect before CI becomes useful.
 2. **Baseline-governed policy.** A candidate change cannot weaken the gate evaluating itself.
-3. **Local-first.** Repository content is not uploaded to a hosted analysis service.
-4. **Explainable.** Every score change maps to visible findings and stable rule metadata.
-5. **Conservative.** Prefer a missed warning over noisy fake certainty.
-6. **Zero runtime dependencies.** Python 3.10+ standard library only.
+3. **Auditable exceptions.** Suppressions require a reason and expiry, remain visible, and cannot self-authorize in the same PR.
+4. **Local-first.** Repository content is not uploaded to a hosted analysis service.
+5. **Explainable.** Every score change maps to visible findings and stable rule metadata.
+6. **Conservative.** Prefer a missed warning over noisy fake certainty.
+7. **Zero runtime dependencies.** Python 3.10+ standard library only.
 
 ## Roadmap
 
@@ -382,7 +427,8 @@ The action emits these values before returning the final regression exit status.
 - [x] baseline-governed repository policy/config file
 - [x] safe one-command repository initialization
 - [x] stable rule catalog and rule-inspection command
-- [ ] reasoned / expiring rule suppression
+- [x] reasoned / expiring rule suppression
+- [ ] JSON Schema and editor validation for `.agentconfigscore.json`
 - [ ] score-history badge for public repositories
 - [ ] optional semantic contradiction plugin
 
