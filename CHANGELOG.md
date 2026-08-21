@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.12.0
+
+### Added
+
+- Read-only repository health checks via `agent-config-score doctor`.
+- Validation for repository configuration, canonical JSON Schema usage, supported instruction discovery, Git availability, GitHub Actions integration, and suppression expiry.
+- Machine-readable `agent-config-score doctor --json` output.
+- Warning-only diagnostics for optional or non-fatal setup gaps, while concrete integration/configuration errors return a non-zero exit status.
+- A thin console entrypoint that exposes product-level commands while preserving the existing scan/init/rules/diff/compare implementation.
+- Tests covering healthy repositories, invalid configuration, malformed standard workflows, JSON output, and top-level command discovery.
+
+### Changed
+
+- Installed `agent-config-score` / `acs` console scripts now route through the product entrypoint.
+- Package version bumped to `0.12.0`.
+
 ## v0.11.0
 
 ### Added
