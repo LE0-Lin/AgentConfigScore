@@ -59,6 +59,39 @@ jobs:
           assert data["runs"][0]["tool"]["driver"]["name"] == "AgentConfigScore"
           PY
 
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build wheel and source distribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install build
+          python -m build
+          test "$(find dist -maxdepth 1 -type f -name '*.whl' | wc -l)" -eq 1
+          test "$(find dist -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 1
+      - name: Install wheel in an isolated environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel="$(find "$GITHUB_WORKSPACE/dist" -maxdepth 1 -type f -name '*.whl' -print -quit)"
+          expected="$(python - <<'PY'
+          import tomllib
+          with open('pyproject.toml', 'rb') as handle:
+              print(tomllib.load(handle)['project']['version'])
+          PY
+          )"
+          python -m venv "$RUNNER_TEMP/agent-config-score-wheel-test"
+          "$RUNNER_TEMP/agent-config-score-wheel-test/bin/python" -m pip install "$wheel"
+          cd "$RUNNER_TEMP"
+          actual="$("$RUNNER_TEMP/agent-config-score-wheel-test/bin/agent-config-score" --version)"
+          test "$actual" = "AgentConfigScore $expected"
+          "$RUNNER_TEMP/agent-config-score-wheel-test/bin/agent-config-score" --help >/dev/null
+
   score_history:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/score-history.yml
