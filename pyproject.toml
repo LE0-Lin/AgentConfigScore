@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-config-score"
-version = "0.7.0"
+version = "0.7.1"
 description = "Regression gate for AI coding-agent configs: catch PRs that make AGENTS.md, CLAUDE.md, Cursor or Copilot instructions worse."
 readme = "README.md"
 requires-python = ">=3.10"
