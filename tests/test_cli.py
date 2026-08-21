@@ -25,7 +25,8 @@ class CliTests(unittest.TestCase):
         self.assertIn("agent-config-score init", text)
         self.assertIn("agent-config-score doctor", text)
         self.assertIn("agent-config-score rules", text)
-        self.assertIn("agent-config-score diff BASE_REF", text)
+        self.assertIn("agent-config-score diff [BASE_REF]", text)
+        self.assertIn("auto-detects a local default branch", text)
         self.assertIn("agent-config-score compare BASE HEAD", text)
         self.assertIn("agent-config-score --version", text)
 
