@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.8.0
+
+### Added
+
+- Safe one-command repository setup via `agent-config-score init`.
+- Generated `.agentconfigscore.json` with conservative regression defaults.
+- Generated GitHub Actions workflow using `LE0-Lin/AgentConfigScore@v0`.
+- `--dry-run`, `--force`, and `--no-workflow` initialization options.
+- Atomic preflight behavior: conflicts are detected before any files are written.
+- Idempotent setup when generated files already match.
+- Test coverage for creation, conflicts, force overwrite, policy-only setup, dry-run, idempotency, and CLI output.
+
+### Changed
+
+- Top-level help now includes the `init` onboarding workflow.
+- Package version bumped to `0.8.0`.
+
 ## v0.7.1
 
 ### Added
