@@ -14,7 +14,27 @@ jobs:
         with:
           fetch-depth: 0
       - name: Dogfood the local AgentConfigScore action
+        id: acs
         uses: ./
         with:
           max-drop: "0"
           fail-on-new-errors: "true"
+      - name: Validate structured action outputs
+        shell: bash
+        env:
+          BASE_SCORE: ${{ steps.acs.outputs.base-score }}
+          HEAD_SCORE: ${{ steps.acs.outputs.head-score }}
+          DELTA: ${{ steps.acs.outputs.delta }}
+          NEW_FINDINGS: ${{ steps.acs.outputs.new-findings }}
+          NEW_ERRORS: ${{ steps.acs.outputs.new-errors }}
+          RESOLVED_FINDINGS: ${{ steps.acs.outputs.resolved-findings }}
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SCORE" =~ ^[0-9]+$ ]]
+          [[ "$HEAD_SCORE" =~ ^[0-9]+$ ]]
+          [[ "$DELTA" =~ ^-?[0-9]+$ ]]
+          [[ "$NEW_FINDINGS" =~ ^[0-9]+$ ]]
+          [[ "$NEW_ERRORS" =~ ^[0-9]+$ ]]
+          [[ "$RESOLVED_FINDINGS" =~ ^[0-9]+$ ]]
+          (( DELTA == HEAD_SCORE - BASE_SCORE ))
+          echo "AgentConfigScore outputs: $BASE_SCORE -> $HEAD_SCORE ($DELTA), $NEW_ERRORS new errors"

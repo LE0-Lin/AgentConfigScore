@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.4.0
+
+### Added
+
+- Structured composite-action outputs for baseline score, candidate score, score delta, new findings, new errors, and resolved findings.
+- Self-dogfood assertions that validate action outputs on every pull request.
+
+### Changed
+
+- The reusable GitHub Action now emits machine-readable values before returning its final regression status, so downstream workflow steps can consume the result.
+- Package version bumped to `0.4.0`.
+
 ## v0.3.0
 
 ### Added
