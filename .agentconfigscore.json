@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true,
+    "fail_under": 90
+  }
+}
