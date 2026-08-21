@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime, timezone
+from fnmatch import fnmatch
 import json
 from pathlib import Path
+
+from .rules import get_rule
 
 CONFIG_NAME = ".agentconfigscore.json"
 
@@ -12,14 +16,47 @@ class ConfigError(ValueError):
 
 
 @dataclass(frozen=True)
+class Suppression:
+    rule: str
+    reason: str
+    expires: date
+    paths: tuple[str, ...] = ()
+
+    def applies_to(self, rule: str, file: str) -> bool:
+        if self.rule != rule:
+            return False
+        if not self.paths:
+            return True
+        if file == "(repo)":
+            return False
+        return any(fnmatch(file, pattern) for pattern in self.paths)
+
+    def to_dict(self) -> dict:
+        data = {
+            "rule": self.rule,
+            "reason": self.reason,
+            "expires": self.expires.isoformat(),
+        }
+        if self.paths:
+            data["paths"] = list(self.paths)
+        return data
+
+
+@dataclass(frozen=True)
 class Policy:
     max_drop: int = 0
     fail_on_new_errors: bool = False
     fail_under: int | None = None
+    suppressions: tuple[Suppression, ...] = ()
 
 
-_ALLOWED_TOP_LEVEL = {"version", "policy"}
+_ALLOWED_TOP_LEVEL = {"version", "policy", "suppressions"}
 _ALLOWED_POLICY_KEYS = {"max_drop", "fail_on_new_errors", "fail_under"}
+_ALLOWED_SUPPRESSION_KEYS = {"rule", "reason", "expires", "paths"}
+
+
+def _utc_today() -> date:
+    return datetime.now(timezone.utc).date()
 
 
 def _require_int(name: str, value, *, minimum: int, maximum: int | None = None) -> int:
@@ -32,7 +69,61 @@ def _require_int(name: str, value, *, minimum: int, maximum: int | None = None) 
     return value
 
 
-def parse_policy(data: object) -> Policy:
+def _parse_suppression(raw: object, index: int, *, today: date) -> Suppression:
+    name = f"suppressions[{index}]"
+    if not isinstance(raw, dict):
+        raise ConfigError(f"{name} must be a JSON object")
+
+    unknown = sorted(set(raw) - _ALLOWED_SUPPRESSION_KEYS)
+    if unknown:
+        raise ConfigError(f"unknown {name} key(s): {', '.join(unknown)}")
+
+    rule = raw.get("rule")
+    if not isinstance(rule, str) or not rule.strip():
+        raise ConfigError(f"{name}.rule must be a non-empty string")
+    rule = rule.strip()
+    if get_rule(rule) is None:
+        raise ConfigError(f"{name}.rule references unknown rule ID: {rule}")
+
+    reason = raw.get("reason")
+    if not isinstance(reason, str) or not reason.strip():
+        raise ConfigError(f"{name}.reason must be a non-empty string")
+    reason = reason.strip()
+    if len(reason) > 500:
+        raise ConfigError(f"{name}.reason must be at most 500 characters")
+
+    expires_raw = raw.get("expires")
+    if not isinstance(expires_raw, str):
+        raise ConfigError(f"{name}.expires must be an ISO date (YYYY-MM-DD)")
+    try:
+        expires = date.fromisoformat(expires_raw)
+    except ValueError as exc:
+        raise ConfigError(f"{name}.expires must be an ISO date (YYYY-MM-DD)") from exc
+    if expires.isoformat() != expires_raw:
+        raise ConfigError(f"{name}.expires must use YYYY-MM-DD format")
+    if expires < today:
+        raise ConfigError(
+            f"{name} expired on {expires.isoformat()}; remove it or renew it with a reviewed reason"
+        )
+
+    raw_paths = raw.get("paths")
+    paths: tuple[str, ...] = ()
+    if raw_paths is not None:
+        if not isinstance(raw_paths, list) or not raw_paths:
+            raise ConfigError(f"{name}.paths must be a non-empty JSON array when provided")
+        normalized: list[str] = []
+        for path_index, value in enumerate(raw_paths):
+            if not isinstance(value, str) or not value.strip():
+                raise ConfigError(f"{name}.paths[{path_index}] must be a non-empty string")
+            normalized.append(value.strip())
+        if len(set(normalized)) != len(normalized):
+            raise ConfigError(f"{name}.paths must not contain duplicates")
+        paths = tuple(normalized)
+
+    return Suppression(rule=rule, reason=reason, expires=expires, paths=paths)
+
+
+def parse_policy(data: object, *, today: date | None = None) -> Policy:
     if not isinstance(data, dict):
         raise ConfigError("configuration root must be a JSON object")
 
@@ -62,10 +153,24 @@ def parse_policy(data: object) -> Policy:
     if fail_under is not None:
         fail_under = _require_int("policy.fail_under", fail_under, minimum=0, maximum=100)
 
+    raw_suppressions = data.get("suppressions", [])
+    if not isinstance(raw_suppressions, list):
+        raise ConfigError("suppressions must be a JSON array")
+    evaluation_date = _utc_today() if today is None else today
+    suppressions = tuple(
+        _parse_suppression(raw, index, today=evaluation_date)
+        for index, raw in enumerate(raw_suppressions)
+    )
+
+    identities = [(item.rule, item.paths) for item in suppressions]
+    if len(set(identities)) != len(identities):
+        raise ConfigError("duplicate suppressions for the same rule and path scope are not allowed")
+
     return Policy(
         max_drop=max_drop,
         fail_on_new_errors=fail_on_new_errors,
         fail_under=fail_under,
+        suppressions=suppressions,
     )
 
 
