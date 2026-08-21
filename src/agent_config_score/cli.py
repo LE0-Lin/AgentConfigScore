@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 
+from . import __version__
 from .config import ConfigError, Policy, load_policy
 from .gitdiff import GitError, baseline_worktree, repository_root
 from .regression import compare, markdown_report
@@ -15,6 +16,26 @@ RESET = "\033[0m"
 BOLD = "\033[1m"
 COLORS = {"error": "\033[31m", "warning": "\033[33m", "info": "\033[36m"}
 GRADE_COLORS = {"A": "\033[32m", "B": "\033[32m", "C": "\033[33m", "D": "\033[33m", "F": "\033[31m"}
+
+TOP_LEVEL_HELP = """usage:
+  agent-config-score [PATH] [scan options]
+  agent-config-score diff BASE_REF [options]
+  agent-config-score compare BASE HEAD [options]
+
+Score and regression-check AI coding-agent instruction files.
+
+commands:
+  diff       Compare a Git ref with the current working tree.
+  compare    Compare two already checked-out repository trees.
+
+common examples:
+  agent-config-score .
+  agent-config-score diff origin/main
+  agent-config-score compare ../repo-base .
+
+Run `agent-config-score diff --help` or `agent-config-score compare --help`
+for command-specific options. Use `agent-config-score --version` to print the version.
+"""
 
 
 def _supports_color() -> bool:
@@ -229,6 +250,12 @@ def _main_scan(argv: list[str]) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
+    if args == ["--version"] or args == ["-V"]:
+        print(f"AgentConfigScore {__version__}")
+        return 0
+    if args == ["--help"] or args == ["-h"]:
+        print(TOP_LEVEL_HELP, end="")
+        return 0
     if args and args[0] == "compare":
         return _main_compare(args[1:])
     if args and args[0] == "diff":
