@@ -8,6 +8,7 @@ import sys
 from . import __version__
 from .config import ConfigError, Policy, load_policy
 from .gitdiff import GitError, baseline_worktree, repository_root
+from .initializer import InitError, initialize_repository
 from .regression import compare, markdown_report
 from .sarif import sarif_report
 from .scanner import analyze, badge_svg, html_report
@@ -19,22 +20,25 @@ GRADE_COLORS = {"A": "\033[32m", "B": "\033[32m", "C": "\033[33m", "D": "\033[33
 
 TOP_LEVEL_HELP = """usage:
   agent-config-score [PATH] [scan options]
+  agent-config-score init [PATH] [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
 Score and regression-check AI coding-agent instruction files.
 
 commands:
+  init       Add a repository policy and GitHub Actions workflow safely.
   diff       Compare a Git ref with the current working tree.
   compare    Compare two already checked-out repository trees.
 
 common examples:
+  agent-config-score init
   agent-config-score .
   agent-config-score diff origin/main
   agent-config-score compare ../repo-base .
 
-Run `agent-config-score diff --help` or `agent-config-score compare --help`
-for command-specific options. Use `agent-config-score --version` to print the version.
+Run `agent-config-score <command> --help` for command-specific options.
+Use `agent-config-score --version` to print the version.
 """
 
 
@@ -89,6 +93,18 @@ def build_scan_parser() -> argparse.ArgumentParser:
     p.add_argument("--badge", metavar="FILE", help="Write an SVG score badge")
     p.add_argument("--sarif", metavar="FILE", help="Write a SARIF 2.1.0 report for GitHub code scanning")
     p.add_argument("--fail-under", type=int, default=None, metavar="N", help="Override the repository policy score floor")
+    return p
+
+
+def build_init_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="agent-config-score init",
+        description="Initialize AgentConfigScore policy and CI files without overwriting existing files by default.",
+    )
+    p.add_argument("path", nargs="?", default=".", help="Repository directory (default: current directory)")
+    p.add_argument("--no-workflow", action="store_true", help="Create only .agentconfigscore.json")
+    p.add_argument("--force", action="store_true", help="Overwrite conflicting generated files")
+    p.add_argument("--dry-run", action="store_true", help="Show the initialization plan without writing files")
     return p
 
 
@@ -155,6 +171,35 @@ def _finish_regression(report, args) -> int:
         return 1
     if args.fail_on_new_errors and report.new_errors:
         return 1
+    return 0
+
+
+def _main_init(argv: list[str]) -> int:
+    args = build_init_parser().parse_args(argv)
+    try:
+        changes = initialize_repository(
+            Path(args.path),
+            include_workflow=not args.no_workflow,
+            force=args.force,
+            dry_run=args.dry_run,
+        )
+    except InitError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    for change in changes:
+        if change.action == "unchanged":
+            label = "unchanged"
+        elif args.dry_run:
+            label = f"would {change.action}"
+        else:
+            label = f"{change.action}d" if change.action == "create" else "overwritten"
+        print(f"{label:12} {change.path.as_posix()}")
+
+    if args.dry_run:
+        print("Dry run: no files written.")
+    else:
+        print("\nAgentConfigScore initialized. Review and commit the generated files.")
     return 0
 
 
@@ -256,6 +301,8 @@ def main(argv: list[str] | None = None) -> int:
     if args == ["--help"] or args == ["-h"]:
         print(TOP_LEVEL_HELP, end="")
         return 0
+    if args and args[0] == "init":
+        return _main_init(args[1:])
     if args and args[0] == "compare":
         return _main_compare(args[1:])
     if args and args[0] == "diff":
