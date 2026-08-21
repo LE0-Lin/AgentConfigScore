@@ -1,0 +1,14 @@
+name: agent-config-score-history
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    uses: LE0-Lin/AgentConfigScore/.github/workflows/score-history.yml@v0
