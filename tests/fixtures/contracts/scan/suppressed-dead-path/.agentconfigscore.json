@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true
+  },
+  "suppressions": [
+    {
+      "rule": "dead-path",
+      "reason": "The generated client path is materialized only in release builds.",
+      "expires": "2099-12-31"
+    }
+  ]
+}

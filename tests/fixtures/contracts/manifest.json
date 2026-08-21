@@ -1,0 +1,49 @@
+{
+  "scan_cases": {
+    "clean": {
+      "score": 100,
+      "grade": "A",
+      "findings": [],
+      "suppressed": []
+    },
+    "unsafe-shell": {
+      "score": 82,
+      "grade": "B",
+      "findings": ["curl-pipe-shell"],
+      "suppressed": []
+    },
+    "synthetic-secret": {
+      "score": 75,
+      "grade": "C",
+      "findings": ["openai-key"],
+      "suppressed": []
+    },
+    "contradiction": {
+      "score": 85,
+      "grade": "B",
+      "findings": ["contradiction"],
+      "suppressed": []
+    },
+    "multi-tool-no-agents": {
+      "score": 97,
+      "grade": "A",
+      "findings": ["no-agents-md"],
+      "suppressed": []
+    },
+    "suppressed-dead-path": {
+      "score": 100,
+      "grade": "A",
+      "findings": [],
+      "suppressed": ["dead-path"]
+    }
+  },
+  "regression_cases": {
+    "unsafe-shell": {
+      "base_score": 100,
+      "head_score": 82,
+      "delta": -18,
+      "new_findings": ["curl-pipe-shell"],
+      "resolved_findings": []
+    }
+  }
+}
