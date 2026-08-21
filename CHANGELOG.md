@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.13.0
+
+### Added
+
+- Automatic local baseline detection for `agent-config-score diff` when `BASE_REF` is omitted.
+- Conservative baseline selection using locally configured `origin/HEAD`, then local `main`, `master`, or `trunk`, with a restricted default-branch upstream fallback.
+- Tests covering `origin/HEAD` preference, local-main fallback, feature-upstream rejection, and the installed product entrypoint path.
+
+### Changed
+
+- The common local regression command is now simply `agent-config-score diff` when a safe local default branch can be detected.
+- Automatic baseline detection remains fully offline and never fetches missing refs.
+- Feature-branch upstreams such as `origin/my-feature` are deliberately not treated as a baseline.
+- Explicit refs such as `agent-config-score diff origin/main` remain fully supported.
+- Package version bumped to `0.13.0`.
+
 ## v0.12.0
 
 ### Added
