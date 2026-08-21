@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.14.0
+
+### Added
+
+- Reusable `.github/workflows/score-history.yml` workflow for immutable commit-by-commit score snapshots.
+- Snapshot artifacts containing `snapshot.json`, the full `report.json`, `report.html`, and `badge.svg`.
+- Compact snapshot metadata with repository, commit, ref, run attempt, tool version, score, grade, token estimate, duplication ratio, and finding counts.
+- Reusable workflow outputs for `score`, `grade`, `artifact-id`, and `artifact-url`.
+- Configurable repository path, Python version, AgentConfigScore ref, and 1–90 day artifact retention.
+- Copy-paste caller workflow in `examples/score-history.yml` and dedicated score-history documentation.
+- End-to-end CI self-test that calls the reusable workflow and uploads a real short-lived artifact on pull requests.
+
+### Changed
+
+- Score history remains opt-in and read-only instead of writing generated score files back to the caller repository.
+- Snapshot generation overrides an absolute `fail_under` threshold to zero so history records low scores rather than treating them as missing data; scanner and configuration errors still fail the workflow.
+- Artifact names include both commit SHA and workflow run attempt to avoid immutable-artifact collisions when a run is retried.
+- Package version bumped to `0.14.0`.
+
 ## v0.13.2
 
 ### Added
