@@ -11,33 +11,97 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+
       - name: Read package version
         id: version
         shell: bash
         run: |
+          set -euo pipefail
           version="$(python - <<'PY'
           import tomllib
-          with open('pyproject.toml', 'rb') as f:
-              print(tomllib.load(f)['project']['version'])
+          with open('pyproject.toml', 'rb') as handle:
+              print(tomllib.load(handle)['project']['version'])
           PY
           )"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-      - name: Create GitHub release when missing
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check release state
+        id: preflight
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "$TAG already has a GitHub Release; nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          if git show-ref --verify --quiet "refs/tags/$TAG"; then
+            tagged_sha="$(git rev-list -n 1 "$TAG")"
+            if [[ "$tagged_sha" != "$GITHUB_SHA" ]]; then
+              echo "error: $TAG already points to $tagged_sha, not current commit $GITHUB_SHA" >&2
+              exit 2
+            fi
+            echo "existing_tag=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "existing_tag=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build wheel and source distribution
+        if: steps.preflight.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install build
+          python -m build
+          test "$(find dist -maxdepth 1 -type f -name '*.whl' | wc -l)" -eq 1
+          test "$(find dist -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 1
+          (cd dist && sha256sum -- * > SHA256SUMS.txt)
+
+      - name: Validate built wheel
+        if: steps.preflight.outputs.skip != 'true'
+        env:
           VERSION: ${{ steps.version.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
-          tag="v${VERSION}"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "$tag already exists; nothing to do."
-            exit 0
+          wheel="$(find "$GITHUB_WORKSPACE/dist" -maxdepth 1 -type f -name '*.whl' -print -quit)"
+          python -m venv "$RUNNER_TEMP/agent-config-score-release-test"
+          "$RUNNER_TEMP/agent-config-score-release-test/bin/python" -m pip install "$wheel"
+          cd "$RUNNER_TEMP"
+          actual="$("$RUNNER_TEMP/agent-config-score-release-test/bin/agent-config-score" --version)"
+          test "$actual" = "AgentConfigScore $VERSION"
+          "$RUNNER_TEMP/agent-config-score-release-test/bin/agent-config-score" --help >/dev/null
+
+      - name: Create GitHub release with verified distributions
+        if: steps.preflight.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          EXISTING_TAG: ${{ steps.preflight.outputs.existing_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$EXISTING_TAG" == "true" ]]; then
+            gh release create "$TAG" dist/* \
+              --verify-tag \
+              --title "AgentConfigScore $TAG" \
+              --generate-notes
+          else
+            gh release create "$TAG" dist/* \
+              --target "$GITHUB_SHA" \
+              --title "AgentConfigScore $TAG" \
+              --generate-notes
           fi
-          gh release create "$tag" \
-            --target "$GITHUB_SHA" \
-            --title "AgentConfigScore $tag" \
-            --generate-notes
