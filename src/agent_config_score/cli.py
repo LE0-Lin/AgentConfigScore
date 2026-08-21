@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 from .regression import compare, markdown_report
+from .sarif import sarif_report
 from .scanner import analyze, badge_svg, html_report
 
 RESET = "\033[0m"
@@ -63,6 +64,7 @@ def build_scan_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", action="store_true", help="Print JSON instead of text")
     p.add_argument("--html", metavar="FILE", help="Write a self-contained HTML report")
     p.add_argument("--badge", metavar="FILE", help="Write an SVG score badge")
+    p.add_argument("--sarif", metavar="FILE", help="Write a SARIF 2.1.0 report for GitHub code scanning")
     p.add_argument("--fail-under", type=int, default=None, metavar="N", help="Exit non-zero when score is below N")
     return p
 
@@ -137,6 +139,10 @@ def _main_scan(argv: list[str]) -> int:
         out = Path(args.badge)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(badge_svg(report), encoding="utf-8")
+    if args.sarif:
+        out = Path(args.sarif)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(sarif_report(report), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     if args.json:
         print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
@@ -146,6 +152,8 @@ def _main_scan(argv: list[str]) -> int:
             print(f"\nHTML report: {Path(args.html).resolve()}")
         if args.badge:
             print(f"Badge: {Path(args.badge).resolve()}")
+        if args.sarif:
+            print(f"SARIF report: {Path(args.sarif).resolve()}")
 
     if args.fail_under is not None and report.score < args.fail_under:
         return 1
