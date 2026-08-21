@@ -1,0 +1,47 @@
+name: Bug report
+description: Report incorrect scanning, regression comparison, or GitHub Action behavior.
+title: "[Bug] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping make AgentConfigScore more reliable.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Use synthetic config content only. Never paste real secrets or private repository data.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AgentConfigScore version or commit
+      placeholder: v0.3.0
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - CLI scan
+        - CLI compare
+        - GitHub Action
+        - HTML / Markdown / badge report
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, and any other useful context.
