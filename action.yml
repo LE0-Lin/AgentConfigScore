@@ -12,13 +12,13 @@ inputs:
     required: false
     default: ""
   max-drop:
-    description: "Maximum allowed score drop before the action fails."
+    description: "Optional override for policy.max_drop. Empty uses the baseline repository policy or 0."
     required: false
-    default: "0"
+    default: ""
   fail-on-new-errors:
-    description: "Fail when the candidate introduces any new error finding."
+    description: "Optional override for policy.fail_on_new_errors. Empty uses the baseline policy, or true when no policy file exists."
     required: false
-    default: "true"
+    default: ""
   python-version:
     description: "Python version used to run AgentConfigScore."
     required: false
@@ -76,11 +76,11 @@ runs:
           echo "::error::Invalid base SHA: $base_sha"
           exit 2
         fi
-        if ! [[ "$ACS_MAX_DROP" =~ ^[0-9]+$ ]]; then
+        if [[ -n "$ACS_MAX_DROP" ]] && ! [[ "$ACS_MAX_DROP" =~ ^[0-9]+$ ]]; then
           echo "::error::max-drop must be a non-negative integer"
           exit 2
         fi
-        if [[ "$ACS_FAIL_ON_NEW_ERRORS" != "true" && "$ACS_FAIL_ON_NEW_ERRORS" != "false" ]]; then
+        if [[ -n "$ACS_FAIL_ON_NEW_ERRORS" && "$ACS_FAIL_ON_NEW_ERRORS" != "true" && "$ACS_FAIL_ON_NEW_ERRORS" != "false" ]]; then
           echo "::error::fail-on-new-errors must be 'true' or 'false'"
           exit 2
         fi
@@ -104,11 +104,23 @@ runs:
 
         args=(
           compare "$base_dir" "$GITHUB_WORKSPACE"
-          --max-drop "$ACS_MAX_DROP"
           --markdown "$summary"
           --json
         )
-        if [[ "$ACS_FAIL_ON_NEW_ERRORS" == "true" ]]; then
+
+        if [[ -n "$ACS_MAX_DROP" ]]; then
+          args+=(--max-drop "$ACS_MAX_DROP")
+        fi
+
+        if [[ -n "$ACS_FAIL_ON_NEW_ERRORS" ]]; then
+          if [[ "$ACS_FAIL_ON_NEW_ERRORS" == "true" ]]; then
+            args+=(--fail-on-new-errors)
+          else
+            args+=(--no-fail-on-new-errors)
+          fi
+        elif [[ ! -f "$base_dir/.agentconfigscore.json" ]]; then
+          # Preserve the Action's historical default when a repository has not
+          # opted into an explicit policy file yet.
           args+=(--fail-on-new-errors)
         fi
 
