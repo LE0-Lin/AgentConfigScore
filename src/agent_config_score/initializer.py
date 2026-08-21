@@ -38,6 +38,23 @@ jobs:
       - uses: LE0-Lin/AgentConfigScore@v0
 """
 
+HISTORY_WORKFLOW_CONTENT = """name: agent-config-score-history
+
+# Change this branch if your repository uses a different default branch.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    uses: LE0-Lin/AgentConfigScore/.github/workflows/score-history.yml@v0
+"""
+
 
 @dataclass(frozen=True)
 class InitChange:
@@ -45,10 +62,19 @@ class InitChange:
     action: str
 
 
-def _targets(root: Path, include_workflow: bool) -> list[tuple[Path, str]]:
+def _targets(
+    root: Path,
+    include_workflow: bool,
+    include_history_workflow: bool,
+) -> list[tuple[Path, str]]:
     items = [(root / ".agentconfigscore.json", CONFIG_CONTENT)]
     if include_workflow:
         items.append((root / ".github" / "workflows" / "agent-config-score.yml", WORKFLOW_CONTENT))
+    if include_history_workflow:
+        items.append((
+            root / ".github" / "workflows" / "agent-config-score-history.yml",
+            HISTORY_WORKFLOW_CONTENT,
+        ))
     return items
 
 
@@ -56,6 +82,7 @@ def initialize_repository(
     root: Path,
     *,
     include_workflow: bool = True,
+    include_history_workflow: bool = False,
     force: bool = False,
     dry_run: bool = False,
 ) -> list[InitChange]:
@@ -63,7 +90,7 @@ def initialize_repository(
     if not root.exists() or not root.is_dir():
         raise InitError(f"not a directory: {root}")
 
-    targets = _targets(root, include_workflow)
+    targets = _targets(root, include_workflow, include_history_workflow)
     plan: list[tuple[Path, str, str]] = []
 
     # Preflight every target before writing anything. A conflicting workflow
