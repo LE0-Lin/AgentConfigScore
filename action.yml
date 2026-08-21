@@ -102,6 +102,12 @@ runs:
         }
         trap cleanup EXIT
 
+        if [[ -f "$base_dir/.agentconfigscore.json" ]]; then
+          echo "AgentConfigScore policy: baseline .agentconfigscore.json"
+        else
+          echo "AgentConfigScore policy: compatibility defaults (no baseline .agentconfigscore.json)"
+        fi
+
         args=(
           compare "$base_dir" "$GITHUB_WORKSPACE"
           --markdown "$summary"
