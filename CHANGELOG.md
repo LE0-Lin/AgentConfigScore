@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.15.0
+
+### Added
+
+- Scope-aware handling for nested `AGENTS.md` files.
+- Tests covering recursive `AGENTS.md` discovery, nested path resolution, repository-boundary safety, parent/child precedence, sibling scopes, and same-file contradictions.
+
+### Changed
+
+- `dead-path` checks in nested `AGENTS.md` files now accept both repository-root-relative paths and paths relative to the directory containing that `AGENTS.md`.
+- Repository path checks no longer probe absolute paths or relative references that escape the scanned repository.
+- Exact positive/negative directives in two different `AGENTS.md` files no longer count as contradictions because their directory scopes are either disjoint or deterministically resolved by deeper-file precedence.
+- Contradictions inside one `AGENTS.md` and contradictions across different instruction systems such as `AGENTS.md` versus `CLAUDE.md` remain active findings.
+- Rule IDs, severities, penalties, and scoring category caps are unchanged.
+- Package version bumped to `0.15.0`.
+
 ## v0.14.0
 
 ### Added
@@ -65,7 +81,7 @@
 ### Changed
 
 - The common local regression command is now simply `agent-config-score diff` when a safe local default branch can be detected.
-- Automatic baseline detection remains fully offline and never fetches missing refs.
+- Automatic baseline detection remains fully offline and never runs `git fetch`.
 - Feature-branch upstreams such as `origin/my-feature` are deliberately not treated as a baseline.
 - Explicit refs such as `agent-config-score diff origin/main` remain fully supported.
 - Package version bumped to `0.13.0`.

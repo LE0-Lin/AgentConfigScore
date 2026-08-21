@@ -250,6 +250,14 @@ Each successful run uploads an immutable artifact containing `snapshot.json`, `r
 
 See [`docs/score-history.md`](docs/score-history.md) for retention controls, monorepo paths, workflow outputs, and the history/security model. A copy-paste workflow is also available at [`examples/score-history.yml`](examples/score-history.yml).
 
+## Nested AGENTS.md scopes
+
+AgentConfigScore recursively discovers `AGENTS.md` files and understands their directory scoping instead of treating every one as a single global instruction file.
+
+For a nested `AGENTS.md`, repository-like path references may be either repository-root-relative or relative to the directory containing that `AGENTS.md`. Absolute references and relative paths that escape the repository are not probed by `dead-path` analysis.
+
+Exact opposite directives in two different `AGENTS.md` files are not reported as contradictions: sibling scopes do not overlap, while a deeper nested file has deterministic precedence inside its subtree. A contradiction inside one `AGENTS.md` still fails, and cross-system contradictions such as `AGENTS.md` versus `CLAUDE.md` remain detectable.
+
 ## Stable rule catalog
 
 Scoring logic is not hidden inside prose. Every rule has one canonical definition containing:
@@ -371,7 +379,7 @@ Repository-level findings remain repository-level SARIF results instead of recei
 
 Supported discovery includes:
 
-- `AGENTS.md`
+- `**/AGENTS.md` — root and nested directory scopes
 - `CLAUDE.md`
 - `GEMINI.md`
 - `.cursorrules`
@@ -447,6 +455,7 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] JSON Schema + editor validation
 - [x] end-to-end behavior contract fixtures
 - [x] score-history artifact / badge workflow
+- [x] scope-aware nested `AGENTS.md` analysis
 - [ ] optional semantic contradiction plugin
 
 ## Development

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from fnmatch import fnmatch
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import hashlib
 import html
 import json
@@ -157,6 +157,39 @@ def _candidate_paths(text: str):
         yield value, _line(text, m.start())
 
 
+def _repo_candidate(root: Path, base: Path, candidate: str) -> Path | None:
+    # Never probe absolute, Windows drive-qualified, or escaping paths. The
+    # scanner is about repository instructions, not the caller's filesystem.
+    windows_candidate = PureWindowsPath(candidate)
+    if Path(candidate).is_absolute() or windows_candidate.is_absolute() or windows_candidate.drive:
+        return None
+    target = (base / candidate).resolve(strict=False)
+    try:
+        target.relative_to(root)
+    except ValueError:
+        return None
+    return target
+
+
+def _candidate_exists(root: Path, source: Path, candidate: str) -> bool | None:
+    # Repository-root relative paths remain the primary interpretation. For a
+    # nested AGENTS.md, also accept a path relative to that file's directory,
+    # which is the root of the AGENTS.md instruction scope.
+    bases = [root]
+    if source.name == "AGENTS.md" and source.parent != root:
+        bases.append(source.parent)
+
+    checked = False
+    for base in bases:
+        target = _repo_candidate(root, base, candidate)
+        if target is None:
+            continue
+        checked = True
+        if target.exists():
+            return True
+    return False if checked else None
+
+
 def _directives(text: str):
     for m in DIRECTIVE.finditer(text):
         op = m.group(1).lower()
@@ -164,6 +197,33 @@ def _directives(text: str):
         body = re.sub(r"\s+", " ", body).strip()
         polarity = "neg" if op in {"never", "must not", "do not", "don't"} else "pos"
         yield polarity, body, _line(text, m.start())
+
+
+def _agents_precedence_resolves(left: str, right: str) -> bool:
+    # Two different AGENTS.md files cannot create an ambiguous directive for
+    # the same target: their scopes are either disjoint, or one is nested under
+    # the other and the deeper file has explicit precedence. A contradiction
+    # inside one AGENTS.md is still a real conflict.
+    left_path = PurePosixPath(left)
+    right_path = PurePosixPath(right)
+    return (
+        left != right
+        and left_path.name == "AGENTS.md"
+        and right_path.name == "AGENTS.md"
+    )
+
+
+def _unresolved_contradiction_files(rows: list[tuple[str, str, int]]) -> set[str]:
+    positives = [row for row in rows if row[0] == "pos"]
+    negatives = [row for row in rows if row[0] == "neg"]
+    conflicts: set[str] = set()
+    for positive in positives:
+        for negative in negatives:
+            if _agents_precedence_resolves(positive[1], negative[1]):
+                continue
+            conflicts.add(positive[1])
+            conflicts.add(negative[1])
+    return conflicts
 
 
 def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...]) -> Suppression | None:
@@ -205,7 +265,8 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
             if key in seen_refs:
                 continue
             seen_refs.add(key)
-            if not (root / candidate).exists():
+            exists = _candidate_exists(root, path, candidate)
+            if exists is False:
                 findings.append(_finding("dead-path", rel, lineno, f"Referenced path does not exist: {candidate}"))
 
     line_locations: dict[str, list[tuple[str, int]]] = defaultdict(list)
@@ -230,8 +291,9 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
         for polarity, body, lineno in _directives(text):
             directives[body].append((polarity, rel, lineno))
     for body, rows in directives.items():
-        if {row[0] for row in rows} >= {"pos", "neg"}:
-            files_str = ", ".join(sorted({row[1] for row in rows}))
+        conflict_files = _unresolved_contradiction_files(rows)
+        if conflict_files:
+            files_str = ", ".join(sorted(conflict_files))
             findings.append(_finding("contradiction", "(repo)", message=f"Conflicting directives about: '{body}' ({files_str})"))
 
     rels = [p.relative_to(root).as_posix() for p in files]
