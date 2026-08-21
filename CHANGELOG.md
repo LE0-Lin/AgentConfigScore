@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.7.1
+
+### Added
+
+- `agent-config-score --version` / `-V`.
+- Top-level CLI help that advertises scan, Git-native `diff`, and directory `compare` workflows.
+- GitHub Action log output that states whether the run is using baseline `.agentconfigscore.json` or compatibility defaults.
+- CLI tests for version and top-level help output.
+
+### Changed
+
+- Package version bumped to `0.7.1`.
+
 ## v0.7.0
 
 ### Added
