@@ -233,7 +233,7 @@ class RegressionTests(unittest.TestCase):
             head = Path(head_dir)
             (base / "AGENTS.md").write_text("Run tests before submitting.\n", encoding="utf-8")
             (head / "AGENTS.md").write_text("Run tests before submitting.\n", encoding="utf-8")
-            text = markdown_report(compare(base, head)
+            text = markdown_report(compare(base, head))
             self.assertIn("AgentConfigScore regression", text)
             self.assertIn("100/100", text)
 
