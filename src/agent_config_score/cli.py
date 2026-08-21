@@ -10,6 +10,7 @@ from .config import ConfigError, Policy, load_policy
 from .gitdiff import GitError, baseline_worktree, repository_root
 from .initializer import InitError, initialize_repository
 from .regression import compare, markdown_report
+from .rules import RULES, get_rule
 from .sarif import sarif_report
 from .scanner import analyze, badge_svg, html_report
 
@@ -21,6 +22,7 @@ GRADE_COLORS = {"A": "\033[32m", "B": "\033[32m", "C": "\033[33m", "D": "\033[33
 TOP_LEVEL_HELP = """usage:
   agent-config-score [PATH] [scan options]
   agent-config-score init [PATH] [options]
+  agent-config-score rules [RULE_ID] [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -28,11 +30,14 @@ Score and regression-check AI coding-agent instruction files.
 
 commands:
   init       Add a repository policy and GitHub Actions workflow safely.
+  rules      List or explain the stable AgentConfigScore rule catalog.
   diff       Compare a Git ref with the current working tree.
   compare    Compare two already checked-out repository trees.
 
 common examples:
   agent-config-score init
+  agent-config-score rules
+  agent-config-score rules curl-pipe-shell
   agent-config-score .
   agent-config-score diff origin/main
   agent-config-score compare ../repo-base .
@@ -105,6 +110,16 @@ def build_init_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-workflow", action="store_true", help="Create only .agentconfigscore.json")
     p.add_argument("--force", action="store_true", help="Overwrite conflicting generated files")
     p.add_argument("--dry-run", action="store_true", help="Show the initialization plan without writing files")
+    return p
+
+
+def build_rules_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="agent-config-score rules",
+        description="List all stable rule IDs or explain one rule in detail.",
+    )
+    p.add_argument("rule_id", nargs="?", help="Optional rule ID, for example: curl-pipe-shell")
+    p.add_argument("--json", action="store_true", help="Print machine-readable JSON")
     return p
 
 
@@ -200,6 +215,35 @@ def _main_init(argv: list[str]) -> int:
         print("Dry run: no files written.")
     else:
         print("\nAgentConfigScore initialized. Review and commit the generated files.")
+    return 0
+
+
+def _main_rules(argv: list[str]) -> int:
+    args = build_rules_parser().parse_args(argv)
+    if args.rule_id:
+        rule = get_rule(args.rule_id)
+        if rule is None:
+            print(f"error: unknown rule ID: {args.rule_id}", file=sys.stderr)
+            return 2
+        if args.json:
+            print(json.dumps(rule.to_dict(), indent=2, ensure_ascii=False))
+        else:
+            print(rule.code)
+            print(f"Severity: {rule.severity}")
+            print(f"Category: {rule.category}")
+            print(f"Penalty:  {rule.penalty}")
+            print(f"Summary:  {rule.summary}")
+            print(f"\n{rule.description}")
+        return 0
+
+    if args.json:
+        print(json.dumps([rule.to_dict() for rule in RULES], indent=2, ensure_ascii=False))
+        return 0
+
+    print(f"{'RULE ID':22} {'SEVERITY':8} {'CATEGORY':8} {'PENALTY':7} SUMMARY")
+    for rule in RULES:
+        print(f"{rule.code:22} {rule.severity:8} {rule.category:8} {rule.penalty:7} {rule.summary}")
+    print(f"\n{len(RULES)} rules. Run `agent-config-score rules RULE_ID` for details.")
     return 0
 
 
@@ -303,6 +347,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args and args[0] == "init":
         return _main_init(args[1:])
+    if args and args[0] == "rules":
+        return _main_rules(args[1:])
     if args and args[0] == "compare":
         return _main_compare(args[1:])
     if args and args[0] == "diff":
