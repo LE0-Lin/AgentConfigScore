@@ -20,4 +20,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: python -m pip install -e .
       - run: python -m unittest discover -s tests -v
-      - run: agent-config-score . --fail-under 90
+      - name: Generate and validate SARIF
+        run: |
+          agent-config-score . --fail-under 90 --sarif "$RUNNER_TEMP/agent-config-score.sarif"
+          python - "$RUNNER_TEMP/agent-config-score.sarif" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              data = json.load(handle)
+          assert data["version"] == "2.1.0"
+          assert data["runs"][0]["tool"]["driver"]["name"] == "AgentConfigScore"
+          PY

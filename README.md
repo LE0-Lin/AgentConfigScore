@@ -104,12 +104,13 @@ agent-config-score compare ../repo-base . \
 
 `--max-drop 0` means the score may not decrease. Set `--max-drop 3` if a small temporary drop is acceptable.
 
-Generate a local HTML report and badge:
+Generate local HTML, badge, and SARIF reports:
 
 ```bash
 agent-config-score . \
   --html .agent-config-score/report.html \
-  --badge .agent-config-score/badge.svg
+  --badge .agent-config-score/badge.svg \
+  --sarif .agent-config-score/results.sarif
 ```
 
 Enforce an absolute score floor when you want one:
@@ -117,6 +118,40 @@ Enforce an absolute score floor when you want one:
 ```bash
 agent-config-score . --fail-under 90
 ```
+
+## GitHub code scanning with SARIF
+
+`--sarif` writes a SARIF 2.1.0 report with AgentConfigScore rule IDs, severity levels, and source locations. That means findings can be uploaded into GitHub code scanning instead of living only in terminal output.
+
+A minimal upload workflow for a public repository looks like this:
+
+```yaml
+name: agent-config-code-scanning
+
+on:
+  push:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
+      - run: agent-config-score . --sarif agent-config-score.sarif
+      - uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: agent-config-score.sarif
+          category: agent-config-score
+```
+
+The SARIF generator keeps repository-level findings such as cross-file duplication or missing canonical `AGENTS.md` as repository-level results instead of inventing fake file locations.
 
 ## What it checks today
 
@@ -196,8 +231,8 @@ The action emits these values before returning the final regression exit status.
 - [x] first-class reusable GitHub Action
 - [x] structured GitHub Action outputs
 - [x] self-dogfooding PR regression workflow
+- [x] SARIF output for GitHub code scanning
 - [ ] Git-aware `--base-ref origin/main` without manual worktrees
-- [ ] SARIF output for GitHub code scanning
 - [ ] score-history badge for public repositories
 - [ ] optional semantic contradiction plugin
 

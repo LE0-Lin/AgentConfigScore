@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.5.0
+
+### Added
+
+- SARIF 2.1.0 output via `agent-config-score --sarif FILE`.
+- GitHub code-scanning compatible rule metadata, severity mapping, and file/line locations.
+- Unit coverage for file-level and repository-level SARIF findings.
+- CI validation that generates and parses a real SARIF artifact on Python 3.10, 3.12, and 3.13.
+
+### Changed
+
+- Package version bumped to `0.5.0`.
+
 ## v0.4.0
 
 ### Added
