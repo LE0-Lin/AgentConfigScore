@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.2
+
+### Changed
+
+- Align the package and Git tag for the Marketplace release.
+- Make GitHub Release creation manual so Marketplace publication can own the release flow without an automated job pre-creating the same tag.
+- Package version bumped to `0.5.2`.
+
 ## v0.5.1
 
 ### Changed
