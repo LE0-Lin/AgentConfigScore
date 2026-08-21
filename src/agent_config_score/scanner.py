@@ -103,7 +103,11 @@ def _ignored(rel: str, patterns: list[str]) -> bool:
 
 
 def discover(root: Path) -> list[Path]:
-    root = root.resolve()
+    # Keep the caller's path identity instead of resolving filesystem aliases.
+    # macOS may rewrite /var to /private/var and Windows may expand 8.3 paths;
+    # callers should still be able to make discovered files relative to the
+    # absolute root they supplied.
+    root = root.absolute()
     patterns = _ignore_patterns(root)
     found: list[Path] = []
     for path in root.rglob("*"):

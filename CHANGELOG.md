@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.13.2
+
+### Added
+
+- Continuous product validation on Linux, Windows, and macOS.
+- Windows and macOS CI jobs run the complete test suite, installed `doctor` smoke test, and real SARIF generation on Python 3.12.
+- Linux continues to validate Python 3.10, 3.12, and 3.13.
+
+### Fixed
+
+- Preserve the caller's absolute path identity in `discover()` instead of resolving filesystem aliases that can change `/var` to `/private/var` on macOS or expand Windows 8.3 paths.
+- Prevent installed CLI commands from crashing when a Windows console or redirected stream cannot encode Unicode status symbols.
+- Use ASCII-safe terminal status markers while retaining UTF-8 output for JSON, SARIF, HTML, Markdown, and other file formats.
+- Configure installed console streams to escape otherwise unencodable user paths/text instead of raising `UnicodeEncodeError`.
+
+### Changed
+
+- The main CI matrix now proves AgentConfigScore's scanner, Git worktree/diff behavior, `doctor`, and SARIF flow on all three major desktop operating systems.
+- Package version bumped to `0.13.2`.
+
 ## v0.13.1
 
 ### Added
