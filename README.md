@@ -63,6 +63,8 @@ New findings: 2   Resolved: 0
           AGENTS.md:31
 ```
 
+**Live proof:** [PR #6](https://github.com/LE0-Lin/AgentConfigScore/pull/6) deliberately added an unsafe `curl | bash` instruction. AgentConfigScore changed the score from **A 100 → B 82 (-18)**, reported one new `curl-pipe-shell` error, and failed the GitHub Actions job. The PR was then closed without merging.
+
 This is intentionally different from an absolute quality gate. A legacy repository can start at 72/100 and still adopt AgentConfigScore immediately: a PR that stays at 72 passes, while a PR that drops to 65 fails.
 
 ## Why regression-first?
