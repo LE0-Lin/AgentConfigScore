@@ -13,9 +13,20 @@ authors = [{name = "Zhibo Lin"}]
 keywords = ["agents-md", "claude-code", "cursor", "copilot", "ai-agents", "github-actions", "ci", "developer-tools"]
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
+
+[project.urls]
+Homepage = "https://github.com/LE0-Lin/AgentConfigScore"
+Repository = "https://github.com/LE0-Lin/AgentConfigScore"
+Issues = "https://github.com/LE0-Lin/AgentConfigScore/issues"
+Changelog = "https://github.com/LE0-Lin/AgentConfigScore/blob/main/CHANGELOG.md"
 
 [project.scripts]
 agent-config-score = "agent_config_score.entrypoint:main"
