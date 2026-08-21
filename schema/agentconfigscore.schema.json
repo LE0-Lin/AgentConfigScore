@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/v0/schema/agentconfigscore.schema.json",
+  "title": "AgentConfigScore repository configuration",
+  "description": "Repository policy and auditable suppressions for AgentConfigScore.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional JSON Schema URI used by editors."
+    },
+    "version": {
+      "const": 1,
+      "default": 1,
+      "description": "AgentConfigScore configuration format version."
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_drop": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Maximum score decrease allowed by regression checks."
+        },
+        "fail_on_new_errors": {
+          "type": "boolean",
+          "default": false,
+          "description": "Fail regression checks when a candidate introduces an active error-severity finding."
+        },
+        "fail_under": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Optional absolute score floor for normal scans."
+        }
+      }
+    },
+    "suppressions": {
+      "type": "array",
+      "description": "Reviewed exceptions. Regression checks use the baseline repository suppression set.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "reason", "expires"],
+        "properties": {
+          "rule": {
+            "type": "string",
+            "enum": [
+              "curl-pipe-shell",
+              "wget-pipe-shell",
+              "rm-rf",
+              "sudo",
+              "chmod-777",
+              "openai-key",
+              "github-token",
+              "aws-access-key",
+              "private-key",
+              "read-error",
+              "context-too-large",
+              "context-large",
+              "dead-path",
+              "high-duplication",
+              "duplication",
+              "contradiction",
+              "no-agents-md",
+              "no-config"
+            ],
+            "description": "Stable AgentConfigScore rule ID to suppress."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "pattern": ".*\\S.*",
+            "description": "Why this exception has been reviewed and accepted."
+          },
+          "expires": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "Expiry date in YYYY-MM-DD. AgentConfigScore rejects suppressions after this date."
+          },
+          "paths": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".*\\S.*"
+            },
+            "description": "Optional instruction-file glob scope. Omit for repository-wide rule suppression."
+          }
+        }
+      }
+    }
+  }
+}
