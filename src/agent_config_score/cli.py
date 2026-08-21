@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sys
 
+from .gitdiff import GitError, compare_git_ref
 from .regression import compare, markdown_report
 from .sarif import sarif_report
 from .scanner import analyze, badge_svg, html_report
@@ -69,6 +70,13 @@ def build_scan_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _add_regression_options(p: argparse.ArgumentParser) -> None:
+    p.add_argument("--json", action="store_true", help="Print JSON instead of text")
+    p.add_argument("--markdown", metavar="FILE", help="Write a Markdown regression summary")
+    p.add_argument("--max-drop", type=int, default=0, metavar="N", help="Allowed score drop before failing (default: 0)")
+    p.add_argument("--fail-on-new-errors", action="store_true", help="Fail when the candidate introduces any new error finding")
+
+
 def build_compare_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="agent-config-score compare",
@@ -76,10 +84,18 @@ def build_compare_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("base", help="Baseline repository directory")
     p.add_argument("head", help="Candidate repository directory")
-    p.add_argument("--json", action="store_true", help="Print JSON instead of text")
-    p.add_argument("--markdown", metavar="FILE", help="Write a Markdown regression summary")
-    p.add_argument("--max-drop", type=int, default=0, metavar="N", help="Allowed score drop before failing (default: 0)")
-    p.add_argument("--fail-on-new-errors", action="store_true", help="Fail when the candidate introduces any new error finding")
+    _add_regression_options(p)
+    return p
+
+
+def build_diff_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="agent-config-score diff",
+        description="Compare a Git ref with the current working tree without manually creating a baseline checkout.",
+    )
+    p.add_argument("base_ref", help="Baseline Git branch, tag, or commit (for example: origin/main)")
+    p.add_argument("--path", default=".", metavar="DIR", help="Path inside the Git repository (default: current directory)")
+    _add_regression_options(p)
     return p
 
 
@@ -88,21 +104,7 @@ def _existing_dir(value: str) -> Path | None:
     return path if path.exists() and path.is_dir() else None
 
 
-def _main_compare(argv: list[str]) -> int:
-    args = build_compare_parser().parse_args(argv)
-    base = _existing_dir(args.base)
-    head = _existing_dir(args.head)
-    if base is None:
-        print(f"error: not a directory: {args.base}", file=sys.stderr)
-        return 2
-    if head is None:
-        print(f"error: not a directory: {args.head}", file=sys.stderr)
-        return 2
-    if args.max_drop < 0:
-        print("error: --max-drop must be >= 0", file=sys.stderr)
-        return 2
-
-    report = compare(base, head)
+def _finish_regression(report, args) -> int:
     if args.markdown:
         out = Path(args.markdown)
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -120,6 +122,42 @@ def _main_compare(argv: list[str]) -> int:
     if args.fail_on_new_errors and report.new_errors:
         return 1
     return 0
+
+
+def _validate_regression_options(args) -> bool:
+    if args.max_drop < 0:
+        print("error: --max-drop must be >= 0", file=sys.stderr)
+        return False
+    return True
+
+
+def _main_compare(argv: list[str]) -> int:
+    args = build_compare_parser().parse_args(argv)
+    base = _existing_dir(args.base)
+    head = _existing_dir(args.head)
+    if base is None:
+        print(f"error: not a directory: {args.base}", file=sys.stderr)
+        return 2
+    if head is None:
+        print(f"error: not a directory: {args.head}", file=sys.stderr)
+        return 2
+    if not _validate_regression_options(args):
+        return 2
+
+    return _finish_regression(compare(base, head), args)
+
+
+def _main_diff(argv: list[str]) -> int:
+    args = build_diff_parser().parse_args(argv)
+    if not _validate_regression_options(args):
+        return 2
+
+    try:
+        report = compare_git_ref(Path(args.path), args.base_ref)
+    except GitError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    return _finish_regression(report, args)
 
 
 def _main_scan(argv: list[str]) -> int:
@@ -164,6 +202,8 @@ def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args and args[0] == "compare":
         return _main_compare(args[1:])
+    if args and args[0] == "diff":
+        return _main_diff(args[1:])
     return _main_scan(args)
 
 
