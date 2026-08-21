@@ -49,7 +49,7 @@ RULES = (
     Rule("dead-path", "warning", "dead", 4, "Referenced repository path does not exist", "Flags repository-like paths referenced by agent instructions when the target path is absent."),
     Rule("high-duplication", "warning", "quality", 12, "High cross-file instruction duplication", "Reports when at least 35% of meaningful instruction lines are duplicated across files."),
     Rule("duplication", "warning", "quality", 7, "Cross-file instruction duplication", "Reports when at least 15% of meaningful instruction lines are duplicated across files."),
-    Rule("contradiction", "error", "quality", 15, "Conflicting persistent directives", "Conservatively flags matching directive bodies that appear with both positive and negative polarity, excluding conflicts that are deterministically resolved by nested AGENTS.md scope precedence."),
+    Rule("contradiction", "error", "quality", 15, "Conflicting persistent directives", "Conservatively flags matching directive bodies that appear with both positive and negative polarity, excluding conflicts deterministically resolved by AGENTS.md directory scope or Codex AGENTS.override.md precedence."),
     Rule("no-agents-md", "info", "quality", 3, "No canonical root AGENTS.md", "Reports multiple tool-specific instruction files without a root AGENTS.md to coordinate them."),
     Rule("no-config", "info", "other", 0, "No supported coding-agent instruction files found", "Reports that discovery found no supported coding-agent instruction files."),
 )

@@ -250,13 +250,15 @@ Each successful run uploads an immutable artifact containing `snapshot.json`, `r
 
 See [`docs/score-history.md`](docs/score-history.md) for retention controls, monorepo paths, workflow outputs, and the history/security model. A copy-paste workflow is also available at [`examples/score-history.yml`](examples/score-history.yml).
 
-## Nested AGENTS.md scopes
+## Nested AGENTS.md scopes and overrides
 
-AgentConfigScore recursively discovers `AGENTS.md` files and understands their directory scoping instead of treating every one as a single global instruction file.
+AgentConfigScore recursively discovers both `AGENTS.md` and Codex `AGENTS.override.md` files and understands their directory scoping instead of treating every instruction file as one global policy.
 
-For a nested `AGENTS.md`, repository-like path references may be either repository-root-relative or relative to the directory containing that `AGENTS.md`. Absolute references and relative paths that escape the repository are not probed by `dead-path` analysis.
+For a nested AGENTS-family file, repository-like path references may be either repository-root-relative or relative to the directory containing that file. Absolute references, Windows drive-qualified paths, and relative paths that escape the repository are not probed by `dead-path` analysis.
 
-Exact opposite directives in two different `AGENTS.md` files are not reported as contradictions: sibling scopes do not overlap, while a deeper nested file has deterministic precedence inside its subtree. A contradiction inside one `AGENTS.md` still fails, and cross-system contradictions such as `AGENTS.md` versus `CLAUDE.md` remain detectable.
+Codex gives `AGENTS.override.md` priority over `AGENTS.md` in the same directory. Across directories, sibling scopes do not overlap and deeper instructions are more specific inside their subtree. AgentConfigScore therefore does not report an exact positive/negative pair across two different AGENTS-family files as an ambiguous contradiction. A contradiction inside one file still fails, and cross-system contradictions such as AGENTS-family instructions versus `CLAUDE.md` remain detectable.
+
+Codex can also be configured with custom `project_doc_fallback_filenames`. AgentConfigScore does not guess those user-specific filenames automatically; only the standard built-in AGENTS filenames are discovered by default.
 
 ## Stable rule catalog
 
@@ -380,6 +382,7 @@ Repository-level findings remain repository-level SARIF results instead of recei
 Supported discovery includes:
 
 - `**/AGENTS.md` — root and nested directory scopes
+- `**/AGENTS.override.md` — Codex local overrides
 - `CLAUDE.md`
 - `GEMINI.md`
 - `.cursorrules`
@@ -456,6 +459,7 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] end-to-end behavior contract fixtures
 - [x] score-history artifact / badge workflow
 - [x] scope-aware nested `AGENTS.md` analysis
+- [x] Codex `AGENTS.override.md` discovery / precedence
 - [ ] optional semantic contradiction plugin
 
 ## Development
