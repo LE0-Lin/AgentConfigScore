@@ -9,6 +9,7 @@ from pathlib import Path
 from .rules import get_rule
 
 CONFIG_NAME = ".agentconfigscore.json"
+SCHEMA_URL = "https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/v0/schema/agentconfigscore.schema.json"
 
 
 class ConfigError(ValueError):
@@ -50,7 +51,7 @@ class Policy:
     suppressions: tuple[Suppression, ...] = ()
 
 
-_ALLOWED_TOP_LEVEL = {"version", "policy", "suppressions"}
+_ALLOWED_TOP_LEVEL = {"$schema", "version", "policy", "suppressions"}
 _ALLOWED_POLICY_KEYS = {"max_drop", "fail_on_new_errors", "fail_under"}
 _ALLOWED_SUPPRESSION_KEYS = {"rule", "reason", "expires", "paths"}
 
@@ -130,6 +131,10 @@ def parse_policy(data: object, *, today: date | None = None) -> Policy:
     unknown = sorted(set(data) - _ALLOWED_TOP_LEVEL)
     if unknown:
         raise ConfigError(f"unknown configuration key(s): {', '.join(unknown)}")
+
+    schema_uri = data.get("$schema")
+    if schema_uri is not None and (not isinstance(schema_uri, str) or not schema_uri.strip()):
+        raise ConfigError("$schema must be a non-empty string when provided")
 
     version = data.get("version", 1)
     if version != 1:
