@@ -42,14 +42,50 @@ jobs:
         with:
           fetch-depth: 0
       - uses: LE0-Lin/AgentConfigScore@v0
-        with:
-          max-drop: "0"
-          fail-on-new-errors: "true"
 ```
 
 That is the whole integration. `v0` is the rolling stable ref for the current pre-1.0 series.
 
+Without a policy file, the Action keeps the conservative defaults used since the first reusable release: no score drop is allowed and newly introduced error findings fail the job.
+
 The action installs AgentConfigScore, finds the PR base commit, compares it with the candidate, writes a Markdown report to the GitHub Actions Step Summary, and fails the job when the configured regression policy is violated.
+
+## Keep policy in the repository
+
+Add `.agentconfigscore.json` when you want one version-controlled policy shared by local checks and CI:
+
+```json
+{
+  "version": 1,
+  "policy": {
+    "max_drop": 0,
+    "fail_on_new_errors": true,
+    "fail_under": 90
+  }
+}
+```
+
+| Policy key | Default | Meaning |
+|---|---:|---|
+| `max_drop` | `0` | Maximum score decrease allowed by `diff` / `compare` |
+| `fail_on_new_errors` | `false` in CLI, `true` in the Action when no policy file exists | Fail regression checks on newly introduced error findings |
+| `fail_under` | unset | Optional absolute score floor for a normal scan |
+
+### Why baseline policy governs a PR
+
+A pull request must not be able to disable the gate that reviews it.
+
+For `diff` and `compare`, AgentConfigScore uses the **baseline** `.agentconfigscore.json` to decide pass/fail. The candidate policy is still parsed and validated, but its new thresholds only become active after the change is merged and becomes the baseline for a later PR.
+
+That means a PR changing:
+
+```json
+{"policy":{"max_drop":100,"fail_on_new_errors":false}}
+```
+
+cannot use those weaker values to pass itself.
+
+Explicit CLI or Action inputs remain available as trusted invocation-time overrides.
 
 ## Check locally before you push
 
@@ -62,9 +98,15 @@ python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
 Then compare your current working tree with any local Git branch, tag, or commit:
 
 ```bash
+agent-config-score diff origin/main
+```
+
+If the repository contains `.agentconfigscore.json`, the baseline policy is applied automatically. You can still override it explicitly when you intend to:
+
+```bash
 agent-config-score diff origin/main \
-  --max-drop 0 \
-  --fail-on-new-errors
+  --max-drop 3 \
+  --no-fail-on-new-errors
 ```
 
 `diff` includes **uncommitted changes** in the current working tree. AgentConfigScore creates an isolated detached worktree for the baseline ref, compares it with your repository, then removes the temporary worktree automatically.
@@ -118,12 +160,8 @@ Run the Git-native regression check and save a Markdown report:
 
 ```bash
 agent-config-score diff origin/main \
-  --max-drop 0 \
-  --fail-on-new-errors \
   --markdown regression.md
 ```
-
-`--max-drop 0` means the score may not decrease. Set `--max-drop 3` if a small temporary drop is acceptable.
 
 For scripts and custom integrations, add `--json` to either `diff` or `compare`.
 
@@ -131,8 +169,6 @@ Advanced: compare two already checked-out directory trees directly:
 
 ```bash
 agent-config-score compare ../repo-base . \
-  --max-drop 0 \
-  --fail-on-new-errors \
   --markdown regression.md
 ```
 
@@ -145,7 +181,7 @@ agent-config-score . \
   --sarif .agent-config-score/results.sarif
 ```
 
-Enforce an absolute score floor when you want one:
+Enforce an absolute score floor directly when you want to override repository policy:
 
 ```bash
 agent-config-score . --fail-under 90
@@ -215,9 +251,11 @@ Supported discovery includes:
 | Input | Default | Meaning |
 |---|---:|---|
 | `base-sha` | PR base SHA | Explicit baseline commit SHA |
-| `max-drop` | `0` | Maximum allowed score decrease |
-| `fail-on-new-errors` | `true` | Fail on any newly introduced error |
+| `max-drop` | empty | Optional trusted override for baseline `policy.max_drop` |
+| `fail-on-new-errors` | empty | Optional trusted override for baseline `policy.fail_on_new_errors` |
 | `python-version` | `3.12` | Python used by the composite action |
+
+When the override inputs are empty, the Action uses the baseline repository policy. If no policy file exists, it preserves the historical Action defaults: `max_drop = 0` and `fail_on_new_errors = true`.
 
 ## Action outputs
 
@@ -250,10 +288,11 @@ The action emits these values before returning the final regression exit status.
 ## Design principles
 
 1. **Regression-first.** A legacy repo does not need to become perfect before CI becomes useful.
-2. **Local-first.** Repository content is not uploaded to a hosted analysis service.
-3. **Explainable.** Every score change maps to visible findings.
-4. **Conservative.** Prefer a missed warning over noisy fake certainty.
-5. **Zero runtime dependencies.** Python 3.10+ standard library only.
+2. **Baseline-governed policy.** A candidate change cannot weaken the gate evaluating itself.
+3. **Local-first.** Repository content is not uploaded to a hosted analysis service.
+4. **Explainable.** Every score change maps to visible findings.
+5. **Conservative.** Prefer a missed warning over noisy fake certainty.
+6. **Zero runtime dependencies.** Python 3.10+ standard library only.
 
 ## Roadmap
 
@@ -265,7 +304,7 @@ The action emits these values before returning the final regression exit status.
 - [x] self-dogfooding PR regression workflow
 - [x] SARIF output for GitHub code scanning
 - [x] Git-aware local diff without manual worktrees
-- [ ] repository policy/config file
+- [x] baseline-governed repository policy/config file
 - [ ] score-history badge for public repositories
 - [ ] optional semantic contradiction plugin
 
