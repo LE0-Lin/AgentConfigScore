@@ -3,18 +3,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from .config import SCHEMA_URL
+
 
 class InitError(RuntimeError):
     """Raised when repository initialization cannot proceed safely."""
 
 
-CONFIG_CONTENT = """{
+CONFIG_CONTENT = f"""{{
+  "$schema": "{SCHEMA_URL}",
   "version": 1,
-  "policy": {
+  "policy": {{
     "max_drop": 0,
     "fail_on_new_errors": true
-  }
-}
+  }}
+}}
 """
 
 WORKFLOW_CONTENT = """name: agent-config-regression
