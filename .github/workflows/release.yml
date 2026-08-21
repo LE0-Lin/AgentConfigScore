@@ -1,12 +1,7 @@
 name: release
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "pyproject.toml"
-      - "src/agent_config_score/__init__.py"
-      - ".github/workflows/release.yml"
+  workflow_dispatch:
 
 permissions:
   contents: write
