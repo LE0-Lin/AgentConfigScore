@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 
@@ -40,6 +41,24 @@ def _write_ready_repository(root: Path) -> None:
     workflow.write_text(VALID_WORKFLOW, encoding="utf-8")
 
 
+def _git(root: Path, *args: str) -> str:
+    proc = subprocess.run(
+        ["git", "-C", str(root), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return proc.stdout.strip()
+
+
+def _init_git_repository(root: Path, branch: str) -> None:
+    _git(root, "init", "-q", "-b", branch)
+    _git(root, "config", "user.name", "AgentConfigScore Tests")
+    _git(root, "config", "user.email", "tests@example.invalid")
+    _git(root, "add", ".")
+    _git(root, "commit", "-q", "-m", "baseline")
+
+
 class DoctorTests(unittest.TestCase):
     def test_ready_repository_has_no_errors(self):
         with tempfile.TemporaryDirectory() as d:
@@ -53,6 +72,33 @@ class DoctorTests(unittest.TestCase):
             self.assertEqual(statuses["instructions"], "pass")
             self.assertEqual(statuses["workflow"], "pass")
             self.assertEqual(statuses["git"], "warning")
+            self.assertNotIn("baseline", statuses)
+
+    def test_doctor_reports_detected_local_baseline(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            _write_ready_repository(root)
+            _init_git_repository(root, "main")
+            _git(root, "checkout", "-q", "-b", "feature")
+
+            report = diagnose(root)
+            checks = {check.name: check for check in report.checks}
+            self.assertEqual(checks["git"].status, "pass")
+            self.assertEqual(checks["baseline"].status, "pass")
+            self.assertIn("main", checks["baseline"].message)
+
+    def test_doctor_warns_when_automatic_baseline_is_unavailable(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            _write_ready_repository(root)
+            _init_git_repository(root, "feature")
+
+            report = diagnose(root)
+            checks = {check.name: check for check in report.checks}
+            self.assertEqual(checks["git"].status, "pass")
+            self.assertEqual(checks["baseline"].status, "warning")
+            self.assertIn("Automatic diff baseline is unavailable", checks["baseline"].message)
+            self.assertTrue(report.ok)
 
     def test_invalid_config_is_an_error(self):
         with tempfile.TemporaryDirectory() as d:
