@@ -79,10 +79,10 @@ def print_report(report) -> None:
         f"Duplication: {report.duplicate_ratio:.0%}   Suppressed: {len(report.suppressed_findings)}\n"
     )
     if not report.findings:
-        print(_c("✓ No active findings", "\033[32m"))
+        print(_c("OK No active findings", "\033[32m"))
     else:
         for f in report.findings:
-            icon = {"error": "✖", "warning": "!", "info": "i"}.get(f.severity, "-")
+            icon = {"error": "X", "warning": "!", "info": "i"}.get(f.severity, "-")
             loc = f.file + (f":{f.line}" if f.line else "")
             prefix = _c(f"{icon} {f.severity.upper():7}", COLORS.get(f.severity, ""))
             print(f"{prefix} {f.code:20} {f.message}")
@@ -94,7 +94,7 @@ def print_regression(report) -> None:
     sign = "+" if report.delta > 0 else ""
     print(
         f"\n{BOLD if _supports_color() else ''}AgentConfigScore regression{RESET if _supports_color() else ''}  "
-        f"{report.base.grade} {report.base.score} → {report.head.grade} {report.head.score} ({sign}{report.delta})"
+        f"{report.base.grade} {report.base.score} -> {report.head.grade} {report.head.score} ({sign}{report.delta})"
     )
     print(
         f"New findings: {len(report.new_findings)}   Resolved: {len(report.resolved_findings)}   "
@@ -110,7 +110,7 @@ def print_regression(report) -> None:
         print(f"- RESOLVED {finding.code:20} {finding.message}")
         print(f"           {location}")
     if not report.new_findings and not report.resolved_findings:
-        print("✓ No active agent-config changes detected")
+        print("OK No active agent-config changes detected")
     _print_suppressed(report.head)
 
 
