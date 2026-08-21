@@ -227,6 +227,29 @@ The Action installs AgentConfigScore, resolves the PR base commit, applies basel
 
 Without a policy file, the Action preserves its conservative compatibility defaults: `max_drop = 0` and `fail_on_new_errors = true`.
 
+## Keep score history
+
+Optionally record a read-only score snapshot whenever your default branch changes:
+
+```yaml
+name: agent-config-score-history
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    uses: LE0-Lin/AgentConfigScore/.github/workflows/score-history.yml@v0
+```
+
+Each successful run uploads an immutable artifact containing `snapshot.json`, `report.json`, `report.html`, and `badge.svg`. Artifact names include the commit SHA and run attempt, and retention defaults to 30 days. The history workflow does not write generated files back to the repository and does not fail merely because the current score is low.
+
+See [`docs/score-history.md`](docs/score-history.md) for retention controls, monorepo paths, workflow outputs, and the history/security model. A copy-paste workflow is also available at [`examples/score-history.yml`](examples/score-history.yml).
+
 ## Stable rule catalog
 
 Scoring logic is not hidden inside prose. Every rule has one canonical definition containing:
@@ -423,7 +446,7 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] reasoned / expiring suppressions
 - [x] JSON Schema + editor validation
 - [x] end-to-end behavior contract fixtures
-- [ ] score-history artifact / badge workflow
+- [x] score-history artifact / badge workflow
 - [ ] optional semantic contradiction plugin
 
 ## Development

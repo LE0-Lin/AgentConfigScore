@@ -1,0 +1,159 @@
+name: AgentConfigScore score history
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: Repository path to score
+        required: false
+        type: string
+        default: "."
+      python_version:
+        description: Python version used to run AgentConfigScore
+        required: false
+        type: string
+        default: "3.12"
+      retention_days:
+        description: Days to retain each immutable score artifact
+        required: false
+        type: number
+        default: 30
+      tool_ref:
+        description: AgentConfigScore ref to install
+        required: false
+        type: string
+        default: "v0"
+    outputs:
+      score:
+        description: Current AgentConfigScore numeric score
+        value: ${{ jobs.snapshot.outputs.score }}
+      grade:
+        description: Current AgentConfigScore letter grade
+        value: ${{ jobs.snapshot.outputs.grade }}
+      artifact-id:
+        description: Uploaded GitHub Actions artifact ID
+        value: ${{ jobs.snapshot.outputs.artifact-id }}
+      artifact-url:
+        description: URL of the uploaded GitHub Actions artifact
+        value: ${{ jobs.snapshot.outputs.artifact-url }}
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    outputs:
+      score: ${{ steps.metadata.outputs.score }}
+      grade: ${{ steps.metadata.outputs.grade }}
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      artifact-url: ${{ steps.upload.outputs.artifact-url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Validate history inputs
+        env:
+          ACS_RETENTION_DAYS: ${{ inputs.retention_days }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if (( ACS_RETENTION_DAYS < 1 || ACS_RETENTION_DAYS > 90 )); then
+            echo "retention_days must be between 1 and 90" >&2
+            exit 2
+          fi
+
+      - name: Install AgentConfigScore
+        env:
+          ACS_TOOL_REF: ${{ inputs.tool_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@${ACS_TOOL_REF}"
+
+      - name: Generate immutable score snapshot
+        env:
+          ACS_PATH: ${{ inputs.path }}
+          ACS_OUT: ${{ runner.temp }}/agent-config-score-history
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$ACS_OUT"
+          agent-config-score "$ACS_PATH" \
+            --fail-under 0 \
+            --json \
+            --html "$ACS_OUT/report.html" \
+            --badge "$ACS_OUT/badge.svg" \
+            > "$ACS_OUT/report.json"
+
+      - name: Build snapshot metadata
+        id: metadata
+        env:
+          ACS_OUT: ${{ runner.temp }}/agent-config-score-history
+          ACS_REPOSITORY: ${{ github.repository }}
+          ACS_SHA: ${{ github.sha }}
+          ACS_REF: ${{ github.ref }}
+          ACS_RUN_ID: ${{ github.run_id }}
+          ACS_RUN_ATTEMPT: ${{ github.run_attempt }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+
+          out = Path(os.environ["ACS_OUT"])
+          report = json.loads((out / "report.json").read_text(encoding="utf-8"))
+          version_line = subprocess.check_output(
+              ["agent-config-score", "--version"], text=True, encoding="utf-8"
+          ).strip()
+          tool_version = version_line.rsplit(" ", 1)[-1]
+
+          snapshot = {
+              "schema_version": 1,
+              "repository": os.environ["ACS_REPOSITORY"],
+              "commit": os.environ["ACS_SHA"],
+              "ref": os.environ["ACS_REF"],
+              "run_id": os.environ["ACS_RUN_ID"],
+              "run_attempt": int(os.environ["ACS_RUN_ATTEMPT"]),
+              "generated_at": datetime.now(timezone.utc).isoformat(),
+              "tool_version": tool_version,
+              "score": report["score"],
+              "grade": report["grade"],
+              "files": len(report["files"]),
+              "estimated_tokens": report["estimated_tokens"],
+              "duplicate_ratio": report["duplicate_ratio"],
+              "active_findings": len(report["findings"]),
+              "suppressed_findings": len(report["suppressed_findings"]),
+          }
+          (out / "snapshot.json").write_text(
+              json.dumps(snapshot, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
+              handle.write(f"score={snapshot['score']}\n")
+              handle.write(f"grade={snapshot['grade']}\n")
+
+          with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as handle:
+              handle.write("## AgentConfigScore snapshot\n\n")
+              handle.write(f"- Score: **{snapshot['grade']} {snapshot['score']}/100**\n")
+              handle.write(f"- Active findings: **{snapshot['active_findings']}**\n")
+              handle.write(f"- Suppressed findings: **{snapshot['suppressed_findings']}**\n")
+              handle.write(f"- Commit: `{snapshot['commit'][:12]}`\n")
+          PY
+
+      - name: Upload score history artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: agent-config-score-${{ github.sha }}-attempt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/agent-config-score-history/
+          if-no-files-found: error
+          retention-days: ${{ inputs.retention_days }}

@@ -58,3 +58,9 @@ jobs:
           assert data["version"] == "2.1.0"
           assert data["runs"][0]["tool"]["driver"]["name"] == "AgentConfigScore"
           PY
+
+  score-history:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/score-history.yml
+    with:
+      retention_days: 1
