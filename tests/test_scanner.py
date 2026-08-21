@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from agent_config_score.scanner import analyze, badge_svg, discover, estimate_tokens, html_report
+from agent_config_score.scanner import _repo_candidate, analyze, badge_svg, discover, estimate_tokens, html_report
 
 
 class ScannerTests(unittest.TestCase):
@@ -77,6 +77,12 @@ class ScannerTests(unittest.TestCase):
             (nested / "AGENTS.md").write_text("Always inspect `../../../outside.txt` first.\n", encoding="utf-8")
             report = analyze(root)
             self.assertFalse(any(f.code == "dead-path" for f in report.findings))
+
+    def test_windows_drive_relative_path_is_not_repository_candidate(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d).resolve()
+            self.assertIsNone(_repo_candidate(root, root, "C:outside.txt"))
+            self.assertIsNone(_repo_candidate(root, root, "C:\\outside.txt"))
 
     def test_shell_snippet_is_not_dead_path(self):
         with tempfile.TemporaryDirectory() as d:
