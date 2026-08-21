@@ -41,23 +41,36 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "$TAG already has a GitHub Release; nothing to do."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          release_exists=false
+          tag_exists=false
 
-          echo "skip=false" >> "$GITHUB_OUTPUT"
           if git show-ref --verify --quiet "refs/tags/$TAG"; then
+            tag_exists=true
             tagged_sha="$(git rev-list -n 1 "$TAG")"
             if [[ "$tagged_sha" != "$GITHUB_SHA" ]]; then
+              if gh release view "$TAG" >/dev/null 2>&1; then
+                echo "$TAG already exists at $tagged_sha; current commit is $GITHUB_SHA. Leaving the existing release untouched."
+                echo "skip=true" >> "$GITHUB_OUTPUT"
+                echo "existing_tag=true" >> "$GITHUB_OUTPUT"
+                echo "existing_release=true" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
               echo "error: $TAG already points to $tagged_sha, not current commit $GITHUB_SHA" >&2
               exit 2
             fi
-            echo "existing_tag=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "existing_tag=false" >> "$GITHUB_OUTPUT"
           fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            release_exists=true
+            if [[ "$tag_exists" != "true" ]]; then
+              echo "error: GitHub Release $TAG exists but its tag was not fetched locally" >&2
+              exit 2
+            fi
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "existing_tag=$tag_exists" >> "$GITHUB_OUTPUT"
+          echo "existing_release=$release_exists" >> "$GITHUB_OUTPUT"
 
       - name: Build wheel and source distribution
         if: steps.preflight.outputs.skip != 'true'
@@ -85,16 +98,19 @@ jobs:
           test "$actual" = "AgentConfigScore $VERSION"
           "$RUNNER_TEMP/agent-config-score-release-test/bin/agent-config-score" --help >/dev/null
 
-      - name: Create GitHub release with verified distributions
+      - name: Publish verified distributions
         if: steps.preflight.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
           EXISTING_TAG: ${{ steps.preflight.outputs.existing_tag }}
+          EXISTING_RELEASE: ${{ steps.preflight.outputs.existing_release }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$EXISTING_TAG" == "true" ]]; then
+          if [[ "$EXISTING_RELEASE" == "true" ]]; then
+            gh release upload "$TAG" dist/* --clobber
+          elif [[ "$EXISTING_TAG" == "true" ]]; then
             gh release create "$TAG" dist/* \
               --verify-tag \
               --title "AgentConfigScore $TAG" \
