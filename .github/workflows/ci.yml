@@ -9,10 +9,21 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.12", "3.13"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.13"
+          - os: windows-latest
+            python-version: "3.12"
+          - os: macos-latest
+            python-version: "3.12"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -21,9 +32,10 @@ jobs:
       - run: python -m pip install -e .
       - run: python -m unittest discover -s tests -v
       - name: Validate installed doctor entrypoint
+        shell: bash
         run: |
-          agent-config-score doctor . --json > "$RUNNER_TEMP/agent-config-score-doctor.json"
-          python - "$RUNNER_TEMP/agent-config-score-doctor.json" <<'PY'
+          agent-config-score doctor . --json > .ci-doctor.json
+          python - .ci-doctor.json <<'PY'
           import json
           import sys
 
@@ -34,9 +46,10 @@ jobs:
           assert any(check["name"] == "config" for check in data["checks"])
           PY
       - name: Generate and validate SARIF
+        shell: bash
         run: |
-          agent-config-score . --fail-under 90 --sarif "$RUNNER_TEMP/agent-config-score.sarif"
-          python - "$RUNNER_TEMP/agent-config-score.sarif" <<'PY'
+          agent-config-score . --fail-under 90 --sarif .ci-agent-config-score.sarif
+          python - .ci-agent-config-score.sarif <<'PY'
           import json
           import sys
 
