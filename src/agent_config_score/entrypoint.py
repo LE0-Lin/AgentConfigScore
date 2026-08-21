@@ -8,6 +8,7 @@ import sys
 from . import __version__
 from .cli import main as cli_main
 from .doctor import diagnose
+from .gitdiff import GitError, detect_base_ref, repository_root
 
 
 TOP_LEVEL_HELP = """usage:
@@ -15,7 +16,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score init [PATH] [options]
   agent-config-score doctor [PATH] [options]
   agent-config-score rules [RULE_ID] [options]
-  agent-config-score diff BASE_REF [options]
+  agent-config-score diff [BASE_REF] [options]
   agent-config-score compare BASE HEAD [options]
 
 Score, validate, and regression-check AI coding-agent instruction files.
@@ -24,7 +25,7 @@ commands:
   init       Add a repository policy and GitHub Actions workflow safely.
   doctor     Validate AgentConfigScore repository integration and readiness.
   rules      List or explain the stable AgentConfigScore rule catalog.
-  diff       Compare a Git ref with the current working tree.
+  diff       Compare a Git baseline with the current working tree.
   compare    Compare two already checked-out repository trees.
 
 common examples:
@@ -32,11 +33,16 @@ common examples:
   agent-config-score doctor
   agent-config-score rules curl-pipe-shell
   agent-config-score .
+  agent-config-score diff
   agent-config-score diff origin/main
 
+`diff` auto-detects a local default branch when BASE_REF is omitted. It never fetches.
 Run `agent-config-score <command> --help` for command-specific options.
 Use `agent-config-score --version` to print the version.
 """
+
+
+_DIFF_VALUE_OPTIONS = {"--path", "--markdown", "--max-drop"}
 
 
 def _doctor_parser() -> argparse.ArgumentParser:
@@ -66,6 +72,54 @@ def _main_doctor(argv: list[str]) -> int:
     return 0 if report.ok else 1
 
 
+def _diff_invocation(argv: list[str]) -> tuple[bool, Path]:
+    """Return whether BASE_REF is explicit and the repository path option."""
+    path = Path(".")
+    index = 0
+    while index < len(argv):
+        token = argv[index]
+        if token == "--":
+            return index + 1 < len(argv), path
+        if token == "--path":
+            if index + 1 < len(argv):
+                path = Path(argv[index + 1])
+            index += 2
+            continue
+        if token.startswith("--path="):
+            path = Path(token.split("=", 1)[1])
+            index += 1
+            continue
+        if token in _DIFF_VALUE_OPTIONS:
+            index += 2
+            continue
+        if any(token.startswith(option + "=") for option in _DIFF_VALUE_OPTIONS):
+            index += 1
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        return True, path
+    return False, path
+
+
+def _main_diff(argv: list[str]) -> int:
+    if "--help" in argv or "-h" in argv:
+        return cli_main(["diff", *argv])
+
+    explicit_ref, path = _diff_invocation(argv)
+    if explicit_ref:
+        return cli_main(["diff", *argv])
+
+    try:
+        repo = repository_root(path)
+        base_ref = detect_base_ref(repo)
+    except GitError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    return cli_main(["diff", base_ref, *argv])
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args == ["--version"] or args == ["-V"]:
@@ -76,6 +130,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args and args[0] == "doctor":
         return _main_doctor(args[1:])
+    if args and args[0] == "diff":
+        return _main_diff(args[1:])
     return cli_main(args)
 
 
