@@ -4,7 +4,7 @@ import json
 import unittest
 
 from agent_config_score import __version__
-from agent_config_score.cli import main
+from agent_config_score.entrypoint import main
 from agent_config_score.rules import RULES
 
 
@@ -23,6 +23,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         text = stdout.getvalue()
         self.assertIn("agent-config-score init", text)
+        self.assertIn("agent-config-score doctor", text)
         self.assertIn("agent-config-score rules", text)
         self.assertIn("agent-config-score diff BASE_REF", text)
         self.assertIn("agent-config-score compare BASE HEAD", text)
