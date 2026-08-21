@@ -51,6 +51,28 @@ That is the whole integration. `v0` is the rolling stable ref for the current pr
 
 The action installs AgentConfigScore, finds the PR base commit, compares it with the candidate, writes a Markdown report to the GitHub Actions Step Summary, and fails the job when the configured regression policy is violated.
 
+## Check locally before you push
+
+Install the rolling pre-1.0 release directly from GitHub:
+
+```bash
+python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
+```
+
+Then compare your current working tree with any local Git branch, tag, or commit:
+
+```bash
+agent-config-score diff origin/main \
+  --max-drop 0 \
+  --fail-on-new-errors
+```
+
+`diff` includes **uncommitted changes** in the current working tree. AgentConfigScore creates an isolated detached worktree for the baseline ref, compares it with your repository, then removes the temporary worktree automatically.
+
+It stays offline and never fetches a missing ref behind your back. If `origin/main` is not available locally, run `git fetch origin` yourself and retry.
+
+You can run the command from any subdirectory inside the repository. Use `--path DIR` when you want to point at a different local repository.
+
 ## What a failing PR looks like
 
 ```text
@@ -84,16 +106,28 @@ There are already good tools for linting the **current state** of AI-agent instr
 
 Think **regression gate**, not another AI reviewer.
 
-## CLI quick start
+## CLI reference
+
+Score the current repository without a baseline:
 
 ```bash
-git clone https://github.com/LE0-Lin/AgentConfigScore.git
-cd AgentConfigScore
-python -m pip install -e .
 agent-config-score .
 ```
 
-Compare two checked-out trees:
+Run the Git-native regression check and save a Markdown report:
+
+```bash
+agent-config-score diff origin/main \
+  --max-drop 0 \
+  --fail-on-new-errors \
+  --markdown regression.md
+```
+
+`--max-drop 0` means the score may not decrease. Set `--max-drop 3` if a small temporary drop is acceptable.
+
+For scripts and custom integrations, add `--json` to either `diff` or `compare`.
+
+Advanced: compare two already checked-out directory trees directly:
 
 ```bash
 agent-config-score compare ../repo-base . \
@@ -101,8 +135,6 @@ agent-config-score compare ../repo-base . \
   --fail-on-new-errors \
   --markdown regression.md
 ```
-
-`--max-drop 0` means the score may not decrease. Set `--max-drop 3` if a small temporary drop is acceptable.
 
 Generate local HTML, badge, and SARIF reports:
 
@@ -232,7 +264,8 @@ The action emits these values before returning the final regression exit status.
 - [x] structured GitHub Action outputs
 - [x] self-dogfooding PR regression workflow
 - [x] SARIF output for GitHub code scanning
-- [ ] Git-aware `--base-ref origin/main` without manual worktrees
+- [x] Git-aware local diff without manual worktrees
+- [ ] repository policy/config file
 - [ ] score-history badge for public repositories
 - [ ] optional semantic contradiction plugin
 
