@@ -8,6 +8,7 @@ import sys
 from . import __version__
 from .config import ConfigError, Policy, load_policy
 from .gitdiff import GitError, baseline_worktree, repository_root
+from .history import load_history, summarize_history
 from .initializer import InitError, initialize_repository
 from .regression import compare, markdown_report
 from .rules import RULES, get_rule
@@ -23,6 +24,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score [PATH] [scan options]
   agent-config-score init [PATH] [options]
   agent-config-score rules [RULE_ID] [options]
+  agent-config-score history [PATH] [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -31,6 +33,7 @@ Score and regression-check AI coding-agent instruction files.
 commands:
   init       Add a repository policy and GitHub Actions workflow safely.
   rules      List or explain the stable AgentConfigScore rule catalog.
+  history    Show locally recorded score snapshots and overall trend.
   diff       Compare a Git ref with the current working tree.
   compare    Compare two already checked-out repository trees.
 
@@ -39,6 +42,7 @@ common examples:
   agent-config-score rules
   agent-config-score rules curl-pipe-shell
   agent-config-score .
+  agent-config-score history
   agent-config-score diff origin/main
   agent-config-score compare ../repo-base .
 
@@ -144,6 +148,17 @@ def build_rules_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("rule_id", nargs="?", help="Optional rule ID, for example: curl-pipe-shell")
     p.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    return p
+
+
+def build_history_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="agent-config-score history",
+        description="Show locally recorded AgentConfigScore snapshots and their overall trend.",
+    )
+    p.add_argument("path", nargs="?", default=".", help="Repository path (default: current directory)")
+    p.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+    p.add_argument("--limit", type=int, default=20, metavar="N", help="Show at most the newest N snapshots (default: 20)")
     return p
 
 
@@ -271,6 +286,62 @@ def _main_rules(argv: list[str]) -> int:
     return 0
 
 
+def _format_timestamp(value: object) -> str:
+    if not isinstance(value, str) or not value:
+        return "-"
+    return value[:19].replace("T", " ")
+
+
+def _main_history(argv: list[str]) -> int:
+    args = build_history_parser().parse_args(argv)
+    root = Path(args.path)
+    if not root.exists() or not root.is_dir():
+        print(f"error: not a directory: {root}", file=sys.stderr)
+        return 2
+    if args.limit < 1:
+        print("error: --limit must be >= 1", file=sys.stderr)
+        return 2
+
+    history = load_history(root)
+    visible = history[-args.limit:]
+    summary = summarize_history(history)
+
+    if args.json:
+        print(json.dumps({"summary": summary, "history": visible}, indent=2, ensure_ascii=False))
+        return 0
+
+    print("\nAgentConfigScore history")
+    if not visible:
+        print("No local score history found.")
+        print("Expected: .agentconfigscore/history/index.json")
+        return 0
+
+    print(f"\n{'DATE':19}  {'SCORE':>5}  {'GRADE':>5}  {'CHANGE':>7}  COMMIT")
+    previous_score: int | float | None = None
+    for item in visible:
+        score = item.get("score")
+        score_text = str(score) if isinstance(score, (int, float)) else "-"
+        grade = str(item.get("grade", "-"))
+        change = "-"
+        if isinstance(score, (int, float)) and previous_score is not None:
+            delta = score - previous_score
+            change = f"{delta:+g}"
+        if isinstance(score, (int, float)):
+            previous_score = score
+        commit = item.get("commit")
+        commit_text = str(commit)[:12] if commit else "-"
+        print(f"{_format_timestamp(item.get('timestamp')):19}  {score_text:>5}  {grade:>5}  {change:>7}  {commit_text}")
+
+    delta = summary["delta"]
+    if delta is None:
+        trend_text = "unknown"
+    else:
+        arrow = {"up": "↑", "down": "↓", "flat": "→"}[summary["trend"]]
+        trend_text = f"{arrow} {delta:+g} overall"
+    print(f"\nTrend: {trend_text} across {summary['scored_count']} scored snapshots")
+    return 0
+
+
 def _main_compare(argv: list[str]) -> int:
     args = build_compare_parser().parse_args(argv)
     base = _existing_dir(args.base)
@@ -284,7 +355,7 @@ def _main_compare(argv: list[str]) -> int:
 
     try:
         policy = load_policy(base)
-        load_policy(head)  # Validate candidate config, but never let it govern its own PR.
+        load_policy(head)
         _resolve_regression_policy(args, policy)
     except ConfigError as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -300,7 +371,7 @@ def _main_diff(argv: list[str]) -> int:
         repo = repository_root(Path(args.path))
         with baseline_worktree(repo, args.base_ref) as (base, sha):
             policy = load_policy(base)
-            load_policy(repo)  # Validate candidate config without trusting it yet.
+            load_policy(repo)
             _resolve_regression_policy(args, policy)
             report = compare(base, repo, suppressions=policy.suppressions)
         report.base.root = f"git:{args.base_ref}@{sha[:12]}"
@@ -373,6 +444,8 @@ def main(argv: list[str] | None = None) -> int:
         return _main_init(args[1:])
     if args and args[0] == "rules":
         return _main_rules(args[1:])
+    if args and args[0] == "history":
+        return _main_history(args[1:])
     if args and args[0] == "compare":
         return _main_compare(args[1:])
     if args and args[0] == "diff":
