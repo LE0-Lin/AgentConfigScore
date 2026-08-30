@@ -1,10 +1,13 @@
 import contextlib
 import io
 import json
+from pathlib import Path
+import tempfile
 import unittest
 
 from agent_config_score import __version__
 from agent_config_score.entrypoint import main
+from agent_config_score.history import append_snapshot
 from agent_config_score.rules import RULES
 
 
@@ -25,6 +28,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("agent-config-score init", text)
         self.assertIn("agent-config-score doctor", text)
         self.assertIn("agent-config-score rules", text)
+        self.assertIn("agent-config-score history", text)
         self.assertIn("agent-config-score diff [BASE_REF]", text)
         self.assertIn("auto-detects a local default branch", text)
         self.assertIn("agent-config-score compare BASE HEAD", text)
@@ -57,6 +61,38 @@ class CliTests(unittest.TestCase):
             code = main(["rules", "does-not-exist"])
         self.assertEqual(code, 2)
         self.assertIn("unknown rule ID", stderr.getvalue())
+
+    def test_history_text_shows_score_change_and_trend(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            append_snapshot(root, {"timestamp": "2026-08-29T00:00:00+00:00", "score": 91, "grade": "A", "commit": "aaaaaaaaaaaa"})
+            append_snapshot(root, {"timestamp": "2026-08-30T00:00:00+00:00", "score": 95, "grade": "A", "commit": "bbbbbbbbbbbb"})
+
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                code = main(["history", str(root)])
+
+        self.assertEqual(code, 0)
+        text = stdout.getvalue()
+        self.assertIn("AgentConfigScore history", text)
+        self.assertIn("+4", text)
+        self.assertIn("Trend: ↑ +4 overall", text)
+
+    def test_history_json_is_machine_readable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            append_snapshot(root, {"score": 88, "grade": "B"})
+            append_snapshot(root, {"score": 90, "grade": "A"})
+
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                code = main(["history", str(root), "--json"])
+
+        self.assertEqual(code, 0)
+        data = json.loads(stdout.getvalue())
+        self.assertEqual(data["summary"]["delta"], 2)
+        self.assertEqual(data["summary"]["trend"], "up")
+        self.assertEqual(len(data["history"]), 2)
 
 
 if __name__ == "__main__":
