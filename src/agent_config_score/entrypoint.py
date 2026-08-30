@@ -16,6 +16,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score init [PATH] [options]
   agent-config-score doctor [PATH] [options]
   agent-config-score rules [RULE_ID] [options]
+  agent-config-score history [PATH] [options]
   agent-config-score diff [BASE_REF] [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -25,6 +26,7 @@ commands:
   init       Add a repository policy and GitHub Actions workflow safely.
   doctor     Validate AgentConfigScore repository integration and readiness.
   rules      List or explain the stable AgentConfigScore rule catalog.
+  history    Show locally recorded score snapshots and overall trend.
   diff       Compare a Git baseline with the current working tree.
   compare    Compare two already checked-out repository trees.
 
@@ -33,6 +35,7 @@ common examples:
   agent-config-score doctor
   agent-config-score rules curl-pipe-shell
   agent-config-score .
+  agent-config-score history
   agent-config-score diff
   agent-config-score diff origin/main
 
