@@ -121,3 +121,8 @@ jobs:
               --title "AgentConfigScore $TAG" \
               --generate-notes
           fi
+
+      - name: Update rolling v0 branch
+        if: steps.preflight.outputs.skip != 'true'
+        shell: bash
+        run: git push origin "$GITHUB_SHA:refs/heads/v0" --force

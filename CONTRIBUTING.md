@@ -38,6 +38,14 @@ You do **not** need to share a private repository. A synthetic fixture that fait
 
 Good examples include stale referenced paths after a refactor, conflicting instructions across tools, unsafe shell guidance, accidental secret-like content, or instruction growth/duplication that creates a clear deterministic regression.
 
+For scanner changes that affect broad path or syntax heuristics, also run the pinned real-repository smoke benchmark:
+
+```bash
+python scripts/run_real_world_benchmark.py
+```
+
+The benchmark requires Git and network access only for cloning its public, pinned inputs. It does not execute code from those repositories. See [`benchmarks/README.md`](benchmarks/README.md) for its scope and limitations.
+
 ## Pull requests
 
 Keep PRs focused. Describe the behavior change, add tests when behavior changes, and run the full unit suite before submitting.

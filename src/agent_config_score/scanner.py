@@ -25,7 +25,25 @@ SKIP_DIRS = {
 PATH_CANDIDATE = re.compile(
     r"`([^`\n]{1,160})`|\b((?:src|app|apps|packages|lib|libs|test|tests|docs|scripts|config|configs)/[A-Za-z0-9_./@+\-]+)"
 )
+PATH_EXTENSIONS = {
+    ".bash", ".c", ".cc", ".cfg", ".conf", ".cpp", ".cs", ".css",
+    ".fish", ".go", ".gradle", ".h", ".hpp", ".html", ".ini", ".java",
+    ".js", ".json", ".jsx", ".kt", ".kts", ".lock", ".md", ".mdc",
+    ".php", ".proto", ".ps1", ".py", ".pyi", ".rb", ".rs", ".scss",
+    ".sh", ".sql", ".svelte", ".swift", ".toml", ".ts", ".tsx", ".txt",
+    ".vue", ".xml", ".yaml", ".yml", ".zsh",
+}
+PATH_BASENAMES = {
+    "Dockerfile", "Gemfile", "Justfile", "LICENSE", "Makefile", "Procfile",
+    "Rakefile",
+}
+NON_PATH_PREFIXES = ("origin/", "refs/", "feat/", "feature/", "fix/", "release/")
 DIRECTIVE = re.compile(r"\b(always|never|must|must not|do not|don't)\s+([^.?!\n]{4,120})", re.I)
+DANGER_NEGATION = re.compile(
+    r"\b(?:never|do\s+not|don't|must\s+not|should\s+not|avoid|forbidden|prohibited|unsafe\s+example)\b",
+    re.I,
+)
+DANGER_NEGATION_EXCEPTION = re.compile(r"\b(?:but|however|except|unless)\b", re.I)
 
 
 @dataclass
@@ -136,6 +154,24 @@ def _line(text: str, index: int) -> int:
     return text.count("\n", 0, index) + 1
 
 
+def _dangerous_command_is_prohibited(text: str, index: int) -> bool:
+    """Ignore dangerous commands that are explicitly prohibited in the same clause."""
+    line_start = text.rfind("\n", 0, index) + 1
+    line_end = text.find("\n", index)
+    if line_end == -1:
+        line_end = len(text)
+    prefix = text[line_start:index]
+    clause_prefix = re.split(r"[.!?;]", prefix)[-1]
+    clause_suffix = re.split(r"[.!?;]", text[index:line_end], maxsplit=1)[0]
+    clause_prefix = re.sub(r"[`*_>#]", " ", clause_prefix)
+    clause_suffix = re.sub(r"[`*_>#]", " ", clause_suffix)
+    negations = list(DANGER_NEGATION.finditer(clause_prefix))
+    if not negations:
+        return False
+    after_negation = clause_prefix[negations[-1].end():] + clause_suffix
+    return DANGER_NEGATION_EXCEPTION.search(after_negation) is None
+
+
 def _normalized_line(line: str) -> str | None:
     line = re.sub(r"[`*_>#-]", "", line.strip().lower())
     line = re.sub(r"\s+", " ", line).strip()
@@ -144,8 +180,56 @@ def _normalized_line(line: str) -> str | None:
     return line
 
 
+def _looks_like_repository_path(value: str) -> bool:
+    """Reject code symbols, package names, URLs, and branch names before probing."""
+    normalized = value.replace("\\", "/")
+    if normalized.startswith("@") or normalized.endswith("/"):
+        return False
+    if normalized.lower().startswith(NON_PATH_PREFIXES):
+        return False
+    if re.match(r"^[A-Za-z0-9-]+\.(?:com|dev|io|net|org)/", normalized, re.I):
+        return False
+    if any(char in normalized for char in "()[]=,;:#?'\""):
+        return False
+    if any(
+        part.lower() in {"foo", "bar", "baz", "example", "sample"}
+        or re.search(r"(?:NameHere|Placeholder)", part, re.I)
+        for part in PurePosixPath(normalized).parts
+    ):
+        return False
+
+    name = PurePosixPath(normalized).name
+    if name in PATH_BASENAMES:
+        return True
+    raw_suffix = PurePosixPath(name).suffix
+    if raw_suffix == raw_suffix.lower() and raw_suffix in PATH_EXTENSIONS:
+        # A bare `service.py` usually describes a naming convention, not a
+        # repository-root file. Require a directory component for ordinary
+        # source files; well-known root files are handled above.
+        return "/" in normalized
+
+    # Extensionless slash-delimited tokens are too ambiguous: they are often
+    # package imports, RPC names, branch prefixes, or prose shorthand. The
+    # dead-path rule intentionally favors precision over guessing at those.
+    return False
+
+
+def _inside_markdown_fence(text: str, index: int) -> bool:
+    fence_count = 0
+    for line in text[:index].splitlines():
+        if line.lstrip().startswith(("```", "~~~")):
+            fence_count += 1
+    return fence_count % 2 == 1
+
+
 def _candidate_paths(text: str):
     for m in PATH_CANDIDATE.finditer(text):
+        if _inside_markdown_fence(text, m.start()):
+            continue
+        if m.group(2) and m.start() > 0 and text[m.start() - 1] in "/\\.~%":
+            # The broad unquoted matcher can otherwise start in the middle of
+            # a URL, home-directory path, or absolute platform path.
+            continue
         value = (m.group(1) or m.group(2) or "").strip().rstrip(".,:;")
         if not value or any(c.isspace() for c in value):
             continue
@@ -153,9 +237,9 @@ def _candidate_paths(text: str):
             continue
         if "://" in value or "|" in value or any(c in value for c in "*<>{}"):
             continue
-        if "/" not in value and "." not in Path(value).name:
+        if not _looks_like_repository_path(value):
             continue
-        yield value, _line(text, m.start())
+        yield value.replace("\\", "/"), _line(text, m.start())
 
 
 def _repo_candidate(root: Path, base: Path, candidate: str) -> Path | None:
@@ -172,13 +256,24 @@ def _repo_candidate(root: Path, base: Path, candidate: str) -> Path | None:
     return target
 
 
-def _candidate_exists(root: Path, source: Path, candidate: str) -> bool | None:
+def _candidate_exists(
+    root: Path,
+    source: Path,
+    candidate: str,
+    repository_paths: set[str] | None = None,
+) -> bool | None:
     # Repository-root relative paths remain the primary interpretation. For a
     # nested AGENTS-family file, also accept a path relative to that file's
     # directory, which is the root of its instruction scope.
     bases = [root]
     if source.name in AGENTS_FILENAMES and source.parent != root:
-        bases.append(source.parent)
+        # Instructions often use paths relative to a package root rather than
+        # the exact directory containing a nested AGENTS.md. Accept any
+        # in-repository ancestor interpretation to avoid false dead paths.
+        current = source.parent
+        while current != root:
+            bases.append(current)
+            current = current.parent
 
     checked = False
     for base in bases:
@@ -188,7 +283,21 @@ def _candidate_exists(root: Path, source: Path, candidate: str) -> bool | None:
         checked = True
         if target.exists():
             return True
+    if repository_paths is not None:
+        normalized = candidate.lstrip("./")
+        if any(path == normalized or path.endswith("/" + normalized) for path in repository_paths):
+            return True
     return False if checked else None
+
+
+def _repository_path_index(root: Path) -> set[str]:
+    paths: set[str] = set()
+    for path in root.rglob("*"):
+        rel_path = path.relative_to(root)
+        if any(part in SKIP_DIRS for part in rel_path.parts):
+            continue
+        paths.add(rel_path.as_posix())
+    return paths
 
 
 def _directives(text: str):
@@ -237,6 +346,7 @@ def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...
 def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report:
     root = root.resolve()
     files = discover(root)
+    repository_paths = _repository_path_index(root)
     texts: dict[Path, str] = {}
     findings: list[Finding] = []
     total_tokens = 0
@@ -258,6 +368,11 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
 
         for pattern_rule in PATTERN_RULES:
             for match in pattern_rule.pattern.finditer(text):
+                if (
+                    pattern_rule.rule.category == "danger"
+                    and _dangerous_command_is_prohibited(text, match.start())
+                ):
+                    continue
                 findings.append(_finding(pattern_rule.rule.code, rel, _line(text, match.start())))
 
         seen_refs: set[tuple[str, int]] = set()
@@ -266,7 +381,7 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
             if key in seen_refs:
                 continue
             seen_refs.add(key)
-            exists = _candidate_exists(root, path, candidate)
+            exists = _candidate_exists(root, path, candidate, repository_paths)
             if exists is False:
                 findings.append(_finding("dead-path", rel, lineno, f"Referenced path does not exist: {candidate}"))
 
