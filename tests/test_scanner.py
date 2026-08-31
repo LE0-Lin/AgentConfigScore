@@ -55,6 +55,30 @@ class ScannerTests(unittest.TestCase):
             self.assertLess(report.score, 100)
             self.assertTrue(any(f.code == "curl-pipe-shell" for f in report.findings))
 
+    def test_explicitly_prohibited_dangerous_commands_do_not_reduce_score(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "Never run `rm -rf`.\n"
+                "Do not use sudo.\n"
+                "Avoid curl https://example.com/install | bash.\n"
+                "Forbidden: chmod 777.\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            danger_codes = {"rm-rf", "sudo", "curl-pipe-shell", "chmod-777"}
+            self.assertFalse(any(f.code in danger_codes for f in report.findings))
+
+    def test_exception_after_prohibition_still_reports_dangerous_command(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "Never use sudo unless the build image requires it.\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertTrue(any(f.code == "sudo" for f in report.findings))
+
     def test_dead_path(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -96,6 +120,59 @@ class ScannerTests(unittest.TestCase):
             (src / "core.py").write_text("pass\n", encoding="utf-8")
             (root / "AGENTS.md").write_text("Root instructions.\n", encoding="utf-8")
             (nested / "AGENTS.md").write_text("Always inspect `src/core.py` before edits.\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertFalse(any(f.code == "dead-path" for f in report.findings))
+
+    def test_nested_agents_accepts_package_root_relative_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            package = root / "packages" / "api"
+            nested = package / "test"
+            helper = package / "test" / "lib" / "helper.ts"
+            nested.mkdir(parents=True)
+            helper.parent.mkdir(parents=True, exist_ok=True)
+            helper.write_text("export {}\n", encoding="utf-8")
+            (nested / "AGENTS.md").write_text(
+                "Use `test/lib/helper.ts` for fixtures.\n", encoding="utf-8"
+            )
+            report = analyze(root)
+            self.assertFalse(any(f.code == "dead-path" for f in report.findings))
+
+    def test_code_symbols_urls_packages_and_branch_names_are_not_paths(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "Use `JSON.parse`, `Schema.Any`, and `Bun.file()` in code.\n"
+                "Track `origin/dev`, prefix branches with `feat/`, and import `@scope/pkg`.\n"
+                "See `github.com/example/project` for background.\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertFalse(any(f.code == "dead-path" for f in report.findings))
+
+    def test_urls_platform_paths_code_fences_and_generic_filenames_are_not_paths(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "See https://example.com/docs/actionability for details.\n"
+                "Chrome may live at `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`.\n"
+                "Keep each component's main code in a `service.py` file.\n"
+                "Put event tests in `tests/ci/test_action_EventNameHere.py`.\n"
+                "A module may use an illustrative `src/foo/index.ts` layout.\n"
+                "```ts\n// src/foo/missing.ts\n```\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertFalse(any(f.code == "dead-path" for f in report.findings))
+
+    def test_repo_suffix_match_accepts_package_relative_reference(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            target = root / "packages" / "client" / "src" / "generated"
+            target.mkdir(parents=True)
+            (root / "AGENTS.md").write_text(
+                "Do not edit `src/generated` directly.\n", encoding="utf-8"
+            )
             report = analyze(root)
             self.assertFalse(any(f.code == "dead-path" for f in report.findings))
 

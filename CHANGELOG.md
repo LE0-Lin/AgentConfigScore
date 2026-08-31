@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.17.0
+
+### Added
+
+- Local score-history summaries and the `agent-config-score history` CLI command.
+- Text and JSON history output with first/latest score, delta, and trend.
+- Regression coverage for explicitly prohibited dangerous commands.
+- Citation metadata for research and software references.
+- A pinned, manually reviewed real-repository benchmark and reproducible runner.
+
+### Fixed
+
+- Convert the score-history tests to the repository's standard-library `unittest` suite so CI executes them without an undeclared `pytest` dependency.
+- Do not penalize dangerous command strings when the same instruction clause explicitly prohibits them, while continuing to report conditional exceptions.
+- Make `dead-path` analysis reject code symbols, imports, URLs, code-fence examples, platform paths, placeholders, and other ambiguous non-path tokens; resolve nested package-relative references conservatively.
+- Keep the rolling `v0` branch aligned with each successfully published pre-1.0 release.
+
+### Changed
+
+- Package version bumped to `0.17.0` to include the score-history CLI work added after v0.16.0.
+- Package metadata now uses the SPDX license expression supported by current setuptools releases.
+
 ## v0.16.0
 
 ### Added

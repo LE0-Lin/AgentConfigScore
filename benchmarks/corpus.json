@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "description": "Pinned, read-only real-repository smoke benchmark for AgentConfigScore.",
+  "repositories": [
+    {
+      "name": "openai/codex",
+      "url": "https://github.com/openai/codex.git",
+      "commit": "d58d0e5841e0de08e251673db2d5af8cf3a1ad51",
+      "expected": {
+        "files": 2,
+        "score": 82,
+        "grade": "B",
+        "findings": [
+          {
+            "code": "context-large",
+            "file": "AGENTS.md",
+            "line": null
+          },
+          {
+            "code": "dead-path",
+            "file": "AGENTS.md",
+            "line": 35
+          },
+          {
+            "code": "dead-path",
+            "file": "AGENTS.md",
+            "line": 265
+          },
+          {
+            "code": "dead-path",
+            "file": "AGENTS.md",
+            "line": 276
+          }
+        ]
+      },
+      "review_note": "The three referenced .rs files are absent at this commit; two v2.rs occurrences refer to a path that became a directory-based module."
+    },
+    {
+      "name": "anomalyco/opencode",
+      "url": "https://github.com/anomalyco/opencode.git",
+      "commit": "9f69463f1d556af2b5b51d2efa1c04f5f544f911",
+      "expected": {
+        "files": 18,
+        "score": 94,
+        "grade": "A",
+        "findings": [
+          {
+            "code": "context-large",
+            "file": "packages/llm/AGENTS.md",
+            "line": null
+          }
+        ]
+      },
+      "review_note": "No dead-path finding remained after reviewing code symbols, package imports, documentation URLs, and package-relative paths."
+    },
+    {
+      "name": "browser-use/browser-use",
+      "url": "https://github.com/browser-use/browser-use.git",
+      "commit": "d379a328879f41cbece3b052fb5102c82032c2e5",
+      "expected": {
+        "files": 2,
+        "score": 88,
+        "grade": "B",
+        "findings": [
+          {
+            "code": "context-too-large",
+            "file": "AGENTS.md",
+            "line": null
+          }
+        ]
+      },
+      "review_note": "URLs, platform-specific paths, generic filenames, and placeholder test paths were reviewed and are not reported as repository dead paths."
+    }
+  ]
+}

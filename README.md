@@ -24,6 +24,13 @@ AgentConfigScore is a deterministic regression gate for coding-agent configurati
 
 It is regression-first rather than perfection-first: an existing repository can start at 72/100 and adopt the gate immediately. A pull request that stays at 72 can pass; one that drops to 65 can fail.
 
+| What usually goes wrong | What the gate does |
+|---|---|
+| A pull request weakens its own quality threshold | Uses the baseline branch's policy to judge the change |
+| A new instruction contradicts or duplicates existing guidance | Reports deterministic, line-addressable findings |
+| An exception becomes a permanent silent ignore | Requires a reason and expiry, then preserves an audit trail |
+| A scanner update becomes noisy on real projects | Replays a pinned, manually reviewed [real-repository benchmark](benchmarks/README.md) |
+
 ## Get running
 
 ```bash
@@ -200,6 +207,18 @@ New findings: 2   Resolved: 0   Suppressed: 0
 
 **Live proof:** [PR #6](https://github.com/LE0-Lin/AgentConfigScore/pull/6) deliberately added an unsafe `curl | bash` instruction. AgentConfigScore changed the score from **A 100 → B 82 (-18)**, reported a new `curl-pipe-shell` error, failed the GitHub Actions job, and the PR was closed without merging.
 
+## Real-repository benchmark
+
+The v0.17.0 scanner was replayed against pinned commits from three public AI coding projects; source code was scanned but never executed.
+
+| Repository | Commit | Files found | Result | Manually reviewed signal |
+|---|---|---:|---:|---|
+| [`openai/codex`](https://github.com/openai/codex) | `d58d0e5` | 2 | B 82 | 3 references to absent `.rs` files; 1 context-size warning |
+| [`anomalyco/opencode`](https://github.com/anomalyco/opencode) | `9f69463` | 18 | A 94 | 1 context-size warning |
+| [`browser-use/browser-use`](https://github.com/browser-use/browser-use) | `d379a32` | 2 | B 88 | 1 context-size warning |
+
+All six findings matched their rule definitions in manual review. This small corpus is a reproducible smoke benchmark, not a quality leaderboard or a claim of broad statistical accuracy. The pinned inputs, reviewed expectations, limitations, and one-command runner live in [`benchmarks/`](benchmarks/README.md).
+
 ## Manual GitHub Actions setup
 
 If you do not want to use `init`, create `.github/workflows/agent-config-score.yml` yourself:
@@ -254,7 +273,7 @@ See [`docs/score-history.md`](docs/score-history.md) for retention controls, mon
 
 AgentConfigScore recursively discovers both `AGENTS.md` and Codex `AGENTS.override.md` files and understands their directory scoping instead of treating every instruction file as one global policy.
 
-For a nested AGENTS-family file, repository-like path references may be either repository-root-relative or relative to the directory containing that file. Absolute references, Windows drive-qualified paths, and relative paths that escape the repository are not probed by `dead-path` analysis.
+For a nested AGENTS-family file, file-like path references may be repository-root-relative, package-root-relative, or relative to the directory containing that file. The conservative `dead-path` analysis ignores ambiguous extensionless tokens, code fences, URLs, package imports, API symbols, absolute paths, Windows drive-qualified paths, and relative paths that escape the repository.
 
 Codex gives `AGENTS.override.md` priority over `AGENTS.md` in the same directory. Across directories, sibling scopes do not overlap and deeper instructions are more specific inside their subtree. AgentConfigScore therefore does not report an exact positive/negative pair across two different AGENTS-family files as an ambiguous contradiction. A contradiction inside one file still fails, and cross-system contradictions such as AGENTS-family instructions versus `CLAUDE.md` remain detectable.
 

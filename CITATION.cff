@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use AgentConfigScore in research, please cite this software."
+title: "AgentConfigScore: a regression gate for AI coding-agent instructions"
+type: software
+version: 0.17.0
+date-released: 2026-08-31
+authors:
+  - family-names: Lin
+    given-names: Zhibo
+repository-code: "https://github.com/LE0-Lin/AgentConfigScore"
+url: "https://github.com/LE0-Lin/AgentConfigScore"
+license: MIT
+keywords:
+  - AI coding agents
+  - AGENTS.md
+  - static analysis
+  - regression testing
+  - GitHub Actions
