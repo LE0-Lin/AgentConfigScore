@@ -46,6 +46,15 @@ python scripts/run_real_world_benchmark.py
 
 The benchmark requires Git and network access only for cloning its public, pinned inputs. It does not execute code from those repositories. See [`benchmarks/README.md`](benchmarks/README.md) for its scope and limitations.
 
+Regenerate the README demo after changing its example output or visual design:
+
+```bash
+python -m pip install pillow
+python scripts/render_demo_gif.py
+```
+
+Commit the renderer and generated GIF together so visual changes remain reviewable and regenerable.
+
 ## Pull requests
 
 Keep PRs focused. Describe the behavior change, add tests when behavior changes, and run the full unit suite before submitting.

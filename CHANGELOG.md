@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.18.0
+
+### Added
+
+- A compact animated PR-regression demo in the README with a source-controlled renderer at `scripts/render_demo_gif.py`.
+- Trusted Publishing to PyPI with short-lived GitHub OIDC credentials and automatic provenance attestations.
+
+### Changed
+
+- Split release building, GitHub publishing, and PyPI publishing into separate least-privilege jobs.
+- Store one verified distribution artifact and reuse it for both GitHub Releases and PyPI.
+- Make PyPI the primary installation path while retaining the rolling `v0` Git installation option.
+- Package version bumped to `0.18.0`.
+
 ## v0.17.0
 
 ### Added
