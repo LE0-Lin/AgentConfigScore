@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- A visual tour covering pull-request regression blocking, 30-second setup, and score-history trends.
+- Two compact animated demos plus a code-native workflow overview for the README and documentation.
+
 ## v0.18.0
 
 ### Added

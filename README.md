@@ -36,12 +36,22 @@ It is regression-first rather than perfection-first: an existing repository can 
 | An exception becomes a permanent silent ignore | Requires a reason and expiry, then preserves an audit trail |
 | A scanner update becomes noisy on real projects | Replays a pinned, manually reviewed [real-repository benchmark](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md) |
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg" alt="Configure once, guard every pull request, and keep evidence" width="100%" />
+</p>
+
+See the complete [visual tour](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/visual-tour.md) for setup, regression, and history demos.
+
 ## Get running
 
 ```bash
 python -m pip install agent-config-score
 agent-config-score init
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif" alt="Install AgentConfigScore, initialize a repository, and verify the integration" width="100%" />
+</p>
 
 To test the latest stable pre-1.0 source directly from GitHub instead:
 
@@ -260,6 +270,10 @@ Without a policy file, the Action preserves its conservative compatibility defau
 ## Keep score history
 
 Optionally record a read-only score snapshot whenever your default branch changes:
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif" alt="AgentConfigScore history improves from 82 to 100" width="100%" />
+</p>
 
 ```yaml
 name: agent-config-score-history
