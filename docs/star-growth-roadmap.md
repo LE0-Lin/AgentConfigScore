@@ -10,6 +10,7 @@ Make AgentConfigScore a practical tool for improving AI coding-agent instruction
 - CI integration
 - Regression detection
 - HTML and badge reports
+- Visual demo gallery for regression checks, setup, and score history
 
 ## Next priorities
 
@@ -21,7 +22,7 @@ Make AgentConfigScore a practical tool for improving AI coding-agent instruction
 
 ### Community growth
 
-- Improve README screenshots and demos
+- Turn visual demos into short launch clips for community posts
 - Add templates users can copy
 - Publish usage examples
 

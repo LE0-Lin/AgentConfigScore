@@ -50,10 +50,10 @@ Regenerate the README demo after changing its example output or visual design:
 
 ```bash
 python -m pip install pillow
-python scripts/render_demo_gif.py
+python scripts/render_demo_gif.py --all
 ```
 
-Commit the renderer and generated GIF together so visual changes remain reviewable and regenerable.
+This regenerates the regression, setup, and score-history GIFs. Commit the renderer and generated assets together so visual changes remain reviewable and regenerable. The code-native workflow overview lives at `assets/agent-config-score-workflow.svg`.
 
 ## Pull requests
 
