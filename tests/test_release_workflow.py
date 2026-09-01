@@ -1,6 +1,5 @@
 from pathlib import Path
 import re
-import tomllib
 import unittest
 
 
@@ -10,8 +9,8 @@ WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
 
 class ReleaseWorkflowContractTests(unittest.TestCase):
     def test_release_version_is_consistent(self):
-        with (ROOT / "pyproject.toml").open("rb") as handle:
-            project_version = tomllib.load(handle)["project"]["version"]
+        project = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        project_version = re.search(r'^version = "([^"]+)"$', project, re.MULTILINE)
 
         package_source = (ROOT / "src" / "agent_config_score" / "__init__.py").read_text(
             encoding="utf-8"
@@ -23,8 +22,9 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
 
         self.assertIsNotNone(package_version)
         self.assertIsNotNone(citation_version)
-        self.assertEqual(package_version.group(1), project_version)
-        self.assertEqual(citation_version.group(1), project_version)
+        self.assertIsNotNone(project_version)
+        self.assertEqual(package_version.group(1), project_version.group(1))
+        self.assertEqual(citation_version.group(1), project_version.group(1))
 
     def test_pypi_publish_uses_isolated_oidc_job(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
