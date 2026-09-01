@@ -1,7 +1,7 @@
 # AgentConfigScore
 
 <p align="center">
-  <img src="assets/agent-config-score.svg" alt="AgentConfigScore A 100" />
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score.svg" alt="AgentConfigScore A 100" />
 </p>
 
 <p align="center"><strong>Codecov for AI coding-agent instructions.</strong></p>
@@ -12,10 +12,15 @@
 
 <p align="center">
   <a href="https://github.com/LE0-Lin/AgentConfigScore/actions/workflows/ci.yml"><img src="https://github.com/LE0-Lin/AgentConfigScore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://pypi.org/project/agent-config-score/"><img src="https://img.shields.io/pypi/v/agent-config-score" alt="PyPI" /></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/platforms-Linux%20%7C%20Windows%20%7C%20macOS-informational" alt="Linux, Windows, macOS" />
   <img src="https://img.shields.io/badge/runtime_dependencies-0-brightgreen" alt="0 runtime dependencies" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif" alt="AgentConfigScore detects an instruction regression and blocks the pull request" width="100%" />
 </p>
 
 AgentConfigScore is a deterministic regression gate for coding-agent configuration. It compares a change with its baseline and answers one CI-friendly question:
@@ -29,13 +34,19 @@ It is regression-first rather than perfection-first: an existing repository can 
 | A pull request weakens its own quality threshold | Uses the baseline branch's policy to judge the change |
 | A new instruction contradicts or duplicates existing guidance | Reports deterministic, line-addressable findings |
 | An exception becomes a permanent silent ignore | Requires a reason and expiry, then preserves an audit trail |
-| A scanner update becomes noisy on real projects | Replays a pinned, manually reviewed [real-repository benchmark](benchmarks/README.md) |
+| A scanner update becomes noisy on real projects | Replays a pinned, manually reviewed [real-repository benchmark](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md) |
 
 ## Get running
 
 ```bash
-python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
+python -m pip install agent-config-score
 agent-config-score init
+```
+
+To test the latest stable pre-1.0 source directly from GitHub instead:
+
+```bash
+python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@v0"
 ```
 
 `init` safely creates:
@@ -217,7 +228,7 @@ The v0.17.0 scanner was replayed against pinned commits from three public AI cod
 | [`anomalyco/opencode`](https://github.com/anomalyco/opencode) | `9f69463` | 18 | A 94 | 1 context-size warning |
 | [`browser-use/browser-use`](https://github.com/browser-use/browser-use) | `d379a32` | 2 | B 88 | 1 context-size warning |
 
-All six findings matched their rule definitions in manual review. This small corpus is a reproducible smoke benchmark, not a quality leaderboard or a claim of broad statistical accuracy. The pinned inputs, reviewed expectations, limitations, and one-command runner live in [`benchmarks/`](benchmarks/README.md).
+All six findings matched their rule definitions in manual review. This small corpus is a reproducible smoke benchmark, not a quality leaderboard or a claim of broad statistical accuracy. The pinned inputs, reviewed expectations, limitations, and one-command runner live in [`benchmarks/`](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md).
 
 ## Manual GitHub Actions setup
 
@@ -267,7 +278,7 @@ jobs:
 
 Each successful run uploads an immutable artifact containing `snapshot.json`, `report.json`, `report.html`, and `badge.svg`. Artifact names include the commit SHA and run attempt, and retention defaults to 30 days. The history workflow does not write generated files back to the repository and does not fail merely because the current score is low.
 
-See [`docs/score-history.md`](docs/score-history.md) for retention controls, monorepo paths, workflow outputs, and the history/security model. A copy-paste workflow is also available at [`examples/score-history.yml`](examples/score-history.yml).
+See [`docs/score-history.md`](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/docs/score-history.md) for retention controls, monorepo paths, workflow outputs, and the history/security model. A copy-paste workflow is also available at [`examples/score-history.yml`](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/examples/score-history.yml).
 
 ## Nested AGENTS.md scopes and overrides
 

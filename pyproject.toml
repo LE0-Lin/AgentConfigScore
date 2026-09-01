@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-config-score"
-version = "0.17.0"
+version = "0.18.0"
 description = "Regression gate for AI coding-agent configs: catch PRs that make AGENTS.md, CLAUDE.md, Cursor or Copilot instructions worse."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,6 +13,8 @@ license-files = ["LICENSE"]
 authors = [{name = "Zhibo Lin"}]
 keywords = ["agents-md", "claude-code", "cursor", "copilot", "ai-agents", "github-actions", "ci", "developer-tools"]
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -20,6 +22,8 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Testing",
 ]
 
 [project.urls]
