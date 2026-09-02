@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use AgentConfigScore in research, please cite this software."
-title: "AgentConfigScore: a regression gate for AI coding-agent instructions"
+title: "AgentConfigScore: deterministic lint and regression checks for AI coding-agent instructions"
 type: software
-version: 0.18.0
-date-released: 2026-09-01
+version: 0.19.0
+date-released: 2026-09-03
 authors:
   - family-names: Lin
     given-names: Zhibo
