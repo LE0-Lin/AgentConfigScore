@@ -6,6 +6,7 @@
 
 - A visual tour covering pull-request regression blocking, 30-second setup, and score-history trends.
 - Two compact animated demos plus a code-native workflow overview for the README and documentation.
+- A 1280×640 GitHub social preview card generated from the same source-controlled visual system.
 
 ## v0.18.0
 

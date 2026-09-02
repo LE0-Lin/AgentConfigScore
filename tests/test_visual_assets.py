@@ -30,6 +30,12 @@ class VisualAssetContractTests(unittest.TestCase):
         self.assertIsNotNone(root.find("svg:title", namespace))
         self.assertIsNotNone(root.find("svg:desc", namespace))
 
+    def test_social_preview_matches_github_recommendations(self):
+        data = (ASSETS / "agent-config-score-social-preview.png").read_bytes()
+        self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(struct.unpack(">II", data[16:24]), (1280, 640))
+        self.assertLess(len(data), 1_000_000)
+
     def test_readme_uses_public_gallery_urls(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         for name in (
@@ -51,6 +57,7 @@ class VisualAssetContractTests(unittest.TestCase):
             "agent-config-score-setup.gif",
             "agent-config-score-history.gif",
             "agent-config-score-workflow.svg",
+            "agent-config-score-social-preview.png",
         ):
             with self.subTest(name=name):
                 self.assertIn(f"../assets/{name}", tour)
