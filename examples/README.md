@@ -12,6 +12,10 @@ commands and architecture.
 | Gemini CLI | `gemini/GEMINI.md` → `GEMINI.md` | [Gemini CLI context files](https://github.com/google-gemini/gemini-cli/blob/main/docs/reference/configuration.md#context-files-hierarchical-instructional-context) |
 | Claude Code | `claude-code/CLAUDE.md` → `CLAUDE.md` | [Claude Code memory](https://docs.anthropic.com/en/docs/claude-code/memory) |
 
+The small `cursor/.cursorrules` fixture remains for legacy compatibility tests;
+Cursor documents that format as deprecated, so new projects should copy the MDC
+Project Rule above.
+
 For example, from this repository on macOS or Linux:
 
 ```bash

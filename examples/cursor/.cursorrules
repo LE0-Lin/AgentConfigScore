@@ -1,0 +1,5 @@
+# Cursor example
+
+Keep Cursor rules version controlled.
+
+Use AgentConfigScore in CI to detect unsafe or contradictory AI instructions.
