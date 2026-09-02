@@ -1,0 +1,61 @@
+name: Real-world case
+description: Share a real AgentConfigScore hit, miss, or workflow result without private data.
+title: "[Real-world] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Real cases—not star counts—show whether AgentConfigScore is useful. Please sanitize private repository details and never paste real secrets.
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: What kind of result is this?
+      options:
+        - Useful finding / prevented regression
+        - False positive
+        - False negative / missed regression
+        - Setup or workflow feedback
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AgentConfigScore version or commit
+      placeholder: 0.18.0 or a commit SHA
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Public repository or minimal reproduction URL
+      description: Optional. Leave blank for private repositories.
+  - type: textarea
+    id: change
+    attributes:
+      label: Sanitized before and after
+      description: Show the smallest instruction change that produced—or should have produced—the result. Never include real credentials.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed result
+      description: Include rule IDs, score change, and CI outcome when available.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result and why
+      description: Explain the practical impact on the coding-agent workflow.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets, credentials, personal data, and private repository details.
+          required: true

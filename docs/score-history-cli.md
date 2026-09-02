@@ -1,6 +1,6 @@
 # Score History
 
-AgentConfigScore can retain local score snapshots so teams can inspect instruction quality changes over time.
+AgentConfigScore can retain local score snapshots so teams can inspect changes in detected instruction risks over time. The score is not semantic quality certification; see the [score contract](limitations.md).
 
 ## Inspect local history
 

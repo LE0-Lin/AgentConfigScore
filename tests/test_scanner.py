@@ -44,6 +44,15 @@ class ScannerTests(unittest.TestCase):
             self.assertLess(report.score, 100)
             self.assertTrue(any(f.code == "curl-pipe-shell" for f in report.findings))
 
+    def test_active_error_cannot_receive_an_a_grade(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text("Run rm -rf build.\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertTrue(any(f.severity == "error" for f in report.findings))
+            self.assertLess(report.score, 90)
+            self.assertNotEqual(report.grade, "A")
+
     def test_dangerous_command_in_agents_override_reduces_score(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -68,6 +77,18 @@ class ScannerTests(unittest.TestCase):
             report = analyze(root)
             danger_codes = {"rm-rf", "sudo", "curl-pipe-shell", "chmod-777"}
             self.assertFalse(any(f.code in danger_codes for f in report.findings))
+
+    def test_double_negative_does_not_hide_dangerous_command(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "Do not hesitate to run rm -rf build when cleanup is needed.\n"
+                "Never avoid sudo when a command fails.\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertTrue(any(f.code == "rm-rf" for f in report.findings))
+            self.assertTrue(any(f.code == "sudo" for f in report.findings))
 
     def test_exception_after_prohibition_still_reports_dangerous_command(self):
         with tempfile.TemporaryDirectory() as d:
@@ -236,6 +257,30 @@ class ScannerTests(unittest.TestCase):
             report = analyze(root)
             self.assertTrue(any(f.code == "contradiction" for f in report.findings))
 
+    def test_must_not_contradiction(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "Must modify generated files.\nMust not modify generated files.\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertTrue(any(f.code == "contradiction" for f in report.findings))
+
+    def test_missing_config_is_not_an_a_grade(self):
+        with tempfile.TemporaryDirectory() as d:
+            report = analyze(Path(d))
+            self.assertLess(report.score, 90)
+            self.assertTrue(any(f.code == "no-config" for f in report.findings))
+
+    def test_empty_instruction_file_is_not_an_a_grade(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text("\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertLess(report.score, 90)
+            self.assertTrue(any(f.code == "empty-instructions" for f in report.findings))
+
     def test_nested_agents_override_is_not_contradiction(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -358,6 +403,39 @@ class RegressionTests(unittest.TestCase):
             report = compare(base, head)
             self.assertFalse(report.new_findings)
             self.assertFalse(report.resolved_findings)
+
+    def test_compare_reports_removed_instruction_file(self):
+        from agent_config_score.regression import compare
+
+        with tempfile.TemporaryDirectory() as base_dir, tempfile.TemporaryDirectory() as head_dir:
+            base = Path(base_dir)
+            head = Path(head_dir)
+            (base / "AGENTS.md").write_text("Always run tests before merging.\n", encoding="utf-8")
+            report = compare(base, head)
+            self.assertTrue(any(f.code == "instruction-file-removed" for f in report.new_errors))
+
+    def test_compare_allows_exact_instruction_file_move(self):
+        from agent_config_score.regression import compare
+
+        with tempfile.TemporaryDirectory() as base_dir, tempfile.TemporaryDirectory() as head_dir:
+            base = Path(base_dir)
+            head = Path(head_dir)
+            content = "Always run tests before merging.\n"
+            (base / "CLAUDE.md").write_text(content, encoding="utf-8")
+            (head / "AGENTS.md").write_text(content, encoding="utf-8")
+            report = compare(base, head)
+            self.assertFalse(any(f.code == "instruction-file-removed" for f in report.new_errors))
+
+    def test_compare_reports_directive_polarity_flip(self):
+        from agent_config_score.regression import compare
+
+        with tempfile.TemporaryDirectory() as base_dir, tempfile.TemporaryDirectory() as head_dir:
+            base = Path(base_dir)
+            head = Path(head_dir)
+            (base / "AGENTS.md").write_text("Always run tests.\n", encoding="utf-8")
+            (head / "AGENTS.md").write_text("Never run tests.\n", encoding="utf-8")
+            report = compare(base, head)
+            self.assertTrue(any(f.code == "directive-polarity-flip" for f in report.new_errors))
 
     def test_markdown_regression_report(self):
         from agent_config_score.regression import compare, markdown_report

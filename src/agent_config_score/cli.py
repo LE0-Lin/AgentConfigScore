@@ -82,6 +82,7 @@ def print_report(report) -> None:
         f"Files: {len(report.files)}   Estimated tokens: {report.estimated_tokens:,}   "
         f"Duplication: {report.duplicate_ratio:.0%}   Suppressed: {len(report.suppressed_findings)}\n"
     )
+    print("Scope: deterministic rule matches only; this score is not semantic quality certification.\n")
     if not report.findings:
         print(_c("OK No active findings", "\033[32m"))
     else:
@@ -104,6 +105,7 @@ def print_regression(report) -> None:
         f"New findings: {len(report.new_findings)}   Resolved: {len(report.resolved_findings)}   "
         f"Suppressed: {len(report.head.suppressed_findings)}\n"
     )
+    print("Scope: deterministic rule matches only; this comparison is not semantic quality certification.\n")
     for finding in report.new_findings:
         location = finding.file + (f":{finding.line}" if finding.line else "")
         prefix = _c(f"+ {finding.severity.upper():7}", COLORS.get(finding.severity, ""))

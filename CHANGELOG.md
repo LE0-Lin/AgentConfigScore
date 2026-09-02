@@ -7,6 +7,21 @@
 - A visual tour covering pull-request regression blocking, 30-second setup, and score-history trends.
 - Two compact animated demos plus a code-native workflow overview for the README and documentation.
 - A 1280×640 GitHub social preview card generated from the same source-controlled visual system.
+- Copy-ready, current-format templates for Cursor Project Rules, GitHub Copilot, Gemini CLI, and Claude Code.
+- A real-world case issue form for collecting useful hits, false positives, false negatives, and workflow feedback.
+- A public score contract with reproducible red-team results and explicit semantic blind spots.
+- Regression-only findings for removed instruction files and exact directive-polarity reversals.
+
+### Fixed
+
+- Missing or empty instruction configurations no longer receive an A grade.
+- Reports with an active error finding can no longer receive an A grade.
+- `must` / `must not` pairs are parsed in the correct order and detected as contradictions.
+- Double-negative phrases such as “do not hesitate” no longer hide dangerous-command findings.
+
+### Changed
+
+- CLI and HTML reports state that the score covers deterministic rule matches rather than semantic quality certification.
 
 ## v0.18.0
 
