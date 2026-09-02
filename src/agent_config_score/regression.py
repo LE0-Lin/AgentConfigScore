@@ -4,13 +4,81 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .config import Suppression
-from .scanner import Finding, Report, analyze
+from .scanner import (
+    Finding,
+    Report,
+    SuppressedFinding,
+    _directives,
+    _finding,
+    _matching_suppression,
+    analyze,
+)
 
 
 def _finding_key(finding: Finding) -> tuple[str, str, str, str]:
     # Line numbers are intentionally excluded so harmless line shifts do not
     # turn an existing finding into a fake regression.
     return (finding.severity, finding.code, finding.file, finding.message)
+
+
+def _instruction_texts(root: Path, files: list[str]) -> dict[str, str]:
+    texts: dict[str, str] = {}
+    for rel in files:
+        try:
+            texts[rel] = (root / rel).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+    return texts
+
+
+def _normalized_content(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _regression_findings(base_root: Path, head_root: Path, base: Report, head: Report) -> list[Finding]:
+    base_texts = _instruction_texts(base_root, base.files)
+    head_texts = _instruction_texts(head_root, head.files)
+    head_contents = {_normalized_content(text) for text in head_texts.values() if _normalized_content(text)}
+    findings: list[Finding] = []
+
+    for rel in sorted(set(base_texts) - set(head_texts)):
+        content = _normalized_content(base_texts[rel])
+        if content and content in head_contents:
+            continue
+        findings.append(
+            _finding(
+                "instruction-file-removed",
+                rel,
+                message=f"Supported instruction file was removed: {rel}",
+            )
+        )
+
+    def directive_index(texts: dict[str, str]) -> dict[tuple[str, str], list[tuple[str, int]]]:
+        index: dict[tuple[str, str], list[tuple[str, int]]] = {}
+        for rel, text in texts.items():
+            for polarity, body, line in _directives(text):
+                index.setdefault((rel, body), []).append((polarity, line))
+        return index
+
+    base_directives = directive_index(base_texts)
+    head_directives = directive_index(head_texts)
+    for key in sorted(base_directives.keys() & head_directives.keys()):
+        base_rows = base_directives[key]
+        head_rows = head_directives[key]
+        base_polarities = {row[0] for row in base_rows}
+        head_polarities = {row[0] for row in head_rows}
+        if len(base_polarities) != 1 or len(head_polarities) != 1 or base_polarities == head_polarities:
+            continue
+        rel, body = key
+        findings.append(
+            _finding(
+                "directive-polarity-flip",
+                rel,
+                head_rows[0][1],
+                message=f"Directive polarity changed for: '{body}'",
+            )
+        )
+    return findings
 
 
 @dataclass
@@ -53,8 +121,25 @@ def compare(
     new_keys = head_by_key.keys() - base_by_key.keys()
     resolved_keys = base_by_key.keys() - head_by_key.keys()
 
+    candidate_findings = [head_by_key[key] for key in new_keys]
+    for finding in _regression_findings(base_root, head_root, base, head):
+        suppression = _matching_suppression(finding, suppressions)
+        if suppression is None:
+            candidate_findings.append(finding)
+        else:
+            head.suppressed_findings.append(SuppressedFinding(finding=finding, suppression=suppression))
+
+    head.suppressed_findings.sort(
+        key=lambda item: (
+            item.finding.severity != "error",
+            item.finding.code,
+            item.finding.file,
+            item.finding.line or 0,
+        )
+    )
+
     new_findings = sorted(
-        (head_by_key[key] for key in new_keys),
+        candidate_findings,
         key=lambda finding: (finding.severity != "error", finding.code, finding.file, finding.line or 0),
     )
     resolved_findings = sorted(

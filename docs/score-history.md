@@ -1,6 +1,6 @@
 # Score history snapshots
 
-AgentConfigScore can record an immutable score snapshot for every default-branch update without writing generated files back to the repository.
+AgentConfigScore can record an immutable known-risk score snapshot for every default-branch update without writing generated files back to the repository. The score is not semantic quality certification; see the [score contract](limitations.md).
 
 The reusable workflow lives at:
 

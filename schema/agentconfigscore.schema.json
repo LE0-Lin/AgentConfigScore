@@ -67,7 +67,10 @@
               "duplication",
               "contradiction",
               "no-agents-md",
-              "no-config"
+              "empty-instructions",
+              "no-config",
+              "instruction-file-removed",
+              "directive-polarity-flip"
             ],
             "description": "Stable AgentConfigScore rule ID to suppress."
           },

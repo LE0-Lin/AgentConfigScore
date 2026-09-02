@@ -1,6 +1,6 @@
 # Visual tour
 
-AgentConfigScore turns coding-agent instruction quality into something a team can see, review, and enforce. These demos use representative CLI output and map directly to shipped commands.
+AgentConfigScore turns deterministic coding-agent instruction risks into something a team can see, review, and enforce. It does not certify semantic prompt quality; see the [score contract](limitations.md). These demos use representative CLI output and map directly to shipped commands.
 
 ## Shareable project card
 
@@ -20,7 +20,7 @@ The solid-background 1280×640 project card is optimized for GitHub link preview
 
 The normal setup path is intentionally small: install from PyPI, run `init`, then use the read-only `doctor` command to verify configuration, instructions, baseline detection, and the GitHub workflow.
 
-## Make quality visible over time
+## Make known-risk changes visible over time
 
 ![AgentConfigScore history improves from 82 to 100](../assets/agent-config-score-history.gif)
 
@@ -30,7 +30,7 @@ Local history provides a human-readable trend. The reusable score-history workfl
 
 ![Configure once, guard every pull request, and keep evidence](../assets/agent-config-score-workflow.svg)
 
-The regression gate answers whether a pull request made instructions worse. History answers how instruction quality has changed across reviewed commits. They are separate signals with a shared scanner and policy model.
+The regression gate answers whether a pull request introduced a detected regression. History shows how the deterministic score changed across reviewed commits. They are separate signals with a shared scanner and policy model.
 
 ## Regenerate the gallery
 

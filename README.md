@@ -29,10 +29,14 @@ AgentConfigScore is a deterministic regression gate for coding-agent configurati
 
 It is regression-first rather than perfection-first: an existing repository can start at 72/100 and adopt the gate immediately. A pull request that stays at 72 can pass; one that drops to 65 can fail.
 
+> [!IMPORTANT]
+> **A 100 means no active deterministic rule matched—not that the instructions are semantically perfect.** AgentConfigScore is a focused linter, not an AI judge. See the public [score contract and known blind spots](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/limitations.md).
+
 | What usually goes wrong | What the gate does |
 |---|---|
 | A pull request weakens its own quality threshold | Uses the baseline branch's policy to judge the change |
 | A new instruction contradicts or duplicates existing guidance | Reports deterministic, line-addressable findings |
+| A pull request deletes an instruction file or reverses an exact directive | Emits a regression-only error even when ordinary score arithmetic would miss it |
 | An exception becomes a permanent silent ignore | Requires a reason and expiry, then preserves an audit trail |
 | A scanner update becomes noisy on real projects | Replays a pinned, manually reviewed [real-repository benchmark](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md) |
 
@@ -84,6 +88,18 @@ agent-config-score init --force        # intentionally replace conflicting gener
 ```
 
 `v0` is the rolling stable ref for the current pre-1.0 series.
+
+## Copy-ready templates
+
+Start with a conservative template, then replace generic guidance with your
+repository's real commands, architecture, and ownership boundaries:
+
+- [Cursor Project Rule](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/cursor/.cursor/rules/project.mdc)
+- [GitHub Copilot instructions](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/copilot/.github/copilot-instructions.md)
+- [Gemini CLI context](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/gemini/GEMINI.md)
+- [Claude Code instructions](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/claude-code/CLAUDE.md)
+
+The [examples guide](https://github.com/LE0-Lin/AgentConfigScore/tree/main/examples) includes exact target paths and copy commands.
 
 ## Repository policy + editor validation
 
@@ -328,6 +344,10 @@ The scanner, scoring categories, CLI rule inspection, SARIF metadata, suppressio
 
 Current rule families include context size, cross-file duplication, contradictions, dead paths, dangerous shell commands, common credential patterns, and missing canonical `AGENTS.md` coordination.
 
+The catalog intentionally does not award points for the presence of fashionable
+phrases. Such rules are trivial to game. Broader semantic evaluation remains a
+separate research problem and is listed explicitly in the [known limitations](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/limitations.md).
+
 ## CLI reference
 
 Score the current repository:
@@ -480,7 +500,7 @@ The Action emits outputs before returning its final regression status. Use `if: 
 2. **Baseline-governed policy.** A candidate cannot weaken the gate evaluating itself.
 3. **Auditable exceptions.** Suppressions need a reason and expiry, remain visible, and cannot self-authorize.
 4. **Local-first.** Repository content is not uploaded to a hosted analysis service, and automatic Git baseline detection does not fetch.
-5. **Explainable.** Scores map to stable rule IDs and visible findings.
+5. **Explainable.** Scores map to stable rule IDs and visible findings; A 100 is never presented as semantic certification.
 6. **Conservative.** Prefer a missed warning over noisy fake certainty.
 7. **Zero runtime dependencies.** Python 3.10+ standard library only.
 
@@ -504,6 +524,9 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] score-history artifact / badge workflow
 - [x] scope-aware nested `AGENTS.md` analysis
 - [x] Codex `AGENTS.override.md` discovery / precedence
+- [x] copy-ready Cursor, Copilot, Gemini, and Claude Code templates
+- [x] adversarial score-contract audit and documented blind spots
+- [x] removal and exact directive-polarity regression checks
 - [ ] optional semantic contradiction plugin
 
 ## Development

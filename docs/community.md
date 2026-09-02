@@ -9,6 +9,7 @@ Good first contributions:
 - Add examples for new coding agents.
 - Improve documentation.
 - Add regression rules with tests.
+- Share a sanitized real-world hit, false positive, or false negative using the **Real-world case** issue form.
 - Improve reports and developer experience.
 
 ## Feature requests

@@ -30,6 +30,7 @@ CATEGORY_CAPS = {
     "dead": 18,
     "size": 18,
     "quality": 30,
+    "coverage": 30,
     "other": 15,
 }
 
@@ -51,7 +52,10 @@ RULES = (
     Rule("duplication", "warning", "quality", 7, "Cross-file instruction duplication", "Reports when at least 15% of meaningful instruction lines are duplicated across files."),
     Rule("contradiction", "error", "quality", 15, "Conflicting persistent directives", "Conservatively flags matching directive bodies that appear with both positive and negative polarity, excluding conflicts deterministically resolved by AGENTS.md directory scope or Codex AGENTS.override.md precedence."),
     Rule("no-agents-md", "info", "quality", 3, "No canonical root AGENTS.md", "Reports multiple tool-specific instruction files without a root AGENTS.md to coordinate them."),
-    Rule("no-config", "info", "other", 0, "No supported coding-agent instruction files found", "Reports that discovery found no supported coding-agent instruction files."),
+    Rule("empty-instructions", "error", "coverage", 30, "Instruction file is empty", "Reports supported coding-agent instruction files that contain no instructions and therefore cannot be meaningfully audited."),
+    Rule("no-config", "error", "coverage", 30, "No supported coding-agent instruction files found", "Reports that discovery found no supported coding-agent instruction files, so an A-grade audit result would be misleading."),
+    Rule("instruction-file-removed", "error", "coverage", 0, "Instruction file removed in candidate", "Regression-only rule that reports removal of a supported instruction file unless its exact content moved to another supported file."),
+    Rule("directive-polarity-flip", "error", "quality", 0, "Persistent directive reversed in candidate", "Regression-only rule that reports an exact directive changing between positive and negative polarity in the same instruction file."),
 )
 
 RULES_BY_CODE = {rule.code: rule for rule in RULES}
