@@ -11,6 +11,7 @@ Make AgentConfigScore a practical tool for improving AI coding-agent instruction
 - Regression detection
 - HTML and badge reports
 - Visual demo gallery for regression checks, setup, and score history
+- Branded GitHub social preview for recognizable link sharing
 
 ## Next priorities
 

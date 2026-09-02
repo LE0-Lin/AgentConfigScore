@@ -2,6 +2,12 @@
 
 AgentConfigScore turns coding-agent instruction quality into something a team can see, review, and enforce. These demos use representative CLI output and map directly to shipped commands.
 
+## Shareable project card
+
+![AgentConfigScore social preview](../assets/agent-config-score-social-preview.png)
+
+The solid-background 1280×640 project card is optimized for GitHub link previews and remains readable when a social platform crops or scales it down.
+
 ## Catch a regression before merge
 
 ![AgentConfigScore detects an instruction regression and blocks the pull request](../assets/agent-config-score-demo.gif)
@@ -28,7 +34,7 @@ The regression gate answers whether a pull request made instructions worse. Hist
 
 ## Regenerate the gallery
 
-The GIFs are generated from a source-controlled Pillow renderer rather than recorded from a particular operating system or shell:
+The GIFs and social preview are generated from a source-controlled Pillow renderer rather than recorded from a particular operating system or shell:
 
 ```bash
 python -m pip install pillow

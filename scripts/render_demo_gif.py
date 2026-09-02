@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = ROOT / "assets" / "agent-config-score-demo.gif"
 SETUP_OUTPUT = ROOT / "assets" / "agent-config-score-setup.gif"
 HISTORY_OUTPUT = ROOT / "assets" / "agent-config-score-history.gif"
+SOCIAL_OUTPUT = ROOT / "assets" / "agent-config-score-social-preview.png"
 WIDTH = 1200
 HEIGHT = 675
 
@@ -64,6 +65,10 @@ MONO = _font(22, mono=True)
 MONO_BOLD = _font(22, mono=True, bold=True)
 MONO_SMALL = _font(19, mono=True)
 FOOTER = _font(17)
+SOCIAL_TITLE = _font(58, bold=True)
+SOCIAL_TAGLINE = _font(29, bold=True)
+SOCIAL_SCORE = _font(72, bold=True)
+SOCIAL_SCORE_LABEL = _font(20, bold=True)
 
 
 OUTPUT_LINES = [
@@ -327,6 +332,75 @@ def _save_gif(frames: list[Image.Image], durations: list[int], output: Path) -> 
     )
 
 
+def render_social_preview(output: Path) -> None:
+    width, height = 1280, 640
+    image = Image.new("RGB", (width, height), COLORS["page"])
+    draw = ImageDraw.Draw(image)
+
+    for y in range(height):
+        ratio = y / (height - 1)
+        start = (7, 17, 31)
+        end = (12, 31, 52)
+        color = tuple(round(start[channel] * (1 - ratio) + end[channel] * ratio) for channel in range(3))
+        draw.line((0, y, width, y), fill=color)
+    draw.ellipse((790, -320, 1450, 340), fill="#12314B")
+    draw.ellipse((990, 330, 1390, 730), fill="#0E3A35")
+
+    draw.text((74, 60), "AgentConfigScore", fill=COLORS["text"], font=SOCIAL_TITLE)
+    draw.text(
+        (78, 137),
+        "Stop AI-agent instruction regressions before they merge.",
+        fill=COLORS["text"],
+        font=SOCIAL_TAGLINE,
+    )
+    draw.text(
+        (79, 184),
+        "A tamper-resistant regression gate for AGENTS.md, CLAUDE.md, Cursor, Copilot, and Gemini.",
+        fill=COLORS["muted"],
+        font=SUBTITLE,
+    )
+
+    chips = ("AGENTS.md", "CLAUDE.md", "CURSOR", "COPILOT", "GEMINI")
+    chip_x = 79
+    for chip in chips:
+        chip_width = int(draw.textlength(chip, font=BADGE)) + 30
+        draw.rounded_rectangle(
+            (chip_x, 227, chip_x + chip_width, 263),
+            radius=18,
+            fill="#162A40",
+            outline="#31506E",
+        )
+        draw.text((chip_x + 15, 237), chip, fill=COLORS["cyan"], font=BADGE)
+        chip_x += chip_width + 12
+
+    card = (74, 310, 866, 552)
+    draw.rounded_rectangle(card, radius=18, fill=COLORS["window"], outline=COLORS["border"], width=2)
+    draw.rounded_rectangle((74, 310, 866, 356), radius=18, fill=COLORS["chrome"])
+    draw.rectangle((74, 340, 866, 356), fill=COLORS["chrome"])
+    for index, color in enumerate(("#FF5F57", "#FEBC2E", "#28C840")):
+        x = 98 + index * 25
+        draw.ellipse((x, 327, x + 12, 339), fill=color)
+    draw.text((286, 324), "pull request check", fill=COLORS["muted"], font=BADGE)
+    draw.text((105, 383), "$ agent-config-score diff origin/main", fill=COLORS["text"], font=MONO)
+    draw.text((105, 430), "A 100", fill=COLORS["green"], font=MONO_BOLD)
+    draw.text((175, 430), "→", fill=COLORS["muted"], font=MONO)
+    draw.text((213, 430), "B 82 (-18)", fill=COLORS["amber"], font=MONO_BOLD)
+    draw.rounded_rectangle((105, 478, 835, 524), radius=9, fill="#291B20", outline="#71333A")
+    draw.text((128, 490), "POLICY RESULT: BLOCKED", fill=COLORS["red"], font=MONO_BOLD)
+
+    score_center = (1050, 360)
+    draw.ellipse((922, 232, 1178, 488), fill="#10283B", outline="#286B57", width=4)
+    draw.text((score_center[0], 274), "SELF-SCAN", anchor="mm", fill=COLORS["muted"], font=SOCIAL_SCORE_LABEL)
+    draw.text((score_center[0], 367), "A 100", anchor="mm", fill=COLORS["green"], font=SOCIAL_SCORE)
+    draw.text((score_center[0], 429), "DETERMINISTIC", anchor="mm", fill=COLORS["cyan"], font=SOCIAL_SCORE_LABEL)
+
+    draw.text((78, 586), "github.com/LE0-Lin/AgentConfigScore", fill=COLORS["cyan"], font=FOOTER)
+    draw.text((931, 586), "PYTHON 3.10+  ·  ZERO RUNTIME DEPS", fill=COLORS["muted"], font=BADGE)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    image.save(output, format="PNG", optimize=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
@@ -334,7 +408,13 @@ def main() -> None:
     args = parser.parse_args()
     outputs = [(render, args.output)]
     if args.all:
-        outputs.extend([(render_setup, SETUP_OUTPUT), (render_history, HISTORY_OUTPUT)])
+        outputs.extend(
+            [
+                (render_setup, SETUP_OUTPUT),
+                (render_history, HISTORY_OUTPUT),
+                (render_social_preview, SOCIAL_OUTPUT),
+            ]
+        )
     for renderer, output in outputs:
         renderer(output)
         print(f"wrote {output} ({output.stat().st_size:,} bytes)")
