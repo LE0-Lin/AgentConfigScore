@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+- Offline Adversarial Benchmark v1 with 74 deterministic contract cases across six instruction formats.
+- An eight-case non-gating challenge tier that keeps semantic and unmodeled danger misses visible.
+- JSON and Markdown benchmark reporting with precision, recall, F1, clean-control, and per-category metrics.
+- Contract tests that regenerate the benchmark and keep the committed report synchronized with scanner behavior.
+
 ## v0.19.0
 
 ### Added

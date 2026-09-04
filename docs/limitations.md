@@ -43,6 +43,12 @@ they would be easy to game by copying phrases into a file. Broader semantic
 judgment requires a separately evaluated model-assisted mode and a labeled
 corpus, not a stronger marketing claim for the deterministic score.
 
+The offline [Adversarial Benchmark v1](../benchmarks/adversarial-v1-report.md)
+keeps both sides visible: 74/74 maintained deterministic contracts currently
+match, while 0/8 labeled semantic and unmodeled danger challenges are detected.
+The contract figure is a regression guarantee for a closed fixture suite, not a
+real-world accuracy estimate.
+
 ## Appropriate use
 
 Use AgentConfigScore to catch concrete regressions covered by its stable rule
