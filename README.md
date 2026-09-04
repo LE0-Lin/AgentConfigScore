@@ -244,6 +244,21 @@ New findings: 2   Resolved: 0   Suppressed: 0
 
 **Live proof:** [PR #6](https://github.com/LE0-Lin/AgentConfigScore/pull/6) deliberately added an unsafe `curl | bash` instruction. AgentConfigScore changed the score from **A 100 → B 82 (-18)**, reported a new `curl-pipe-shell` error, failed the GitHub Actions job, and the PR was closed without merging.
 
+## Adversarial Benchmark v1
+
+The offline mutation benchmark expands reviewed fixtures across six instruction
+formats and separates current guarantees from open research challenges:
+
+| Tier | Result | Meaning |
+|---|---:|---|
+| Deterministic contract | 74/74 exact matches | Current rule behavior stayed reproducible |
+| Clean negative controls | 26/26 passed | No unexpected finding in controlled clean cases |
+| Open challenge set | 0/8 detected | Semantic and unmodeled danger cases remain unsolved |
+
+The contract suite reports 100% precision and recall only for its closed labeled
+fixtures—not for arbitrary repositories. See the [corpus, runner, methodology,
+and full report](https://github.com/LE0-Lin/AgentConfigScore/tree/main/benchmarks).
+
 ## Real-repository benchmark
 
 The v0.17.0 scanner was replayed against pinned commits from three public AI coding projects; source code was scanned but never executed.
