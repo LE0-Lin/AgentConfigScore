@@ -251,9 +251,9 @@ formats and separates current guarantees from open research challenges:
 
 | Tier | Result | Meaning |
 |---|---:|---|
-| Deterministic contract | 74/74 exact matches | Current rule behavior stayed reproducible |
-| Clean negative controls | 26/26 passed | No unexpected finding in controlled clean cases |
-| Open challenge set | 0/8 detected | Semantic and unmodeled danger cases remain unsolved |
+| Deterministic contract | 122/122 exact matches | Current rule behavior stayed reproducible |
+| Clean negative controls | 50/50 passed | No unexpected finding in controlled clean cases |
+| Open challenge set | 4/8 detected | Four danger surfaces are covered; four semantic cases remain unsolved |
 
 The contract suite reports 100% precision and recall only for its closed labeled
 fixtures—not for arbitrary repositories. See the [corpus, runner, methodology,
@@ -357,7 +357,7 @@ agent-config-score rules dead-path --json
 
 The scanner, scoring categories, CLI rule inspection, SARIF metadata, suppression validation, and config JSON Schema all derive from or are tested against the same stable catalog.
 
-Current rule families include context size, cross-file duplication, contradictions, dead paths, dangerous shell commands, common credential patterns, and missing canonical `AGENTS.md` coordination.
+Current rule families include context size, cross-file duplication, contradictions, dead paths, dangerous shell and infrastructure commands, common credential patterns, and missing canonical `AGENTS.md` coordination.
 
 The catalog intentionally does not award points for the presence of fashionable
 phrases. Such rules are trivial to game. Broader semantic evaluation remains a

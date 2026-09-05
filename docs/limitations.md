@@ -44,8 +44,9 @@ judgment requires a separately evaluated model-assisted mode and a labeled
 corpus, not a stronger marketing claim for the deterministic score.
 
 The offline [Adversarial Benchmark v1](../benchmarks/adversarial-v1-report.md)
-keeps both sides visible: 74/74 maintained deterministic contracts currently
-match, while 0/8 labeled semantic and unmodeled danger challenges are detected.
+keeps both sides visible: 122/122 maintained deterministic contracts currently
+match, while 4/8 labeled challenges are detected. The four remaining misses are
+semantic cases rather than literal command patterns.
 The contract figure is a regression guarantee for a closed fixture suite, not a
 real-world accuracy estimate.
 
