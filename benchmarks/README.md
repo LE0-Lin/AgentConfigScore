@@ -9,22 +9,22 @@ Neither benchmark is a claim that A 100 means semantic prompt quality.
 
 ## Adversarial mutation Benchmark v1
 
-Benchmark v1 contains 74 deterministic contract cases and 8 explicitly labeled
+Benchmark v1 contains 122 deterministic contract cases and 8 explicitly labeled
 open challenges. The contracts cover positive detections and clean negative
 controls across `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, legacy and modern Cursor
 rules, and GitHub Copilot instructions.
 
 The current committed result is:
 
-- 74/74 exact contract matches;
-- 49 expected rule detections with no extra or missing rule IDs;
-- 26/26 clean negative controls;
-- 0/8 open semantic and danger-surface challenges detected.
+- 122/122 exact contract matches;
+- 73 expected rule detections with no extra or missing rule IDs;
+- 50/50 clean negative controls;
+- 4/8 challenge cases detected after adding four narrow danger-surface rules.
 
 The 100% contract precision and recall describe this closed, maintained test
-suite only. They are not estimates of real-world precision or recall. The 0/8
-challenge result is published beside them to make that boundary impossible to
-miss.
+suite only. They are not estimates of real-world precision or recall. The 4/8
+challenge result—and the four remaining semantic misses—is published beside
+them to make that boundary impossible to miss.
 
 Run the fully offline benchmark:
 

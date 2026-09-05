@@ -4,10 +4,16 @@
 
 ### Added
 
-- Offline Adversarial Benchmark v1 with 74 deterministic contract cases across six instruction formats.
-- An eight-case non-gating challenge tier that keeps semantic and unmodeled danger misses visible.
+- Narrow deterministic rules for PowerShell download-and-execute pipelines, forced Git directory cleanup, aggressive Docker system pruning, and Kubernetes namespace deletion.
+- Positive and explicit-prohibition negative controls for all four new danger rules across six supported instruction formats.
+- Offline Adversarial Benchmark v1 with 122 deterministic contract cases across six instruction formats.
+- An eight-case non-gating challenge tier that keeps the four remaining semantic misses visible.
 - JSON and Markdown benchmark reporting with precision, recall, F1, clean-control, and per-category metrics.
 - Contract tests that regenerate the benchmark and keep the committed report synchronized with scanner behavior.
+
+### Changed
+
+- Expanded Adversarial Benchmark v1 from 74 to 122 deterministic contracts and reduced the published open challenge misses from eight to four without hiding the remaining semantic limitations.
 
 ## v0.19.0
 
