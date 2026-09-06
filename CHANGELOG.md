@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed
+
+- Do not report a dangerous command repeated as the left-hand example in a nearby Markdown replacement table when preceding text explicitly prohibits that same command.
+
+### Changed
+
+- Expanded Adversarial Benchmark v1 from 122 to 134 deterministic contracts with positive and negative Markdown-table cases across six instruction formats.
+- Expanded the pinned real-repository smoke benchmark from three to five projects with one reviewed negative control and one active infrastructure-danger finding.
+
 ## v0.21.0
 
 ### Added

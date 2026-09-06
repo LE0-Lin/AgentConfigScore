@@ -46,6 +46,20 @@
       "expected_codes": []
     },
     {
+      "id": "prohibited-rm-rf-replacement-table",
+      "category": "negation",
+      "note": "A prohibited command repeated in a nearby replacement table is a negative control.",
+      "files": {"{instruction}": "## Safety\n\nNever use `rm -rf` under any circumstances.\n\nUse `trash` instead:\n\n| Instead of | Use |\n|---|---|\n| `rm -rf <dir>` | `trash <dir>` |\n"},
+      "expected_codes": []
+    },
+    {
+      "id": "active-rm-rf-command-table",
+      "category": "danger",
+      "note": "An active dangerous command in an ordinary Markdown table must still be reported.",
+      "files": {"{instruction}": "| Situation | Command |\n|---|---|\n| Clean build outputs | `rm -rf build` |\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
       "id": "double-negative-rm-rf",
       "category": "danger",
       "note": "A double negative must not hide destructive guidance.",

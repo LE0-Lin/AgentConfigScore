@@ -70,6 +70,36 @@
         ]
       },
       "review_note": "URLs, platform-specific paths, generic filenames, and placeholder test paths were reviewed and are not reported as repository dead paths."
+    },
+    {
+      "name": "Reaparr/Reaparr",
+      "url": "https://github.com/Reaparr/Reaparr.git",
+      "commit": "d9926d649ae6dc9d35b4c0faf183aa1d4d7b137b",
+      "expected": {
+        "files": 1,
+        "score": 100,
+        "grade": "A",
+        "findings": []
+      },
+      "review_note": "The safety section explicitly prohibits rm -rf and repeats it only in the left-hand side of a nearby replacement table; that example is not an active dangerous instruction."
+    },
+    {
+      "name": "olup/origan",
+      "url": "https://github.com/olup/origan.git",
+      "commit": "95ac7898544aea4f817c911152c196c54f56c4af",
+      "expected": {
+        "files": 1,
+        "score": 88,
+        "grade": "B",
+        "findings": [
+          {
+            "code": "docker-system-prune",
+            "file": "AGENTS.md",
+            "line": 31
+          }
+        ]
+      },
+      "review_note": "The AGENTS.md disk-cleanup section actively instructs docker system prune -af --volumes, matching the narrow all-plus-force danger rule."
     }
   ]
 }
