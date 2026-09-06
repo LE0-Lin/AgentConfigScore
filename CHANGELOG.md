@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.20.0
+
 ### Added
 
 - Narrow deterministic rules for PowerShell download-and-execute pipelines, forced Git directory cleanup, aggressive Docker system pruning, and Kubernetes namespace deletion.
