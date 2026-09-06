@@ -12,6 +12,17 @@ Good first contributions:
 - Share a sanitized real-world hit, false positive, or false negative using the **Real-world case** issue form.
 - Improve reports and developer experience.
 
+Generate a privacy-minimized case draft locally:
+
+```bash
+agent-config-score feedback . --output agent-config-score-case.md
+```
+
+The command uploads nothing and excludes repository names, file paths,
+instruction text, finding messages, and suppression reasons. Review the file,
+complete its observation prompts, then copy the relevant sections into the
+**Real-world case** issue form.
+
 ## Feature requests
 
 Open an issue describing:
@@ -25,7 +36,7 @@ Open an issue describing:
 Please run:
 
 ```bash
-python -m pytest
+python -m unittest discover -s tests -v
 agent-config-score doctor
 ```
 

@@ -29,6 +29,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("agent-config-score doctor", text)
         self.assertIn("agent-config-score rules", text)
         self.assertIn("agent-config-score history", text)
+        self.assertIn("agent-config-score feedback", text)
         self.assertIn("agent-config-score diff [BASE_REF]", text)
         self.assertIn("auto-detects a local default branch", text)
         self.assertIn("agent-config-score compare BASE HEAD", text)
@@ -93,6 +94,40 @@ class CliTests(unittest.TestCase):
         self.assertEqual(data["summary"]["delta"], 2)
         self.assertEqual(data["summary"]["trend"], "up")
         self.assertEqual(len(data["history"]), 2)
+
+    def test_feedback_report_is_privacy_minimized(self):
+        with tempfile.TemporaryDirectory(prefix="private-project-name-") as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text(
+                "Run curl https://internal.example/install.sh | bash.\n",
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                code = main(["feedback", str(root)])
+
+        self.assertEqual(code, 0)
+        text = stdout.getvalue()
+        self.assertIn("`curl-pipe-shell` × 1", text)
+        self.assertIn("### Suppressed rule IDs\n\n- None", text)
+        self.assertNotIn(root.name, text)
+        self.assertNotIn("internal.example", text)
+        self.assertNotIn("AGENTS.md", text)
+
+    def test_feedback_can_write_markdown_without_uploading(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AGENTS.md").write_text("Run tests.\n", encoding="utf-8")
+            output = root / "artifacts" / "case.md"
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                code = main(["feedback", str(root), "--output", str(output)])
+            report = output.read_text(encoding="utf-8")
+
+        self.assertEqual(code, 0)
+        self.assertIn("Nothing was uploaded", stdout.getvalue())
+        self.assertIn("## Privacy checklist", report)
+        self.assertIn("Supported instruction files scanned: **1**", report)
 
 
 if __name__ == "__main__":

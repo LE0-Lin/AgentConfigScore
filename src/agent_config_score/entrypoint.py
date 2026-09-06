@@ -17,6 +17,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score doctor [PATH] [options]
   agent-config-score rules [RULE_ID] [options]
   agent-config-score history [PATH] [options]
+  agent-config-score feedback [PATH] [options]
   agent-config-score diff [BASE_REF] [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -27,6 +28,7 @@ commands:
   doctor     Validate AgentConfigScore repository integration and readiness.
   rules      List or explain the stable AgentConfigScore rule catalog.
   history    Show locally recorded score snapshots and overall trend.
+  feedback   Generate a privacy-minimized real-world case report locally.
   diff       Compare a Git baseline with the current working tree.
   compare    Compare two already checked-out repository trees.
 
@@ -36,6 +38,7 @@ common examples:
   agent-config-score rules curl-pipe-shell
   agent-config-score .
   agent-config-score history
+  agent-config-score feedback . --output agent-config-score-case.md
   agent-config-score diff
   agent-config-score diff origin/main
 
