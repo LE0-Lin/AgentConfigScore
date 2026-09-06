@@ -143,6 +143,33 @@ class ScannerTests(unittest.TestCase):
             }
             self.assertFalse(any(f.code in danger_codes for f in report.findings))
 
+    def test_prohibited_command_repeated_in_replacement_table_remains_clean(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "## Safety\n\n"
+                "> **NEVER** use `rm`, `rmdir`, or `rm -rf` under any circumstances.\n\n"
+                "Use `trash` instead:\n\n"
+                "| Instead of | Use |\n"
+                "|---|---|\n"
+                "| `rm -rf <dir>` | `trash <dir>` |\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertFalse(any(f.code == "rm-rf" for f in report.findings))
+
+    def test_active_command_in_markdown_table_is_still_reported(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text(
+                "| Situation | Command |\n"
+                "|---|---|\n"
+                "| Clean build outputs | `rm -rf build` |\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertTrue(any(f.code == "rm-rf" for f in report.findings))
+
     def test_double_negative_does_not_hide_dangerous_command(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

@@ -251,8 +251,8 @@ formats and separates current guarantees from open research challenges:
 
 | Tier | Result | Meaning |
 |---|---:|---|
-| Deterministic contract | 122/122 exact matches | Current rule behavior stayed reproducible |
-| Clean negative controls | 50/50 passed | No unexpected finding in controlled clean cases |
+| Deterministic contract | 134/134 exact matches | Current rule behavior stayed reproducible |
+| Clean negative controls | 56/56 passed | No unexpected finding in controlled clean cases |
 | Open challenge set | 4/8 detected | Four danger surfaces are covered; four semantic cases remain unsolved |
 
 The contract suite reports 100% precision and recall only for its closed labeled
@@ -275,15 +275,17 @@ sanitized before/after example, then submit the
 
 ## Real-repository benchmark
 
-The v0.17.0 scanner was replayed against pinned commits from three public AI coding projects; source code was scanned but never executed.
+The scanner is replayed against pinned commits from five public projects with coding-agent instructions; source code is scanned but never executed.
 
 | Repository | Commit | Files found | Result | Manually reviewed signal |
 |---|---|---:|---:|---|
 | [`openai/codex`](https://github.com/openai/codex) | `d58d0e5` | 2 | B 82 | 3 references to absent `.rs` files; 1 context-size warning |
 | [`anomalyco/opencode`](https://github.com/anomalyco/opencode) | `9f69463` | 18 | A 94 | 1 context-size warning |
 | [`browser-use/browser-use`](https://github.com/browser-use/browser-use) | `d379a32` | 2 | B 88 | 1 context-size warning |
+| [`Reaparr/Reaparr`](https://github.com/Reaparr/Reaparr) | `d9926d6` | 1 | A 100 | Prohibited `rm -rf` replacement-table example remains clean |
+| [`olup/origan`](https://github.com/olup/origan) | `95ac789` | 1 | B 88 | 1 active aggressive Docker cleanup error |
 
-All six findings matched their rule definitions in manual review. This small corpus is a reproducible smoke benchmark, not a quality leaderboard or a claim of broad statistical accuracy. The pinned inputs, reviewed expectations, limitations, and one-command runner live in [`benchmarks/`](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md).
+All seven findings matched their rule definitions in manual review. This small corpus is a reproducible smoke benchmark, not a quality leaderboard or a claim of broad statistical accuracy. The pinned inputs, reviewed expectations, limitations, and one-command runner live in [`benchmarks/`](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md).
 
 ## Manual GitHub Actions setup
 

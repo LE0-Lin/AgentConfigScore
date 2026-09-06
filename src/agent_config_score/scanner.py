@@ -158,7 +158,30 @@ def _line(text: str, index: int) -> int:
     return text.count("\n", 0, index) + 1
 
 
-def _dangerous_command_is_prohibited(text: str, index: int) -> bool:
+def _prohibited_markdown_table_example(text: str, index: int, command: str) -> bool:
+    line_start = text.rfind("\n", 0, index) + 1
+    line_end = text.find("\n", index)
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end].strip()
+    if not line.startswith("|") or line.count("|") < 3:
+        return False
+
+    normalized_command = re.sub(r"\s+", " ", command.lower()).strip()
+    preceding_lines = text[:line_start].splitlines()[-8:]
+    for candidate in reversed(preceding_lines):
+        cleaned = re.sub(r"[`*_>#]", " ", candidate)
+        cleaned = re.sub(r"\s+", " ", cleaned.lower()).strip()
+        negation = DANGER_NEGATION.search(cleaned)
+        if not negation or normalized_command not in cleaned:
+            continue
+        after_negation = cleaned[negation.end():]
+        if DANGER_NEGATION_EXCEPTION.search(after_negation) is None:
+            return True
+    return False
+
+
+def _dangerous_command_is_prohibited(text: str, index: int, command: str) -> bool:
     """Ignore dangerous commands that are explicitly prohibited in the same clause."""
     line_start = text.rfind("\n", 0, index) + 1
     line_end = text.find("\n", index)
@@ -173,7 +196,7 @@ def _dangerous_command_is_prohibited(text: str, index: int) -> bool:
         return False
     negations = list(DANGER_NEGATION.finditer(clause_prefix))
     if not negations:
-        return False
+        return _prohibited_markdown_table_example(text, index, command)
     after_negation = clause_prefix[negations[-1].end():] + clause_suffix
     return DANGER_NEGATION_EXCEPTION.search(after_negation) is None
 
@@ -378,7 +401,7 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
             for match in pattern_rule.pattern.finditer(text):
                 if (
                     pattern_rule.rule.category == "danger"
-                    and _dangerous_command_is_prohibited(text, match.start())
+                    and _dangerous_command_is_prohibited(text, match.start(), match.group(0))
                 ):
                     continue
                 findings.append(_finding(pattern_rule.rule.code, rel, _line(text, match.start())))
