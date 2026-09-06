@@ -259,6 +259,20 @@ The contract suite reports 100% precision and recall only for its closed labeled
 fixtures—not for arbitrary repositories. See the [corpus, runner, methodology,
 and full report](https://github.com/LE0-Lin/AgentConfigScore/tree/main/benchmarks).
 
+## Share a real-world case safely
+
+Useful findings, false positives, false negatives, and setup friction all help
+improve the scanner. Generate a privacy-minimized Markdown draft locally:
+
+```bash
+agent-config-score feedback . --output agent-config-score-case.md
+```
+
+Nothing is uploaded. The draft excludes repository names, paths, instruction
+text, finding messages, and suppression reasons. Review it, add the smallest
+sanitized before/after example, then submit the
+[Real-world case form](https://github.com/LE0-Lin/AgentConfigScore/issues/new?template=real_world_case.yml).
+
 ## Real-repository benchmark
 
 The v0.17.0 scanner was replayed against pinned commits from three public AI coding projects; source code was scanned but never executed.

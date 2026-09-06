@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         Real cases—not star counts—show whether AgentConfigScore is useful. Please sanitize private repository details and never paste real secrets.
+        You can generate a privacy-minimized draft locally with `agent-config-score feedback . --output agent-config-score-case.md`. Nothing is uploaded automatically; review every line before copying it here.
   - type: dropdown
     id: outcome
     attributes:
@@ -22,7 +23,7 @@ body:
     id: version
     attributes:
       label: AgentConfigScore version or commit
-      placeholder: 0.18.0 or a commit SHA
+      placeholder: 0.20.0 or a commit SHA
     validations:
       required: true
   - type: input

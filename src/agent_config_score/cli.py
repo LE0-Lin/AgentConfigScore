@@ -7,6 +7,7 @@ import sys
 
 from . import __version__
 from .config import ConfigError, Policy, load_policy
+from .feedback import feedback_markdown
 from .gitdiff import GitError, baseline_worktree, repository_root
 from .history import load_history, summarize_history
 from .initializer import InitError, initialize_repository
@@ -25,6 +26,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score init [PATH] [options]
   agent-config-score rules [RULE_ID] [options]
   agent-config-score history [PATH] [options]
+  agent-config-score feedback [PATH] [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -34,6 +36,7 @@ commands:
   init       Add a repository policy and GitHub Actions workflow safely.
   rules      List or explain the stable AgentConfigScore rule catalog.
   history    Show locally recorded score snapshots and overall trend.
+  feedback   Generate a privacy-minimized real-world case report locally.
   diff       Compare a Git ref with the current working tree.
   compare    Compare two already checked-out repository trees.
 
@@ -43,6 +46,7 @@ common examples:
   agent-config-score rules curl-pipe-shell
   agent-config-score .
   agent-config-score history
+  agent-config-score feedback . --output agent-config-score-case.md
   agent-config-score diff origin/main
   agent-config-score compare ../repo-base .
 
@@ -161,6 +165,16 @@ def build_history_parser() -> argparse.ArgumentParser:
     p.add_argument("path", nargs="?", default=".", help="Repository path (default: current directory)")
     p.add_argument("--json", action="store_true", help="Print machine-readable JSON")
     p.add_argument("--limit", type=int, default=20, metavar="N", help="Show at most the newest N snapshots (default: 20)")
+    return p
+
+
+def build_feedback_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="agent-config-score feedback",
+        description="Generate a privacy-minimized real-world case report without uploading anything.",
+    )
+    p.add_argument("path", nargs="?", default=".", help="Repository path (default: current directory)")
+    p.add_argument("--output", metavar="FILE", help="Write Markdown to FILE instead of standard output")
     return p
 
 
@@ -344,6 +358,32 @@ def _main_history(argv: list[str]) -> int:
     return 0
 
 
+def _main_feedback(argv: list[str]) -> int:
+    args = build_feedback_parser().parse_args(argv)
+    root = Path(args.path)
+    if not root.exists() or not root.is_dir():
+        print(f"error: not a directory: {root}", file=sys.stderr)
+        return 2
+
+    try:
+        policy = load_policy(root)
+    except ConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    report = analyze(root, suppressions=policy.suppressions)
+    markdown = feedback_markdown(report)
+    if args.output:
+        out = Path(args.output)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(markdown, encoding="utf-8")
+        print(f"Feedback report: {out.resolve()}")
+        print("Nothing was uploaded. Review the report before sharing it.")
+    else:
+        print(markdown, end="")
+    return 0
+
+
 def _main_compare(argv: list[str]) -> int:
     args = build_compare_parser().parse_args(argv)
     base = _existing_dir(args.base)
@@ -448,6 +488,8 @@ def main(argv: list[str] | None = None) -> int:
         return _main_rules(args[1:])
     if args and args[0] == "history":
         return _main_history(args[1:])
+    if args and args[0] == "feedback":
+        return _main_feedback(args[1:])
     if args and args[0] == "compare":
         return _main_compare(args[1:])
     if args and args[0] == "diff":

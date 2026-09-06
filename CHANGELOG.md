@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- A local `feedback` command that generates a privacy-minimized, review-before-sharing real-world case report without uploading repository data.
+
 ## v0.20.0
 
 ### Added
