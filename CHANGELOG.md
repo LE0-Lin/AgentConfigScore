@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.22.0
+
 ### Fixed
 
 - Do not report a dangerous command repeated as the left-hand example in a nearby Markdown replacement table when preceding text explicitly prohibits that same command.
