@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 
 
@@ -21,6 +22,43 @@ class BenchmarkContractTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("--work-dir", completed.stdout)
+        self.assertIn("--repository", completed.stdout)
+
+    def test_unknown_repository_selection_fails_before_network_access(self):
+        with tempfile.TemporaryDirectory() as directory:
+            corpus = Path(directory) / "corpus.json"
+            corpus.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "repositories": [
+                            {
+                                "name": "owner/known",
+                                "url": "https://github.com/owner/known.git",
+                                "commit": "0" * 40,
+                                "expected": {},
+                                "review_note": "fixture",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(RUNNER),
+                    "--corpus",
+                    str(corpus),
+                    "--repository",
+                    "owner/missing",
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("unknown repository selection: owner/missing", completed.stderr)
 
     def test_corpus_uses_unique_pinned_commits_and_reviewed_expectations(self):
         corpus = json.loads(CORPUS.read_text(encoding="utf-8"))

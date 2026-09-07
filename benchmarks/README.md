@@ -40,10 +40,10 @@ behavior.
 
 ## Real-repository smoke benchmark
 
-This benchmark scans pinned commits from five public projects with coding-agent
+This benchmark scans pinned commits from six public projects with coding-agent
 instructions. It is
 designed to make scanner behavior reproducible and to catch noisy path heuristics
-before release. It is not a ranking of the projects or a claim that three
+before release. It is not a ranking of the projects or a claim that six
 repositories represent every instruction style.
 
 For the exact meaning of A 100 and adversarial cases the deterministic scanner
@@ -56,8 +56,9 @@ cannot judge, read the [score contract and known limitations](../docs/limitation
 | `browser-use/browser-use` | `d379a32` | 2 | B 88 | 1 context-size warning |
 | `Reaparr/Reaparr` | `d9926d6` | 1 | A 100 | Prohibited `rm -rf` replacement-table example remains clean |
 | `olup/origan` | `95ac789` | 1 | B 88 | 1 active aggressive Docker cleanup error |
+| `restsharp/RestSharp` | `64ee129` | 3 | B 84 | Lowercase `agents.md`; 1 context warning and 1 active broad recursive-deletion error |
 
-All seven findings in the recorded run were manually checked against their rule
+All nine findings in the recorded run were manually checked against their rule
 definitions. In particular, the reviewed output contains no `dead-path` finding
 for API symbols, package imports, documentation URLs, code-fence examples,
 platform paths, or generic filename conventions.
@@ -67,6 +68,13 @@ Run it from an AgentConfigScore checkout:
 ```bash
 python -m pip install -e .
 python scripts/run_real_world_benchmark.py --output benchmark-result.json
+```
+
+Reproduce one reviewed case without downloading the entire corpus:
+
+```bash
+python scripts/run_real_world_benchmark.py \
+  --repository restsharp/RestSharp
 ```
 
 The script clones but never executes code from the target repositories. It

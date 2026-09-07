@@ -93,12 +93,43 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     parser.add_argument("--work-dir", type=Path)
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--repository",
+        action="append",
+        metavar="OWNER/REPO",
+        help="Run only a named corpus repository; repeat to select multiple repositories",
+    )
     return parser
+
+
+def _select_repositories(
+    repositories: list[dict[str, Any]],
+    selected_names: list[str] | None,
+) -> list[dict[str, Any]]:
+    if not selected_names:
+        return repositories
+    requested = set(selected_names)
+    known = {repository["name"] for repository in repositories}
+    unknown = sorted(requested - known)
+    if unknown:
+        raise ValueError(
+            "unknown repository selection: "
+            + ", ".join(unknown)
+            + "; choose from: "
+            + ", ".join(sorted(known))
+        )
+    return [repository for repository in repositories if repository["name"] in requested]
 
 
 def main() -> int:
     args = _parser().parse_args()
     corpus = json.loads(args.corpus.read_text(encoding="utf-8"))
+    try:
+        selected_repositories = _select_repositories(
+            corpus["repositories"], args.repository
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     temporary: tempfile.TemporaryDirectory[str] | None = None
     if args.work_dir is None:
         temporary = tempfile.TemporaryDirectory(prefix="agentconfigscore-benchmark-")
@@ -110,7 +141,7 @@ def main() -> int:
     try:
         repositories = [
             _scan(repository, work_dir / repository["name"].replace("/", "--"))
-            for repository in corpus["repositories"]
+            for repository in selected_repositories
         ]
     finally:
         if temporary is not None:

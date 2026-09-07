@@ -100,6 +100,29 @@
         ]
       },
       "review_note": "The AGENTS.md disk-cleanup section actively instructs docker system prune -af --volumes, matching the narrow all-plus-force danger rule."
+    },
+    {
+      "name": "restsharp/RestSharp",
+      "url": "https://github.com/restsharp/RestSharp.git",
+      "commit": "64ee12995b8d7409a5863da7b71cddfa526ffb7a",
+      "expected": {
+        "files": 3,
+        "score": 84,
+        "grade": "B",
+        "findings": [
+          {
+            "code": "context-large",
+            "file": "agents.md",
+            "line": null
+          },
+          {
+            "code": "rm-rf",
+            "file": "agents.md",
+            "line": 661
+          }
+        ]
+      },
+      "review_note": "This lowercase agents.md is a real case-sensitive discovery regression. It exceeds the context-size threshold and its cleanup quick reference actively includes a broad rm -rf command; both findings were completely missed before case-insensitive target discovery."
     }
   ]
 }

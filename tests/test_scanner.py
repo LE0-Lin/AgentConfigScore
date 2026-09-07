@@ -36,6 +36,38 @@ class ScannerTests(unittest.TestCase):
             names = [p.relative_to(root).as_posix() for p in discover(root)]
             self.assertEqual(names, ["AGENTS.md", "packages/api/AGENTS.override.md"])
 
+    def test_discovery_includes_lowercase_agents_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "agents.md").write_text(
+                "Run docker system prune -af --volumes.\n",
+                encoding="utf-8",
+            )
+            report = analyze(root)
+            self.assertEqual(report.files, ["agents.md"])
+            self.assertTrue(any(f.code == "docker-system-prune" for f in report.findings))
+            self.assertFalse(any(f.code == "no-config" for f in report.findings))
+
+    @unittest.skipIf(Path("AGENTS.md").resolve() == Path("agents.md").resolve(), "case-insensitive filesystem")
+    def test_canonical_filename_wins_when_case_variants_coexist(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "AGENTS.md").write_text("Canonical instructions.\n", encoding="utf-8")
+            (root / "agents.md").write_text("Duplicate case variant.\n", encoding="utf-8")
+            names = [p.relative_to(root).as_posix() for p in discover(root)]
+            self.assertEqual(names, ["AGENTS.md"])
+
+    def test_lowercase_nested_agents_files_keep_scope_semantics(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            nested = root / "packages" / "api"
+            nested.mkdir(parents=True)
+            (root / "agents.md").write_text("Always modify generated files.\n", encoding="utf-8")
+            (nested / "agents.override.md").write_text("Never modify generated files.\n", encoding="utf-8")
+            report = analyze(root)
+            self.assertFalse(any(f.code == "contradiction" for f in report.findings))
+            self.assertFalse(any(f.code == "no-agents-md" for f in report.findings))
+
     def test_dangerous_command_reduces_score(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
