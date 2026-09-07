@@ -5,11 +5,13 @@
 ### Fixed
 
 - Do not report a dangerous command repeated as the left-hand example in a nearby Markdown replacement table when preceding text explicitly prohibits that same command.
+- Discover case variants such as `agents.md` on case-sensitive filesystems, while preferring the documented filename when duplicate case variants coexist.
 
 ### Changed
 
 - Expanded Adversarial Benchmark v1 from 122 to 134 deterministic contracts with positive and negative Markdown-table cases across six instruction formats.
-- Expanded the pinned real-repository smoke benchmark from three to five projects with one reviewed negative control and one active infrastructure-danger finding.
+- Expanded the pinned real-repository smoke benchmark from three to six projects, including a lowercase `agents.md` false-negative regression found in RestSharp.
+- Added targeted `--repository OWNER/REPO` selection to the real-repository benchmark runner so one pinned case can be reproduced without downloading the entire corpus.
 
 ## v0.21.0
 

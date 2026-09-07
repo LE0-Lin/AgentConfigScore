@@ -275,7 +275,7 @@ sanitized before/after example, then submit the
 
 ## Real-repository benchmark
 
-The scanner is replayed against pinned commits from five public projects with coding-agent instructions; source code is scanned but never executed.
+The scanner is replayed against pinned commits from six public projects with coding-agent instructions; source code is scanned but never executed. The corpus includes both clean controls and real regressions such as a lowercase `agents.md` whose active cleanup warning was previously missed on case-sensitive systems.
 
 | Repository | Commit | Files found | Result | Manually reviewed signal |
 |---|---|---:|---:|---|
@@ -284,8 +284,9 @@ The scanner is replayed against pinned commits from five public projects with co
 | [`browser-use/browser-use`](https://github.com/browser-use/browser-use) | `d379a32` | 2 | B 88 | 1 context-size warning |
 | [`Reaparr/Reaparr`](https://github.com/Reaparr/Reaparr) | `d9926d6` | 1 | A 100 | Prohibited `rm -rf` replacement-table example remains clean |
 | [`olup/origan`](https://github.com/olup/origan) | `95ac789` | 1 | B 88 | 1 active aggressive Docker cleanup error |
+| [`restsharp/RestSharp`](https://github.com/restsharp/RestSharp) | `64ee129` | 3 | B 84 | Lowercase `agents.md`; 1 context warning and 1 active broad recursive-deletion error |
 
-All seven findings matched their rule definitions in manual review. This small corpus is a reproducible smoke benchmark, not a quality leaderboard or a claim of broad statistical accuracy. The pinned inputs, reviewed expectations, limitations, and one-command runner live in [`benchmarks/`](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md).
+All nine findings matched their rule definitions in manual review. This small corpus is a reproducible smoke benchmark, not a quality leaderboard or a claim of broad statistical accuracy. The pinned inputs, reviewed expectations, limitations, and one-command runner live in [`benchmarks/`](https://github.com/LE0-Lin/AgentConfigScore/blob/v0/benchmarks/README.md).
 
 ## Manual GitHub Actions setup
 
@@ -343,7 +344,7 @@ See [`docs/score-history.md`](https://github.com/LE0-Lin/AgentConfigScore/blob/v
 
 ## Nested AGENTS.md scopes and overrides
 
-AgentConfigScore recursively discovers both `AGENTS.md` and Codex `AGENTS.override.md` files and understands their directory scoping instead of treating every instruction file as one global policy.
+AgentConfigScore recursively discovers both `AGENTS.md` and Codex `AGENTS.override.md` files and understands their directory scoping instead of treating every instruction file as one global policy. Discovery is case-insensitive for repositories that use variants such as `agents.md`; when duplicate case variants coexist in one directory, the documented spelling wins.
 
 For a nested AGENTS-family file, file-like path references may be repository-root-relative, package-root-relative, or relative to the directory containing that file. The conservative `dead-path` analysis ignores ambiguous extensionless tokens, code fences, URLs, package imports, API symbols, absolute paths, Windows drive-qualified paths, and relative paths that escape the repository.
 
@@ -476,7 +477,7 @@ Repository-level findings remain repository-level SARIF results instead of recei
 
 Supported discovery includes:
 
-- `**/AGENTS.md` — root and nested directory scopes
+- `**/AGENTS.md` — root and nested directory scopes (case-insensitive discovery)
 - `**/AGENTS.override.md` — Codex local overrides
 - `CLAUDE.md`
 - `GEMINI.md`

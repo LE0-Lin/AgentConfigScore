@@ -13,10 +13,12 @@ from .config import Suppression
 from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
 
 AGENTS_FILENAMES = {"AGENTS.md", "AGENTS.override.md"}
+AGENTS_FILENAMES_CASEFOLD = {name.casefold() for name in AGENTS_FILENAMES}
 TARGET_NAMES = AGENTS_FILENAMES | {
     "CLAUDE.md", "GEMINI.md", ".cursorrules", ".clinerules",
     ".windsurfrules", "copilot-instructions.md",
 }
+TARGET_NAMES_CASEFOLD = {name.casefold() for name in TARGET_NAMES}
 SKIP_DIRS = {
     ".git", "node_modules", ".venv", "venv", "dist", "build", ".next",
     "target", "vendor", ".idea", ".vscode", "__pycache__",
@@ -125,6 +127,19 @@ def _ignored(rel: str, patterns: list[str]) -> bool:
     return any(fnmatch(rel, pat) or fnmatch(rel + "/", pat) for pat in patterns)
 
 
+def _is_agents_filename(name: str) -> bool:
+    return name.casefold() in AGENTS_FILENAMES_CASEFOLD
+
+
+def _prefer_canonical_name(candidate: Path, current: Path) -> bool:
+    """Choose the documented spelling when case variants coexist on Linux."""
+    candidate_is_canonical = candidate.name in TARGET_NAMES
+    current_is_canonical = current.name in TARGET_NAMES
+    if candidate_is_canonical != current_is_canonical:
+        return candidate_is_canonical
+    return candidate.name < current.name
+
+
 def discover(root: Path) -> list[Path]:
     # Keep the caller's path identity instead of resolving filesystem aliases.
     # macOS may rewrite /var to /private/var and Windows may expand 8.3 paths;
@@ -132,7 +147,7 @@ def discover(root: Path) -> list[Path]:
     # absolute root they supplied.
     root = root.absolute()
     patterns = _ignore_patterns(root)
-    found: list[Path] = []
+    found: dict[str, Path] = {}
     for path in root.rglob("*"):
         rel_path = path.relative_to(root)
         rel = rel_path.as_posix()
@@ -140,11 +155,17 @@ def discover(root: Path) -> list[Path]:
             continue
         if not path.is_file():
             continue
-        if path.name in TARGET_NAMES:
-            found.append(path)
+        if path.name.casefold() in TARGET_NAMES_CASEFOLD:
+            key = rel.casefold()
+            current = found.get(key)
+            if current is None or _prefer_canonical_name(path, current):
+                found[key] = path
         elif rel.startswith((".cursor/rules/", ".claude/", ".github/instructions/")) and path.suffix.lower() in {".md", ".mdc"}:
-            found.append(path)
-    return sorted(set(found), key=lambda p: p.relative_to(root).as_posix())
+            key = rel.casefold()
+            current = found.get(key)
+            if current is None or _prefer_canonical_name(path, current):
+                found[key] = path
+    return sorted(found.values(), key=lambda p: p.relative_to(root).as_posix())
 
 
 def estimate_tokens(text: str) -> int:
@@ -295,7 +316,7 @@ def _candidate_exists(
     # nested AGENTS-family file, also accept a path relative to that file's
     # directory, which is the root of its instruction scope.
     bases = [root]
-    if source.name in AGENTS_FILENAMES and source.parent != root:
+    if _is_agents_filename(source.name) and source.parent != root:
         # Instructions often use paths relative to a package root rather than
         # the exact directory containing a nested AGENTS.md. Accept any
         # in-repository ancestor interpretation to avoid false dead paths.
@@ -347,8 +368,8 @@ def _agents_precedence_resolves(left: str, right: str) -> bool:
     right_path = PurePosixPath(right)
     return (
         left != right
-        and left_path.name in AGENTS_FILENAMES
-        and right_path.name in AGENTS_FILENAMES
+        and _is_agents_filename(left_path.name)
+        and _is_agents_filename(right_path.name)
     )
 
 
@@ -444,7 +465,12 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
             findings.append(_finding("contradiction", "(repo)", message=f"Conflicting directives about: '{body}' ({files_str})"))
 
     rels = [p.relative_to(root).as_posix() for p in files]
-    if len(files) >= 2 and "AGENTS.md" not in rels:
+    has_root_agents = any(
+        len(PurePosixPath(rel).parts) == 1
+        and PurePosixPath(rel).name.casefold() == "agents.md"
+        for rel in rels
+    )
+    if len(files) >= 2 and not has_root_agents:
         findings.append(_finding("no-agents-md", "(repo)"))
     if not files:
         findings.append(_finding("no-config", "(repo)"))
