@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and usage help
+    url: https://github.com/LE0-Lin/AgentConfigScore/discussions
+    about: Ask setup, integration, and usage questions without opening a bug report.
+  - name: Share a real-world result
+    url: https://github.com/LE0-Lin/AgentConfigScore/issues/new?template=real_world_case.yml
+    about: Report a useful finding, false positive, false negative, or workflow experience.
+  - name: Security vulnerability
+    url: https://github.com/LE0-Lin/AgentConfigScore/security/policy
+    about: Read the security policy before reporting a vulnerability.
