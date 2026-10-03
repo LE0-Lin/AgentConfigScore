@@ -8,6 +8,7 @@ import hashlib
 import html
 import json
 import re
+from urllib.parse import unquote, urlsplit
 
 from .config import Suppression
 from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
@@ -222,6 +223,21 @@ def _dangerous_command_is_prohibited(text: str, index: int, command: str) -> boo
     return DANGER_NEGATION_EXCEPTION.search(after_negation) is None
 
 
+def _quoted_injection_example(text: str, index: int, command: str) -> bool:
+    """Recognize only a complete, explicitly labeled, quoted attack example."""
+    start = text.rfind("\n", 0, index) + 1
+    end = text.find("\n", index)
+    line = text[start:end if end != -1 else len(text)].strip()
+    # Do not exempt arbitrary quotes, code fences, or text following an example.
+    # Requiring the entire line keeps an active trailing instruction visible.
+    return re.fullmatch(
+        r'(?:[-*]\s+)?(?:prompt[- ]injection|attack)\s+example:\s*'
+        r'(?P<quote>[`\"\'])' + re.escape(command) + r'(?P=quote)\.?',
+        line,
+        re.I,
+    ) is not None
+
+
 def _normalized_line(line: str) -> str | None:
     line = re.sub(r"[`*_>#-]", "", line.strip().lower())
     line = re.sub(r"\s+", " ", line).strip()
@@ -272,8 +288,32 @@ def _inside_markdown_fence(text: str, index: int) -> bool:
     return fence_count % 2 == 1
 
 
+MARKDOWN_LINK = re.compile(r'!?\[[^\]\n]*\]\(\s*(?:<([^>\n]+)>|([^\s()]+))(?:\s+"[^"\n]*")?\s*\)')
+
+
+def _local_markdown_links(text: str):
+    """Extract simple inline destinations; reference links are not parsed."""
+    for match in MARKDOWN_LINK.finditer(text):
+        if _inside_markdown_fence(text, match.start()):
+            continue
+        destination = match.group(1) or match.group(2)
+        try:
+            parts = urlsplit(destination)
+        except ValueError:
+            continue
+        if parts.scheme or parts.netloc or not parts.path:
+            continue
+        candidate = unquote(parts.path)
+        if candidate.startswith(("/", "\\", "~", "$")) or any(c in candidate for c in "*{}\x00"):
+            continue
+        yield candidate, _line(text, match.start())
+
+
 def _candidate_paths(text: str):
+    link_spans = [match.span() for match in MARKDOWN_LINK.finditer(text)]
     for m in PATH_CANDIDATE.finditer(text):
+        if any(start <= m.start() < end for start, end in link_spans):
+            continue
         if _inside_markdown_fence(text, m.start()):
             continue
         if m.group(2) and m.start() > 0 and text[m.start() - 1] in "/\\.~%":
@@ -421,6 +461,11 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
         for pattern_rule in PATTERN_RULES:
             for match in pattern_rule.pattern.finditer(text):
                 if (
+                    pattern_rule.rule.code == "prompt-injection-override"
+                    and _quoted_injection_example(text, match.start(), match.group(0))
+                ):
+                    continue
+                if (
                     pattern_rule.rule.category == "danger"
                     and _dangerous_command_is_prohibited(text, match.start(), match.group(0))
                 ):
@@ -428,6 +473,14 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
                 findings.append(_finding(pattern_rule.rule.code, rel, _line(text, match.start())))
 
         seen_refs: set[tuple[str, int]] = set()
+        for candidate, lineno in _local_markdown_links(text):
+            key = (candidate, lineno)
+            if key in seen_refs:
+                continue
+            seen_refs.add(key)
+            target = _repo_candidate(root, path.parent, candidate)
+            if target is not None and not target.exists():
+                findings.append(_finding("dead-path", rel, lineno, f"Referenced path does not exist: {candidate}"))
         for candidate, lineno in _candidate_paths(text):
             key = (candidate, lineno)
             if key in seen_refs:

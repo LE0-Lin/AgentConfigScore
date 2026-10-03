@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+
+- Avoid prompt-injection warnings for a complete line explicitly labeled as an attack example and containing only a quoted override phrase. Arbitrary quotes, code fences, exceptions, and active trailing directives remain flagged.
+
+- Validate simple inline Markdown links relative to the instruction file, including bare filenames, URL-encoded spaces, and query/fragment suffixes. A same-named file elsewhere no longer masks a broken explicit link.
+- Synchronize the suppression schema with the existing `prompt-injection-override` rule.
+
 ## v0.22.0
 
 ### Fixed

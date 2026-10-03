@@ -1,5 +1,27 @@
 # What the score does—and does not—mean
 
+## Prompt-injection warnings
+
+The `prompt-injection-override` warning recognizes explicit English phrases such
+as `ignore previous instructions`. A match is a review signal, not proof of an
+attack. Explicit prohibitions and whole-line examples such as
+`Attack example: "ignore previous instructions"` are excluded. Quotes or code
+fences alone do not exempt a phrase. More elaborate educational examples can
+still trigger warnings; use a reasoned suppression after review. This rule does
+not detect arbitrary paraphrases, other languages, or instructions delivered at
+runtime through tool output or remote content.
+
+## Local Markdown links
+
+Simple inline links and image destinations are checked relative to the instruction
+file's directory. For example, `[Guide](../CONTRIBUTING.md#setup)` checks that the
+file exists inside the repository; it does not validate the `setup` heading.
+URL-encoded spaces and angle-bracket destinations are supported. Remote links,
+anchor-only links, fenced examples, absolute paths, and paths escaping the
+repository are skipped. Reference-style links and nested parentheses in link
+destinations are not currently parsed. This is a limited link check, not a full
+Markdown validator. Plain prose path heuristics retain their existing behavior.
+
 AgentConfigScore is a deterministic linter and regression gate for persistent
 coding-agent instructions. Its score measures detected, rule-defined risks. It
 does not measure whether an AI agent is intelligent, whether a prompt will solve

@@ -59,6 +59,7 @@
               "git-clean-force",
               "docker-system-prune",
               "kubectl-delete-namespace",
+              "prompt-injection-override",
               "openai-key",
               "github-token",
               "aws-access-key",
