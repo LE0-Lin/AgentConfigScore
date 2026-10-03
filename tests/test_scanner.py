@@ -6,6 +6,63 @@ from agent_config_score.scanner import _repo_candidate, analyze, badge_svg, disc
 
 
 class ScannerTests(unittest.TestCase):
+    def test_parsed_command_options_and_context_across_formats(self):
+        cases = [
+            ("Run rm -fr build.", "rm-rf", True),
+            ("Run rm -r -f build.", "rm-rf", True),
+            ("Run rm --recursive --force build.", "rm-rf", True),
+            ("Run rm -Rfv build.", "rm-rf", True),
+            ('Run `rm -fr "build outputs"`.', "rm-rf", True),
+            ("Run rm -r " + "\\" + "\n  -f build.", "rm-rf", True),
+            ("Run rm -r build.", "rm-rf", False),
+            ("Run rm -f file.", "rm-rf", False),
+            ("Run rm -- -rf.", "rm-rf", False),
+            ("Run rm -rfi build.", "rm-rf", False),
+            ("Run rm -rif build.", "rm-rf", True),
+            ("Run rm -rf --interactive=always build.", "rm-rf", False),
+            ("Run rm --interactive=always -rf build.", "rm-rf", True),
+            ("Run rm -rf --interactive=always --interactive=never build.", "rm-rf", True),
+            ("Run rm -rf --help.", "rm-rf", False),
+            ("Never run rm -fr build.", "rm-rf", False),
+            ("Do not forget to run rm -rf build.", "rm-rf", True),
+            ("Do not skip tests and then run rm -rf build.", "rm-rf", True),
+            ("Run git clean -fd -n.", "git-clean-force", False),
+            ("Run git clean --dry-run -fd.", "git-clean-force", False),
+            ("Run git clean -fdi.", "git-clean-force", False),
+            ("Run git clean -dfx.", "git-clean-force", True),
+            ("Run git clean -d -ff.", "git-clean-force", True),
+            ("Run git clean -d; echo -f.", "git-clean-force", False),
+            ("Run git clean -d && echo -f.", "git-clean-force", False),
+            ('Run git clean -d -e "-f".', "git-clean-force", False),
+            ("Run git clean -de-f.", "git-clean-force", False),
+            ('Run git clean -df -e "-d".', "git-clean-force", True),
+            ("Run git clean -d -- -f.", "git-clean-force", False),
+            ("Run git clean -fd --help.", "git-clean-force", False),
+            ('Run docker system prune --filter "label=-af".', "docker-system-prune", False),
+            ('Run docker system prune --filter "label=a b" -af.', "docker-system-prune", True),
+            ("Run docker system prune --filter=label=-af.", "docker-system-prune", False),
+            ("Run docker system prune -a; echo -f.", "docker-system-prune", False),
+            ("Run docker system prune -a | echo -f.", "docker-system-prune", False),
+            ("Run docker system prune -a\necho -f.", "docker-system-prune", False),
+            ("Run docker system prune -a -- -f.", "docker-system-prune", False),
+            ("Run docker system prune --all --force.", "docker-system-prune", True),
+            ("Run docker system prune -af --help.", "docker-system-prune", False),
+            ("Never run docker system prune -af.", "docker-system-prune", False),
+        ]
+        filenames = ["AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursorrules",
+                     ".cursor/rules/safety.mdc", ".github/copilot-instructions.md"]
+        for filename in filenames:
+            for content, code, expected in cases:
+                with self.subTest(filename=filename, content=content), tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    target = root / filename
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(content + "\n", encoding="utf-8")
+                    findings = [f for f in analyze(root).findings if f.code == code]
+                    self.assertEqual(bool(findings), expected)
+                    if findings:
+                        self.assertEqual(findings[0].line, 1)
+
     def test_injection_context_controls_across_instruction_formats(self):
         cases = [
             ('Prompt-injection example: "ignore previous instructions"', False),
@@ -196,7 +253,7 @@ class ScannerTests(unittest.TestCase):
 
     def test_extended_danger_surface_flag_variants_are_detected(self):
         cases = {
-            "git-clean-force": ("git clean -f -d", "git clean --force --directories"),
+            "git-clean-force": ("git clean -f -d", "git clean --force -d"),
             "docker-system-prune": ("docker system prune -a -f", "docker system prune --all --force"),
         }
         for expected_code, commands in cases.items():

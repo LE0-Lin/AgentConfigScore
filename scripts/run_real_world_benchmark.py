@@ -20,13 +20,21 @@ DEFAULT_CORPUS = ROOT / "benchmarks" / "corpus.json"
 
 def _run_git(*args: str, cwd: Path | None = None) -> None:
     command = ["git", *args]
-    completed = subprocess.run(
-        command,
-        cwd=cwd,
-        text=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.PIPE,
-    )
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=cwd,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            timeout=180,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            f"git command timed out after 180 seconds: {' '.join(command)}"
+        ) from exc
     if completed.returncode:
         detail = completed.stderr.strip() or f"exit code {completed.returncode}"
         raise RuntimeError(f"git command failed: {' '.join(command)}\n{detail}")
@@ -38,13 +46,15 @@ def _clone(repository: dict[str, Any], destination: Path) -> None:
     _run_git(
         "-c",
         "core.longpaths=true",
-        "clone",
-        "--filter=blob:none",
-        "--no-checkout",
-        repository["url"],
+        "init",
+        "--quiet",
         str(destination),
     )
     _run_git("config", "core.longpaths", "true", cwd=destination)
+    _run_git("remote", "add", "origin", repository["url"], cwd=destination)
+    # Fetch only the reviewed snapshot. A history clone with lazy blobs can
+    # require extra remote requests for every checkout and grow over time.
+    _run_git("fetch", "--no-tags", "--depth=1", "origin", repository["commit"], cwd=destination)
     _run_git("checkout", "--detach", repository["commit"], cwd=destination)
 
 

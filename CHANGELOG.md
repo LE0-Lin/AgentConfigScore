@@ -2,7 +2,21 @@
 
 ## Unreleased
 
+### Added
+
+- A copy-ready PR comment workflow that updates one bot-owned comment, paginates long conversations, validates numeric results, and skips commenting on fork PRs while preserving their scan summaries.
+
+### Changed
+
+- Interpret rm, git clean, and docker system prune options with a bounded shell tokenizer, including reordered/split/long flags, option values, command boundaries, and preview or interactive execution modes.
+- Expanded the offline benchmark from 134 to 230 deterministic contracts with explicit command-parser and injection-context cases across six instruction formats.
+
+- Fetch only each pinned benchmark snapshot rather than repository history with lazy blobs, and time out stalled Git commands after 180 seconds.
+
 ### Fixed
+
+- Detect recursive force-deletion forms such as `rm -fr` and `rm --recursive --force`; avoid treating Git dry-run cleanup and flags in a later command as deletion instructions.
+- Do not let unrelated prohibitions or phrases such as “do not forget” hide an affirmative dangerous-command directive.
 
 - Avoid prompt-injection warnings for a complete line explicitly labeled as an attack example and containing only a quoted override phrase. Arbitrary quotes, code fences, exceptions, and active trailing directives remain flagged.
 

@@ -1,71 +1,42 @@
-# Post AgentConfigScore results as a pull request comment
+# Post results as one pull request comment
 
-AgentConfigScore writes its regression report to the GitHub Actions job summary by default. Repositories that want the result directly in the pull request conversation can add a small follow-up step without giving the AgentConfigScore action write permission itself.
+Copy [`examples/pr-comment.yml`](../examples/pr-comment.yml) to
+`.github/workflows/agent-config-regression.yml`. Each pull request receives one
+AgentConfigScore comment; subsequent runs update it with the score change,
+passed/blocked result, finding counts, and a link to the detailed job summary.
 
-This is intentionally opt-in: many repositories prefer read-only CI permissions, and pull requests from forks require extra care around write tokens.
+The action already produces the detailed report without comments. This optional
+workflow grants `pull-requests: write` to publish the compact result. It uses
+`pull_request`, cancels older runs for the same PR, and pins the comment action
+to a reviewed commit. Do not install multiple copies of this workflow.
 
-## Copy-ready workflow
+## How the comment behaves
 
-```yaml
-name: agent-config-regression
+- The first completed scan creates a comment. Reruns update the same comment.
+- The lookup paginates, so long PR conversations do not hide the existing comment.
+- Only a `github-actions[bot]` comment with the dedicated marker is updated.
+  User comments containing the marker are left alone.
+- Identical content is not written again.
+- A blocked regression still gets a comment when the action has produced outputs.
+  A cancelled run or scan setup failure does not post a misleading result.
+- Malformed or inconsistent numeric outputs fail validation before any API write.
+- Failure to post a comment leaves the regression step's outcome unchanged.
 
-on:
-  pull_request:
+## Forks and permissions
 
-permissions:
-  contents: read
-  pull-requests: write
+The scanner and job summary run for fork PRs too, but the comment step is skipped
+because their tokens normally cannot write comments. Repositories that disable
+write tokens can use the default read-only setup and job summary instead.
 
-jobs:
-  regression:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
+Do not switch this recipe to `pull_request_target` to enable comments on forks.
+The recipe checks out the candidate repository, and that event has different
+privileges. It would require a separately designed workflow.
 
-      - uses: LE0-Lin/AgentConfigScore@v0
-        id: acs
+The comment script uses validated numeric outputs rather than instruction text,
+filenames, suppression reasons, or PR titles. See the
+[GitHub script documentation](https://github.com/actions/github-script#passing-inputs-to-the-script)
+for why values are passed through environment variables rather than inserted
+into JavaScript. Bot-owned comment behavior assumes the standard GitHub.com
+`GITHUB_TOKEN`; custom comment identities need their own ownership check.
 
-      - name: Comment score
-        if: always() && steps.acs.outputs.head-score != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          BASE_SCORE: ${{ steps.acs.outputs.base-score }}
-          HEAD_SCORE: ${{ steps.acs.outputs.head-score }}
-          DELTA: ${{ steps.acs.outputs.delta }}
-          NEW_FINDINGS: ${{ steps.acs.outputs.new-findings }}
-          NEW_ERRORS: ${{ steps.acs.outputs.new-errors }}
-          RESOLVED: ${{ steps.acs.outputs.resolved-findings }}
-        shell: bash
-        run: |
-          body=$(cat <<EOF
-          ## AgentConfigScore
-
-          **Score:** ${BASE_SCORE} → ${HEAD_SCORE} (${DELTA})
-
-          | New findings | New errors | Resolved |
-          |---:|---:|---:|
-          | ${NEW_FINDINGS} | ${NEW_ERRORS} | ${RESOLVED} |
-
-          See the AgentConfigScore job summary for the line-by-line report.
-          EOF
-          )
-          gh pr comment "$PR_NUMBER" --body "$body"
-```
-
-The regression action exposes its outputs before returning the final pass/fail status, so `if: always()` can still publish the result for a blocked pull request.
-
-## Avoid comment spam
-
-The minimal recipe above creates one comment per workflow run. If your repository reruns CI frequently, prefer updating a bot-owned sticky comment rather than posting repeatedly. Keep that logic in the caller workflow so AgentConfigScore itself remains deterministic, dependency-free, and read-only by default.
-
-## Security notes
-
-- Keep the default AgentConfigScore action read-only unless your repository explicitly wants PR comments.
-- Do not switch an untrusted fork workflow to `pull_request_target` merely to obtain a write token; that event has different security semantics and can expose privileged context if used incorrectly.
-- The comment uses only numeric AgentConfigScore outputs. The detailed report remains in the job summary, avoiding interpolation of repository-controlled instruction text into a shell command.
-- Organization policies can restrict `GITHUB_TOKEN` write permissions. In that case, leave comments disabled and rely on the job summary.
-
-For the action's complete output contract, see the **Action outputs** section in the main README.
+For the action's output contract, see **Action outputs** in the main README.
