@@ -102,6 +102,13 @@ semantic cases rather than literal command patterns.
 The contract figure is a regression guarantee for a closed fixture suite, not a
 real-world accuracy estimate.
 
+There is also no completed independent comparison against direct AI review.
+The [blinded review-comparison workflow](review-comparison.md) supports imported
+model responses and held-out dataset declarations, but its bundled fixtures
+are known synthetic calibration data with provisional labels. Missing answers
+remain unreviewed, unresolved reference labels are excluded explicitly, and
+unperformed AI runs are never presented as successful measurements.
+
 ## Appropriate use
 
 Use AgentConfigScore to catch concrete regressions covered by its stable rule

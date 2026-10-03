@@ -4,6 +4,9 @@
 
 ### Added
 
+- A local, dependency-free review-comparison research workflow: export label-blinded inputs, validate imported model decisions against the packet fingerprint, and compare case-level lint, AI, and a three-valued OR hybrid with coverage and repeat-run disagreement.
+- Explicit known synthetic calibration inputs and a local baseline report retaining three semantic misses; no independent holdout or actual AI-run result is claimed.
+- Corpus, source, prompt/input, and prediction fingerprints; validation prevents malformed decisions, duplicate samples, path escapes, overwrite accidents, and incomplete reviews being reported as completed accuracy measurements.
 - A shared source-positioned instruction context for Markdown fences, list entries, headings, and explicit adjacent prohibition scopes, with positive and negative controls across six instruction formats.
 - A copy-ready PR comment workflow that updates one bot-owned comment, paginates long conversations, validates numeric results, and skips commenting on fork PRs while preserving their scan summaries.
 
