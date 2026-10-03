@@ -1,11 +1,28 @@
 # Benchmarks
 
-AgentConfigScore keeps two deliberately different forms of evidence:
+AgentConfigScore keeps deliberately different forms of evidence:
 
 - an offline adversarial mutation suite for reproducible rule behavior;
 - a pinned public-repository smoke suite for checking scanner noise on real inputs.
+- a separate review-comparison workflow for importing blinded AI decisions against declared reference labels.
 
-Neither benchmark is a claim that A 100 means semantic prompt quality.
+None of these workflows claims that A 100 means semantic prompt quality.
+
+## AI comparison status
+
+**No independent AI comparison has been completed.** A repository script now
+exports label-blinded packets and scores imported AI reviews, the local tool,
+and a three-valued OR combination. It reports coverage, false positives, misses,
+category breakdowns, and repeat-run disagreement without treating missing
+answers as clean or unknown API cost as zero.
+
+The bundled [calibration corpus](review-calibration.json) has twelve synthetic,
+already-known inputs with provisional labels, not an independent holdout. Its
+[local baseline report](review-calibration-report.md) deliberately retains three
+semantic misses and says AI/hybrid **not run**. This case-level task is broader
+than the exact-rule contract below; their metrics are not interchangeable.
+
+See [protocol, runnable commands, privacy boundaries, and holdout requirements](../docs/review-comparison.md).
 
 ## Adversarial mutation Benchmark v1
 

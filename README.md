@@ -265,6 +265,13 @@ block or a contiguous command list; a code fence alone never hides a danger
 finding. See [instruction context and scope boundaries](docs/instruction-context.md)
 for examples, supported grammar, and deliberate limits.
 
+**Comparison with AI review is not yet established.** A separate
+[blinded comparison workflow](docs/review-comparison.md) can import model
+decisions and compare coverage, false positives, misses, and an OR combination.
+Its bundled data is explicitly known, synthetic calibration material; it is not
+a held-out accuracy claim or real user feedback. The [baseline report](benchmarks/review-calibration-report.md)
+keeps three semantic misses visible and marks unperformed AI runs as **not run**.
+
 ## Share a real-world case safely
 
 Useful findings, false positives, false negatives, and setup friction all help
