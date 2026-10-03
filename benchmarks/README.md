@@ -9,16 +9,16 @@ Neither benchmark is a claim that A 100 means semantic prompt quality.
 
 ## Adversarial mutation Benchmark v1
 
-Benchmark v1 contains 230 deterministic contract cases and 8 explicitly labeled
+Benchmark v1 contains 328 deterministic contract cases and 8 explicitly labeled
 open challenges. The contracts cover positive detections and clean negative
 controls across `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, legacy and modern Cursor
 rules, and GitHub Copilot instructions.
 
 The current committed result is:
 
-- 230/230 exact contract matches;
-- 121 expected rule detections with no extra or missing rule IDs;
-- 110/110 clean negative controls;
+- 328/328 exact contract matches;
+- 189 expected rule detections with no extra or missing rule IDs;
+- 140/140 clean negative controls;
 - 4/8 challenge cases detected after adding four narrow danger-surface rules.
 
 The 100% contract precision and recall describe this closed, maintained test
@@ -37,6 +37,12 @@ python scripts/run_adversarial_benchmark.py \
 See the [labeled corpus](adversarial_cases.json) and [committed report](adversarial-v1-report.md).
 Tests regenerate the report and require it to remain synchronized with scanner
 behavior.
+
+The instruction-context cases pair explicit prohibited blocks with active,
+unclosed, conditional, and out-of-scope controls. Markdown-context cases test
+matching fence markers and lengths. Literal synthetic credentials remain
+detectable inside negative examples, and regression cases remove a prohibition
+label or closing fence to verify that a candidate cannot keep its exemption.
 
 ## Real-repository smoke benchmark
 
