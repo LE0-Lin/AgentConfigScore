@@ -251,8 +251,8 @@ formats and separates current guarantees from open research challenges:
 
 | Tier | Result | Meaning |
 |---|---:|---|
-| Deterministic contract | 134/134 exact matches | Current rule behavior stayed reproducible |
-| Clean negative controls | 56/56 passed | No unexpected finding in controlled clean cases |
+| Deterministic contract | 230/230 exact matches | Current rule behavior stayed reproducible |
+| Clean negative controls | 110/110 passed | No unexpected finding in controlled clean cases |
 | Open challenge set | 4/8 detected | Four danger surfaces are covered; four semantic cases remain unsolved |
 
 The contract suite reports 100% precision and recall only for its closed labeled
@@ -312,6 +312,12 @@ jobs:
 ```
 
 The Action installs AgentConfigScore, resolves the PR base commit, applies baseline policy and suppressions, writes a Markdown report to the GitHub Actions Step Summary, exposes structured outputs, and returns the final regression status.
+
+To show results directly in the PR conversation, use the optional
+[comment workflow](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/pr-comment.yml).
+It updates one bot-owned comment per PR and links to the detailed report.
+See the [integration guide](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/pr-comments.md)
+for fork behavior and permissions.
 
 Without a policy file, the Action preserves its conservative compatibility defaults: `max_drop = 0` and `fail_on_new_errors = true`.
 

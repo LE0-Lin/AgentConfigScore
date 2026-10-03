@@ -8,6 +8,48 @@ a task, or whether an instruction file is generally “good.”
 **An A 100 result means that no active deterministic rule matched. It is not a
 semantic quality certification.**
 
+## Command interpretation
+
+The `rm-rf`, `git-clean-force`, and `docker-system-prune` rules tokenize bounded
+shell fragments before interpreting options. They recognize reordered, split,
+and long options, explicit line continuations, and quoted option values. Shell
+separators and `--` stop option interpretation. Git preview/interactive modes
+are excluded; for `rm`, a later interactive option overrides force. An option
+used as an exclusion/filter value is not treated as an execution flag.
+
+This is a conservative command grammar: options after ordinary operands,
+shell variable expansion, aliases, wrapper functions, and global options before
+subcommands are not resolved. Fragments are limited to 1,000 characters. Only
+explicit backslash continuations span lines. Other command rules still use
+narrow patterns. English prohibitions are scoped conservatively; arbitrary
+prose and other languages need human review.
+
+Option behavior is checked against the [Git clean manual](https://git-scm.com/docs/git-clean),
+[GNU rm manual](https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html),
+and [Docker prune reference](https://docs.docker.com/reference/cli/docker/system/prune/).
+
+## Prompt-injection warnings
+
+The `prompt-injection-override` warning recognizes explicit English phrases such
+as `ignore previous instructions`. A match is a review signal, not proof of an
+attack. Explicit prohibitions and whole-line examples such as
+`Attack example: "ignore previous instructions"` are excluded. Quotes or code
+fences alone do not exempt a phrase. More elaborate educational examples can
+still trigger warnings; use a reasoned suppression after review. This rule does
+not detect arbitrary paraphrases, other languages, or instructions delivered at
+runtime through tool output or remote content.
+
+## Local Markdown links
+
+Simple inline links and image destinations are checked relative to the instruction
+file's directory. For example, `[Guide](../CONTRIBUTING.md#setup)` checks that the
+file exists inside the repository; it does not validate the `setup` heading.
+URL-encoded spaces and angle-bracket destinations are supported. Remote links,
+anchor-only links, fenced examples, absolute paths, and paths escaping the
+repository are skipped. Reference-style links and nested parentheses in link
+destinations are not currently parsed. This is a limited link check, not a full
+Markdown validator. Plain prose path heuristics retain their existing behavior.
+
 ## Red-team audit
 
 The project added the following adversarial cases after testing the v0.18.0
@@ -44,7 +86,7 @@ judgment requires a separately evaluated model-assisted mode and a labeled
 corpus, not a stronger marketing claim for the deterministic score.
 
 The offline [Adversarial Benchmark v1](../benchmarks/adversarial-v1-report.md)
-keeps both sides visible: 134/134 maintained deterministic contracts currently
+keeps both sides visible: 230/230 maintained deterministic contracts currently
 match, while 4/8 labeled challenges are detected. The four remaining misses are
 semantic cases rather than literal command patterns.
 The contract figure is a regression guarantee for a closed fixture suite, not a

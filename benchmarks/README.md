@@ -9,16 +9,16 @@ Neither benchmark is a claim that A 100 means semantic prompt quality.
 
 ## Adversarial mutation Benchmark v1
 
-Benchmark v1 contains 134 deterministic contract cases and 8 explicitly labeled
+Benchmark v1 contains 230 deterministic contract cases and 8 explicitly labeled
 open challenges. The contracts cover positive detections and clean negative
 controls across `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, legacy and modern Cursor
 rules, and GitHub Copilot instructions.
 
 The current committed result is:
 
-- 134/134 exact contract matches;
-- 79 expected rule detections with no extra or missing rule IDs;
-- 56/56 clean negative controls;
+- 230/230 exact contract matches;
+- 121 expected rule detections with no extra or missing rule IDs;
+- 110/110 clean negative controls;
 - 4/8 challenge cases detected after adding four narrow danger-surface rules.
 
 The 100% contract precision and recall describe this closed, maintained test
@@ -81,6 +81,8 @@ The script clones but never executes code from the target repositories. It
 checks out the exact commits in `corpus.json`, scans them, compares stable
 finding fingerprints with the reviewed expectations, and exits non-zero on a
 mismatch. Use `--work-dir DIR` to retain the clones for inspection.
+Only one pinned commit is fetched for each repository. Stalled Git commands
+time out after 180 seconds with the failed command identified in the error.
 
 The corpus is intentionally small and transparent. Contributions that add a
 pinned repository should include a short manual-review note and must not treat

@@ -8,6 +8,8 @@ import hashlib
 import html
 import json
 import re
+import shlex
+from urllib.parse import unquote, urlsplit
 
 from .config import Suppression
 from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
@@ -47,9 +49,105 @@ DANGER_NEGATION = re.compile(
 )
 DANGER_NEGATION_EXCEPTION = re.compile(r"\b(?:but|however|except|unless)\b", re.I)
 DANGER_DOUBLE_NEGATIVE = re.compile(
-    r"\b(?:(?:do\s+not|don't)\s+hesitate(?:\s+to)?|(?:never|do\s+not|don't|must\s+not)\s+avoid)\b",
+    r"\b(?:never|do\s+not|don't|must\s+not)\s+(?:hesitate|avoid|forget|fail|refuse|neglect)\b",
     re.I,
 )
+
+PARSED_COMMAND_RULES = {"rm-rf", "git-clean-force", "docker-system-prune"}
+
+
+def _command_words(text: str, index: int) -> list[str]:
+    """Read one bounded shell fragment without executing or expanding it."""
+    fragment = text[index:index + 1000]
+    # Honor explicit continuations but never borrow options from the next line.
+    fragment = fragment.replace("\\\r\n", " ").replace("\\\n", " ").split("\n", 1)[0]
+    if index and text[index - 1] in "`\"'":
+        fragment = fragment.split(text[index - 1], 1)[0]
+    else:
+        fragment = fragment.split("`", 1)[0]
+    # Instruction prose commonly appends a sentence-ending period to a command.
+    fragment = fragment.strip().removesuffix(".")
+    lexer = shlex.shlex(fragment, posix=True, punctuation_chars=";|&()<>")
+    lexer.whitespace_split = True
+    words: list[str] = []
+    try:
+        for word in lexer:
+            if word and all(char in ";|&()<>" for char in word):
+                break
+            words.append(word)
+    except ValueError:
+        # Prose following a valid command can contain unmatched apostrophes.
+        # Preserve complete tokens already read; do not guess the broken token.
+        pass
+    return words
+
+
+def _command_options(code: str, words: list[str]) -> tuple[bool, str]:
+    """Interpret options, their values, terminators, and execution modes."""
+    prefix_size = {"rm-rf": 1, "git-clean-force": 2, "docker-system-prune": 3}[code]
+    arguments = words[prefix_size:]
+    flags: set[str] = set()
+    force_mode = False
+    consumed_options: list[str] = []
+    skip_value = False
+    long_flags = {
+        "rm-rf": {"--recursive": "r", "--force": "f"},
+        "git-clean-force": {"--force": "f",
+                            "--dry-run": "n", "--interactive": "i"},
+        "docker-system-prune": {"--all": "a", "--force": "f"},
+    }[code]
+    for argument in arguments:
+        if skip_value:
+            skip_value = False
+            continue
+        if argument == "--":
+            break
+        if argument in {"--help", "--version"}:
+            return False, ""
+        if code == "git-clean-force" and argument in {"-e", "--exclude"}:
+            skip_value = True
+            continue
+        if code == "git-clean-force" and argument.startswith(("--exclude=", "-e")):
+            continue
+        if code == "docker-system-prune" and argument == "--filter":
+            skip_value = True
+            continue
+        if code == "docker-system-prune" and argument.startswith("--filter="):
+            continue
+        if code == "rm-rf" and argument.startswith("--interactive"):
+            if argument in {"--interactive", "--interactive=always", "--interactive=once"}:
+                force_mode = False
+                consumed_options.append(argument)
+            elif argument == "--interactive=never":
+                force_mode = "f" in flags
+                consumed_options.append(argument)
+            continue
+        if argument in long_flags:
+            options = long_flags[argument]
+        elif re.fullmatch(r"-[a-zA-Z]+", argument):
+            options = argument[1:]
+        else:
+            # Stop at prose or operands; options inside later prose are not
+            # command arguments. Explicit GNU-style options-after-operands are
+            # outside this conservative grammar.
+            break
+        consumed_options.append(argument)
+        if code == "git-clean-force" and "e" in options:
+            skip_value = options.endswith("e")
+            options = options.split("e", 1)[0]
+        for option in options:
+            flags.add(option)
+            if option == "f":
+                force_mode = True
+            elif code == "rm-rf" and option in {"i", "I"}:
+                force_mode = False
+    if code == "rm-rf":
+        risky = bool(flags & {"r", "R"}) and force_mode
+    elif code == "git-clean-force":
+        risky = {"f", "d"} <= flags and not flags & {"n", "i"}
+    else:
+        risky = {"a", "f"} <= flags
+    return risky, " ".join([*words[:prefix_size], *consumed_options])
 
 
 @dataclass
@@ -213,6 +311,11 @@ def _dangerous_command_is_prohibited(text: str, index: int, command: str) -> boo
     clause_suffix = re.split(r"[.!?;]", text[index:line_end], maxsplit=1)[0]
     clause_prefix = re.sub(r"[`*_>#]", " ", clause_prefix)
     clause_suffix = re.sub(r"[`*_>#]", " ", clause_suffix)
+    # A new affirmative action after a conjunction is a separate directive:
+    # "Do not skip tests and then run rm -rf ..." does not prohibit rm.
+    clause_prefix = re.split(
+        r"\band\s+(?:then\s+)?(?:run|execute|use)\s+", clause_prefix, flags=re.I
+    )[-1]
     if DANGER_DOUBLE_NEGATIVE.search(clause_prefix):
         return False
     negations = list(DANGER_NEGATION.finditer(clause_prefix))
@@ -220,6 +323,21 @@ def _dangerous_command_is_prohibited(text: str, index: int, command: str) -> boo
         return _prohibited_markdown_table_example(text, index, command)
     after_negation = clause_prefix[negations[-1].end():] + clause_suffix
     return DANGER_NEGATION_EXCEPTION.search(after_negation) is None
+
+
+def _quoted_injection_example(text: str, index: int, command: str) -> bool:
+    """Recognize only a complete, explicitly labeled, quoted attack example."""
+    start = text.rfind("\n", 0, index) + 1
+    end = text.find("\n", index)
+    line = text[start:end if end != -1 else len(text)].strip()
+    # Do not exempt arbitrary quotes, code fences, or text following an example.
+    # Requiring the entire line keeps an active trailing instruction visible.
+    return re.fullmatch(
+        r'(?:[-*]\s+)?(?:prompt[- ]injection|attack)\s+example:\s*'
+        r'(?P<quote>[`\"\'])' + re.escape(command) + r'(?P=quote)\.?',
+        line,
+        re.I,
+    ) is not None
 
 
 def _normalized_line(line: str) -> str | None:
@@ -272,8 +390,32 @@ def _inside_markdown_fence(text: str, index: int) -> bool:
     return fence_count % 2 == 1
 
 
+MARKDOWN_LINK = re.compile(r'!?\[[^\]\n]*\]\(\s*(?:<([^>\n]+)>|([^\s()]+))(?:\s+"[^"\n]*")?\s*\)')
+
+
+def _local_markdown_links(text: str):
+    """Extract simple inline destinations; reference links are not parsed."""
+    for match in MARKDOWN_LINK.finditer(text):
+        if _inside_markdown_fence(text, match.start()):
+            continue
+        destination = match.group(1) or match.group(2)
+        try:
+            parts = urlsplit(destination)
+        except ValueError:
+            continue
+        if parts.scheme or parts.netloc or not parts.path:
+            continue
+        candidate = unquote(parts.path)
+        if candidate.startswith(("/", "\\", "~", "$")) or any(c in candidate for c in "*{}\x00"):
+            continue
+        yield candidate, _line(text, match.start())
+
+
 def _candidate_paths(text: str):
+    link_spans = [match.span() for match in MARKDOWN_LINK.finditer(text)]
     for m in PATH_CANDIDATE.finditer(text):
+        if any(start <= m.start() < end for start, end in link_spans):
+            continue
         if _inside_markdown_fence(text, m.start()):
             continue
         if m.group(2) and m.start() > 0 and text[m.start() - 1] in "/\\.~%":
@@ -420,14 +562,34 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
 
         for pattern_rule in PATTERN_RULES:
             for match in pattern_rule.pattern.finditer(text):
+                command = match.group(0)
+                if pattern_rule.rule.code in PARSED_COMMAND_RULES:
+                    risky, command = _command_options(
+                        pattern_rule.rule.code, _command_words(text, match.start())
+                    )
+                    if not risky:
+                        continue
+                if (
+                    pattern_rule.rule.code == "prompt-injection-override"
+                    and _quoted_injection_example(text, match.start(), match.group(0))
+                ):
+                    continue
                 if (
                     pattern_rule.rule.category == "danger"
-                    and _dangerous_command_is_prohibited(text, match.start(), match.group(0))
+                    and _dangerous_command_is_prohibited(text, match.start(), command)
                 ):
                     continue
                 findings.append(_finding(pattern_rule.rule.code, rel, _line(text, match.start())))
 
         seen_refs: set[tuple[str, int]] = set()
+        for candidate, lineno in _local_markdown_links(text):
+            key = (candidate, lineno)
+            if key in seen_refs:
+                continue
+            seen_refs.add(key)
+            target = _repo_candidate(root, path.parent, candidate)
+            if target is not None and not target.exists():
+                findings.append(_finding("dead-path", rel, lineno, f"Referenced path does not exist: {candidate}"))
         for candidate, lineno in _candidate_paths(text):
             key = (candidate, lineno)
             if key in seen_refs:

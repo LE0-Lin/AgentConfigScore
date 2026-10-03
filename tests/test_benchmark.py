@@ -1,18 +1,64 @@
 import json
+import importlib.util
 from pathlib import Path
 import re
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CORPUS = ROOT / "benchmarks" / "corpus.json"
 RUNNER = ROOT / "scripts" / "run_real_world_benchmark.py"
+SPEC = importlib.util.spec_from_file_location("real_world_benchmark", RUNNER)
+BENCHMARK = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(BENCHMARK)
 
 
 class BenchmarkContractTests(unittest.TestCase):
+    def test_clone_fetches_only_the_pinned_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "source"
+            destination = Path(directory) / "snapshot"
+            source.mkdir()
+
+            def git(*args):
+                return subprocess.run(
+                    ["git", "-C", str(source), *args], check=True,
+                    text=True, encoding="utf-8", capture_output=True,
+                ).stdout.strip()
+
+            git("init", "-q")
+            (source / "AGENTS.md").write_text("Reviewed instructions.\n", encoding="utf-8")
+            git("add", "AGENTS.md")
+            git("-c", "user.name=Test", "-c", "user.email=test@example.com",
+                "commit", "-qm", "reviewed")
+            pinned = git("rev-parse", "HEAD")
+            (source / "AGENTS.md").write_text("Later changed instructions.\n", encoding="utf-8")
+            git("add", "AGENTS.md")
+            git("-c", "user.name=Test", "-c", "user.email=test@example.com",
+                "commit", "-qm", "later")
+
+            BENCHMARK._clone({"url": str(source), "commit": pinned}, destination)
+            self.assertEqual(
+                (destination / "AGENTS.md").read_text(encoding="utf-8"),
+                "Reviewed instructions.\n",
+            )
+            count = subprocess.run(
+                ["git", "-C", str(destination), "rev-list", "--count", "HEAD"],
+                check=True, text=True, capture_output=True,
+            ).stdout.strip()
+            self.assertEqual(count, "1")
+            with self.assertRaises(FileExistsError):
+                BENCHMARK._clone({"url": str(source), "commit": pinned}, destination)
+
+    def test_stalled_git_command_has_an_actionable_timeout(self):
+        with patch.object(BENCHMARK.subprocess, "run", side_effect=subprocess.TimeoutExpired("git", 180)):
+            with self.assertRaisesRegex(RuntimeError, "timed out after 180 seconds"):
+                BENCHMARK._run_git("fetch", "origin", "pinned-commit")
+
     def test_runner_help_is_available_offline(self):
         completed = subprocess.run(
             [sys.executable, str(RUNNER), "--help"],
