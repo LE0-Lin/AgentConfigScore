@@ -251,13 +251,19 @@ formats and separates current guarantees from open research challenges:
 
 | Tier | Result | Meaning |
 |---|---:|---|
-| Deterministic contract | 230/230 exact matches | Current rule behavior stayed reproducible |
-| Clean negative controls | 110/110 passed | No unexpected finding in controlled clean cases |
+| Deterministic contract | 328/328 exact matches | Current rule behavior stayed reproducible |
+| Clean negative controls | 140/140 passed | No unexpected finding in controlled clean cases |
 | Open challenge set | 4/8 detected | Four danger surfaces are covered; four semantic cases remain unsolved |
 
 The contract suite reports 100% precision and recall only for its closed labeled
 fixtures—not for arbitrary repositories. See the [corpus, runner, methodology,
 and full report](https://github.com/LE0-Lin/AgentConfigScore/tree/main/benchmarks).
+
+The scanner shares a source-positioned document context between danger and path
+checks. Explicit prohibitions can cover an immediately adjacent, closed command
+block or a contiguous command list; a code fence alone never hides a danger
+finding. See [instruction context and scope boundaries](docs/instruction-context.md)
+for examples, supported grammar, and deliberate limits.
 
 ## Share a real-world case safely
 

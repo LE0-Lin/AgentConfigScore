@@ -1,11 +1,11 @@
 # AgentConfigScore Benchmark v1
 
-Deterministic contract cases: **230/230 exact matches**.
+Deterministic contract cases: **328/328 exact matches**.
 
 - Precision: **100.0%**
 - Recall: **100.0%**
 - F1: **100.0%**
-- Clean negative controls: **110/110 passed**
+- Clean negative controls: **140/140 passed**
 
 | Category | Exact matches | Accuracy |
 |---|---:|---:|
@@ -16,9 +16,11 @@ Deterministic contract cases: **230/230 exact matches**.
 | `coverage` | 7/7 | 100.0% |
 | `danger` | 48/48 | 100.0% |
 | `injection` | 24/24 | 100.0% |
+| `instruction-context` | 84/84 | 100.0% |
+| `markdown-context` | 12/12 | 100.0% |
 | `negation` | 60/60 | 100.0% |
 | `path` | 12/12 | 100.0% |
-| `regression` | 5/5 | 100.0% |
+| `regression` | 7/7 | 100.0% |
 | `secret` | 6/6 | 100.0% |
 
 ## Open challenge set

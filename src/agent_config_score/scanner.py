@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from bisect import bisect_right
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from fnmatch import fnmatch
@@ -54,6 +55,170 @@ DANGER_DOUBLE_NEGATIVE = re.compile(
 )
 
 PARSED_COMMAND_RULES = {"rm-rf", "git-clean-force", "docker-system-prune"}
+
+FENCE_OPEN = re.compile(r"^ {0,3}(`{3,}|~{3,})([^\r\n]*)$")
+LIST_ITEM = re.compile(r"^( {0,3})([-+*]|\d{1,9}[.)])[ \t]+")
+SETEXT_HEADING = re.compile(r" {0,3}(?:=+|-+)[ \t]*")
+THEMATIC_BREAK = re.compile(r" {0,3}(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})")
+BLOCK_PROHIBITION = re.compile(
+    r"(?:(?:never|do\s+not|don't|must\s+not)\s+"
+    r"(?:run|execute|use|follow)\s+(?:(?:any\s+of\s+)?(?:the\s+)?following|these)\s+"
+    r"(?:commands|instructions)(?:\s+under\s+any\s+circumstances)?"
+    r"|(?:the\s+)?following\s+(?:commands|instructions)\s+are\s+(?:forbidden|prohibited))\s*:",
+    re.I,
+)
+
+
+@dataclass(frozen=True)
+class _ProhibitionScope:
+    start: int
+    end: int
+    has_exception: bool
+
+
+@dataclass
+class _InstructionLine:
+    start: int
+    end: int
+    kind: str = "prose"
+    body_start: int | None = None
+    prohibition: _ProhibitionScope | None = None
+
+
+@dataclass(frozen=True)
+class _InstructionContext:
+    """Shared source offsets and narrowly scoped Markdown context for one file."""
+
+    text: str
+    lines: tuple[_InstructionLine, ...]
+    starts: tuple[int, ...]
+
+    def line_index(self, index: int) -> int:
+        return bisect_right(self.starts, index) - 1
+
+    def inside_fence(self, index: int) -> bool:
+        if not self.lines:
+            return False
+        row = self.lines[self.line_index(index)]
+        return row.kind in {"code", "fence"}
+
+    def command_is_prohibited(self, index: int) -> bool:
+        if not self.lines:
+            return False
+        row = self.lines[self.line_index(index)]
+        if row.prohibition is None:
+            return False
+        # An exception anywhere in the block makes its intent ambiguous. Do
+        # not convert it into a blanket exemption for every command below it.
+        if row.prohibition.has_exception:
+            return False
+        prefix = self.text[row.body_start if row.body_start is not None else row.start:index]
+        if row.kind == "list":
+            # Only direct command entries inherit a list prohibition. Prose
+            # like "Instead run ..." is a new action, not a negative example.
+            return re.fullmatch(r"[ \t`\"']*", prefix) is not None
+        return re.search(r"\b(?:always|must|run|execute|use|follow)\b", prefix, re.I) is None
+
+
+def _instruction_context(text: str) -> _InstructionContext:
+    """Parse top-level fences and explicit, immediately adjacent prohibitions.
+
+    This is not a full Markdown AST or a natural-language intent classifier.
+    Unlabeled code stays active for danger rules, and unclosed fences never
+    acquire an inherited prohibition.
+    """
+    rows: list[_InstructionLine] = []
+    offset = 0
+    for raw in text.splitlines(keepends=True):
+        rows.append(_InstructionLine(offset, offset + len(raw)))
+        offset += len(raw)
+
+    fence: tuple[str, int, int, int | None] | None = None
+    pending_intro: int | None = None
+    blank_count = 0
+    list_intro: int | None = None
+    list_indent: int | None = None
+    list_marker: str | None = None
+    list_rows: list[int] = []
+
+    def prohibition_scope(start: int, end: int) -> _ProhibitionScope:
+        return _ProhibitionScope(start, end, DANGER_NEGATION_EXCEPTION.search(text[start:end]) is not None)
+
+    def finish_list() -> None:
+        nonlocal list_intro, list_indent, list_marker
+        if list_intro is not None and list_rows:
+            span = prohibition_scope(rows[list_intro].start, rows[list_rows[-1]].end)
+            for item in list_rows:
+                rows[item].prohibition = span
+        list_rows.clear()
+        list_intro = list_indent = list_marker = None
+
+    for number, row in enumerate(rows):
+        raw = text[row.start:row.end].rstrip("\r\n")
+        if fence is not None:
+            marker, length, opener, intro = fence
+            if re.fullmatch(r" {0,3}" + re.escape(marker) + r"{" + str(length) + r",}[ \t]*", raw):
+                row.kind = "fence"
+                if intro is not None:
+                    span = prohibition_scope(rows[intro].start, row.end)
+                    for body in rows[opener + 1:number]:
+                        body.prohibition = span
+                fence = None
+            else:
+                row.kind = "code"
+            continue
+
+        item = LIST_ITEM.match(raw)
+        if list_rows:
+            if (item is not None and len(item.group(1)) == list_indent
+                    and item.group(2)[-1] == list_marker):
+                row.kind = "list"
+                row.body_start = row.start + item.end()
+                list_rows.append(number)
+                continue
+            finish_list()
+
+        if not raw.strip():
+            blank_count += 1
+            if blank_count > 1:
+                pending_intro = None
+            continue
+
+        opener = FENCE_OPEN.fullmatch(raw)
+        if opener is not None and not (opener.group(1)[0] == "`" and "`" in opener.group(2)):
+            row.kind = "fence"
+            fence = (opener.group(1)[0], len(opener.group(1)), number, pending_intro)
+            pending_intro = None
+            blank_count = 0
+            continue
+
+        if (number and SETEXT_HEADING.fullmatch(raw) and rows[number - 1].kind == "prose"
+                and text[rows[number - 1].start:rows[number - 1].end].strip()):
+            rows[number - 1].kind = row.kind = "heading"
+        elif re.match(r"^ {0,3}#{1,6}(?:\s|$)", raw):
+            row.kind = "heading"
+        elif THEMATIC_BREAK.fullmatch(raw):
+            row.kind = "boundary"
+        elif item is not None:
+            row.kind = "list"
+            row.body_start = row.start + item.end()
+            if pending_intro is not None:
+                list_intro = pending_intro
+                list_indent = len(item.group(1))
+                list_marker = item.group(2)[-1]
+                list_rows.append(number)
+                pending_intro = None
+                blank_count = 0
+                continue
+
+        label = raw[item.end():] if item is not None else raw
+        label = re.sub(r"[*_]", "", label).strip()
+        supported_label = row.kind not in {"heading", "boundary"} and not raw.startswith(("    ", "\t"))
+        pending_intro = number if supported_label and BLOCK_PROHIBITION.fullmatch(label) else None
+        blank_count = 0
+
+    finish_list()
+    return _InstructionContext(text, tuple(rows), tuple(row.start for row in rows))
 
 
 def _command_words(text: str, index: int) -> list[str]:
@@ -277,20 +442,27 @@ def _line(text: str, index: int) -> int:
     return text.count("\n", 0, index) + 1
 
 
-def _prohibited_markdown_table_example(text: str, index: int, command: str) -> bool:
+def _prohibited_markdown_table_example(
+    text: str, index: int, command: str, context: _InstructionContext,
+) -> bool:
     line_start = text.rfind("\n", 0, index) + 1
     line_end = text.find("\n", index)
     if line_end == -1:
         line_end = len(text)
     line = text[line_start:line_end].strip()
-    if not line.startswith("|") or line.count("|") < 3:
+    if context.inside_fence(index) or not line.startswith("|") or line.count("|") < 3:
         return False
 
     normalized_command = re.sub(r"\s+", " ", command.lower()).strip()
-    preceding_lines = text[:line_start].splitlines()[-8:]
-    for candidate in reversed(preceding_lines):
+    number = context.line_index(index)
+    for row in reversed(context.lines[max(0, number - 8):number]):
+        candidate = text[row.start:row.end].strip()
+        if row.kind in {"heading", "boundary", "code", "fence"}:
+            break
         cleaned = re.sub(r"[`*_>#]", " ", candidate)
         cleaned = re.sub(r"\s+", " ", cleaned.lower()).strip()
+        if DANGER_DOUBLE_NEGATIVE.search(cleaned):
+            continue
         negation = DANGER_NEGATION.search(cleaned)
         if not negation or normalized_command not in cleaned:
             continue
@@ -300,7 +472,9 @@ def _prohibited_markdown_table_example(text: str, index: int, command: str) -> b
     return False
 
 
-def _dangerous_command_is_prohibited(text: str, index: int, command: str) -> bool:
+def _dangerous_command_is_prohibited(
+    text: str, index: int, command: str, context: _InstructionContext,
+) -> bool:
     """Ignore dangerous commands that are explicitly prohibited in the same clause."""
     line_start = text.rfind("\n", 0, index) + 1
     line_end = text.find("\n", index)
@@ -320,7 +494,10 @@ def _dangerous_command_is_prohibited(text: str, index: int, command: str) -> boo
         return False
     negations = list(DANGER_NEGATION.finditer(clause_prefix))
     if not negations:
-        return _prohibited_markdown_table_example(text, index, command)
+        return (
+            context.command_is_prohibited(index)
+            or _prohibited_markdown_table_example(text, index, command, context)
+        )
     after_negation = clause_prefix[negations[-1].end():] + clause_suffix
     return DANGER_NEGATION_EXCEPTION.search(after_negation) is None
 
@@ -382,21 +559,13 @@ def _looks_like_repository_path(value: str) -> bool:
     return False
 
 
-def _inside_markdown_fence(text: str, index: int) -> bool:
-    fence_count = 0
-    for line in text[:index].splitlines():
-        if line.lstrip().startswith(("```", "~~~")):
-            fence_count += 1
-    return fence_count % 2 == 1
-
-
 MARKDOWN_LINK = re.compile(r'!?\[[^\]\n]*\]\(\s*(?:<([^>\n]+)>|([^\s()]+))(?:\s+"[^"\n]*")?\s*\)')
 
 
-def _local_markdown_links(text: str):
+def _local_markdown_links(text: str, context: _InstructionContext):
     """Extract simple inline destinations; reference links are not parsed."""
     for match in MARKDOWN_LINK.finditer(text):
-        if _inside_markdown_fence(text, match.start()):
+        if context.inside_fence(match.start()):
             continue
         destination = match.group(1) or match.group(2)
         try:
@@ -411,12 +580,12 @@ def _local_markdown_links(text: str):
         yield candidate, _line(text, match.start())
 
 
-def _candidate_paths(text: str):
+def _candidate_paths(text: str, context: _InstructionContext):
     link_spans = [match.span() for match in MARKDOWN_LINK.finditer(text)]
     for m in PATH_CANDIDATE.finditer(text):
         if any(start <= m.start() < end for start, end in link_spans):
             continue
-        if _inside_markdown_fence(text, m.start()):
+        if context.inside_fence(m.start()):
             continue
         if m.group(2) and m.start() > 0 and text[m.start() - 1] in "/\\.~%":
             # The broad unquoted matcher can otherwise start in the middle of
@@ -551,6 +720,7 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
             findings.append(_finding("read-error", rel, message=str(exc)))
             continue
         texts[path] = text
+        context = _instruction_context(text)
         if not text.strip():
             findings.append(_finding("empty-instructions", rel))
         tokens = estimate_tokens(text)
@@ -562,10 +732,13 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
 
         for pattern_rule in PATTERN_RULES:
             for match in pattern_rule.pattern.finditer(text):
-                command = match.group(0)
+                command = match.group(0).lstrip()
+                # Some patterns include a leading whitespace boundary (sudo).
+                # Locate the actual token, not the previous line's newline.
+                index = match.end() - len(command)
                 if pattern_rule.rule.code in PARSED_COMMAND_RULES:
                     risky, command = _command_options(
-                        pattern_rule.rule.code, _command_words(text, match.start())
+                        pattern_rule.rule.code, _command_words(text, index)
                     )
                     if not risky:
                         continue
@@ -576,13 +749,13 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
                     continue
                 if (
                     pattern_rule.rule.category == "danger"
-                    and _dangerous_command_is_prohibited(text, match.start(), command)
+                    and _dangerous_command_is_prohibited(text, index, command, context)
                 ):
                     continue
-                findings.append(_finding(pattern_rule.rule.code, rel, _line(text, match.start())))
+                findings.append(_finding(pattern_rule.rule.code, rel, _line(text, index)))
 
         seen_refs: set[tuple[str, int]] = set()
-        for candidate, lineno in _local_markdown_links(text):
+        for candidate, lineno in _local_markdown_links(text, context):
             key = (candidate, lineno)
             if key in seen_refs:
                 continue
@@ -590,7 +763,7 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
             target = _repo_candidate(root, path.parent, candidate)
             if target is not None and not target.exists():
                 findings.append(_finding("dead-path", rel, lineno, f"Referenced path does not exist: {candidate}"))
-        for candidate, lineno in _candidate_paths(text):
+        for candidate, lineno in _candidate_paths(text, context):
             key = (candidate, lineno)
             if key in seen_refs:
                 continue

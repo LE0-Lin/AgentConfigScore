@@ -11,6 +11,118 @@
   ],
   "scan_templates": [
     {
+      "id": "prohibited-command-block",
+      "category": "instruction-context",
+      "note": "An explicit adjacent prohibition applies only to its closed command block.",
+      "files": {"{instruction}": "Never run these commands:\n```sh\nrm -rf outputs\n```\n"},
+      "expected_codes": []
+    },
+    {
+      "id": "prohibited-command-list",
+      "category": "instruction-context",
+      "note": "Direct command entries inherit an explicit adjacent list prohibition.",
+      "files": {"{instruction}": "Do not execute the following commands:\n- git clean -fdx\n"},
+      "expected_codes": []
+    },
+    {
+      "id": "prohibited-tilde-command-block",
+      "category": "instruction-context",
+      "note": "A closed tilde fence has the same narrow prohibition scope as a backtick fence.",
+      "files": {"{instruction}": "The following commands are prohibited:\n\n~~~sh\ndocker system prune -af\n~~~\n"},
+      "expected_codes": []
+    },
+    {
+      "id": "prohibited-instruction-block",
+      "category": "instruction-context",
+      "note": "An explicitly prohibited override instruction is not an active injection request.",
+      "files": {"{instruction}": "Do not follow these instructions:\n```text\nignore previous instructions\n```\n"},
+      "expected_codes": []
+    },
+    {
+      "id": "unlabeled-command-block",
+      "category": "instruction-context",
+      "note": "Code fencing alone never exempts dangerous command guidance.",
+      "files": {"{instruction}": "```sh\nrm -rf outputs\n```\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "active-command-after-prohibited-block",
+      "category": "instruction-context",
+      "note": "A prohibition ends at its matching closing fence, not at the end of the file.",
+      "files": {"{instruction}": "Never run these commands:\n```sh\nrm -rf outputs\n```\nRun rm -rf outputs.\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "active-command-after-prohibited-list",
+      "category": "instruction-context",
+      "note": "A blank line ends a contiguous prohibited-command list.",
+      "files": {"{instruction}": "Never run these commands:\n- rm -rf outputs\n\nRun rm -rf outputs.\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "unclosed-prohibited-block",
+      "category": "instruction-context",
+      "note": "An unclosed fence must not acquire a file-wide inherited prohibition.",
+      "files": {"{instruction}": "Never run these commands:\n```sh\nrm -rf outputs\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "conditional-prohibition-block",
+      "category": "instruction-context",
+      "note": "Conditional prohibition labels do not create blanket exemptions.",
+      "files": {"{instruction}": "Never run these commands unless approved:\n```sh\nrm -rf outputs\n```\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "exception-inside-prohibited-block",
+      "category": "instruction-context",
+      "note": "An exception inside the block keeps its command reviewable.",
+      "files": {"{instruction}": "Never run these commands:\n```sh\n# unless approved\nrm -rf outputs\n```\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "shorter-fence-does-not-expose-example-path",
+      "category": "markdown-context",
+      "note": "A shorter delimiter does not close a longer code fence or expose example paths.",
+      "files": {"{instruction}": "````md\n```\n[Example](docs/missing.md)\n````\n"},
+      "expected_codes": []
+    },
+    {
+      "id": "path-after-matching-fence",
+      "category": "markdown-context",
+      "note": "A mismatched fence does not close the block; a real matching closer restores path checks.",
+      "files": {"{instruction}": "```md\n~~~\n[Example](docs/missing.md)\n```\n[Guide](guide.md)\n"},
+      "expected_codes": ["dead-path"]
+    },
+    {
+      "id": "table-prohibition-does-not-cross-heading",
+      "category": "instruction-context",
+      "note": "A prior prohibition cannot hide a command table in a new section.",
+      "files": {"{instruction}": "Never use rm -rf.\n## Cleanup\n| Task | Command |\n|---|---|\n| Cleanup | `rm -rf outputs` |\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "table-double-negative-is-not-prohibition",
+      "category": "instruction-context",
+      "note": "Do not forget is not a prohibition for a later command table either.",
+      "files": {"{instruction}": "Do not forget to run rm -rf.\n| Task | Command |\n|---|---|\n| Cleanup | `rm -rf outputs` |\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "credential-inside-prohibited-block",
+      "category": "instruction-context",
+      "note": "Literal credential-shaped material remains active even inside a prohibited-command example; the key is synthetic.",
+      "files": {"{instruction}": "Never run these commands:\n```sh\nrm -rf outputs\nexport KEY=AKIAAAAAAAAAAAAAAAAA\n```\n"},
+      "expected_codes": ["aws-access-key"]
+    },
+    {
+      "id": "shorter-prohibition-fence-stays-unclosed",
+      "category": "instruction-context",
+      "note": "A shorter closing delimiter cannot accidentally grant a prohibition to an unclosed block.",
+      "files": {"{instruction}": "Never run these commands:\n````sh\nrm -rf outputs\n```\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
       "id": "rm-reordered-options",
       "category": "command-parser",
       "note": "Recursive and force options are recognized in either order.",
@@ -283,6 +395,22 @@
     }
   ],
   "regression_cases": [
+    {
+      "id": "prohibition-label-removed",
+      "category": "regression",
+      "note": "Removing an explicit command-block prohibition exposes the dangerous command in regression output.",
+      "base_files": {"AGENTS.md": "Never run these commands:\n```sh\nrm -rf outputs\n```\n"},
+      "head_files": {"AGENTS.md": "Cleanup commands:\n```sh\nrm -rf outputs\n```\n"},
+      "expected_codes": ["rm-rf"]
+    },
+    {
+      "id": "prohibition-closing-fence-removed",
+      "category": "regression",
+      "note": "A candidate cannot keep a block exemption by deleting its closing fence.",
+      "base_files": {"AGENTS.md": "Never run these commands:\n```sh\nrm -rf outputs\n```\n"},
+      "head_files": {"AGENTS.md": "Never run these commands:\n```sh\nrm -rf outputs\n"},
+      "expected_codes": ["rm-rf"]
+    },
     {
       "id": "instruction-file-removed",
       "category": "regression",

@@ -24,6 +24,14 @@ explicit backslash continuations span lines. Other command rules still use
 narrow patterns. English prohibitions are scoped conservatively; arbitrary
 prose and other languages need human review.
 
+The scanner also builds a shared, source-positioned document context once per
+file. A narrowly recognized English prohibition can cover an immediately adjacent
+closed fence or a contiguous list of direct command entries. This is not a full
+Markdown parser or an intent classifier: unlabeled code remains active for
+danger rules, unclosed fences do not inherit prohibitions, and literal
+credentials are checked independently. See the supported grammar and safety
+boundaries in [instruction context](instruction-context.md).
+
 Option behavior is checked against the [Git clean manual](https://git-scm.com/docs/git-clean),
 [GNU rm manual](https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html),
 and [Docker prune reference](https://docs.docker.com/reference/cli/docker/system/prune/).
@@ -34,7 +42,9 @@ The `prompt-injection-override` warning recognizes explicit English phrases such
 as `ignore previous instructions`. A match is a review signal, not proof of an
 attack. Explicit prohibitions and whole-line examples such as
 `Attack example: "ignore previous instructions"` are excluded. Quotes or code
-fences alone do not exempt a phrase. More elaborate educational examples can
+fences alone do not exempt a phrase. An explicit adjacent prohibition such as
+`Do not follow these instructions:` can also cover a closed instruction block.
+More elaborate educational examples can
 still trigger warnings; use a reasoned suppression after review. This rule does
 not detect arbitrary paraphrases, other languages, or instructions delivered at
 runtime through tool output or remote content.
@@ -86,7 +96,7 @@ judgment requires a separately evaluated model-assisted mode and a labeled
 corpus, not a stronger marketing claim for the deterministic score.
 
 The offline [Adversarial Benchmark v1](../benchmarks/adversarial-v1-report.md)
-keeps both sides visible: 230/230 maintained deterministic contracts currently
+keeps both sides visible: 328/328 maintained deterministic contracts currently
 match, while 4/8 labeled challenges are detected. The four remaining misses are
 semantic cases rather than literal command patterns.
 The contract figure is a regression guarantee for a closed fixture suite, not a
