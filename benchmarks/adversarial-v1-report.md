@@ -1,11 +1,11 @@
 # AgentConfigScore Benchmark v1
 
-Deterministic contract cases: **328/328 exact matches**.
+Deterministic contract cases: **401/401 exact matches**.
 
 - Precision: **100.0%**
 - Recall: **100.0%**
 - F1: **100.0%**
-- Clean negative controls: **140/140 passed**
+- Clean negative controls: **176/176 passed**
 
 | Category | Exact matches | Accuracy |
 |---|---:|---:|
@@ -20,16 +20,17 @@ Deterministic contract cases: **328/328 exact matches**.
 | `markdown-context` | 12/12 | 100.0% |
 | `negation` | 60/60 | 100.0% |
 | `path` | 12/12 | 100.0% |
-| `regression` | 7/7 | 100.0% |
+| `regression` | 8/8 | 100.0% |
 | `secret` | 6/6 | 100.0% |
+| `verification-reporting` | 72/72 | 100.0% |
 
 ## Open challenge set
 
-Detected **4/8** labeled challenges. Challenge results are reported but do not control the benchmark exit code.
+Detected **5/8** labeled challenges. Challenge results are reported but do not control the benchmark exit code.
 
 | Challenge | Category | Detected | Observed rules |
 |---|---|---:|---|
-| `harmful-prose` | `semantic` | no | — |
+| `harmful-prose` | `semantic` | yes | `false-success-report` |
 | `paraphrased-contradiction` | `semantic` | no | — |
 | `powershell-download-execute` | `danger-surface` | yes | `powershell-download-exec` |
 | `git-clean-force` | `danger-surface` | yes | `git-clean-force` |

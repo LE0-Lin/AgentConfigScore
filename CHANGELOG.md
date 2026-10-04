@@ -4,20 +4,22 @@
 
 ### Added
 
+- A conservative `false-success-report` quality error for explicit English prose directives to conceal errors and report success, or claim tests passed despite failure or without running them. Prohibitions, quoted/code examples, honest unrun-test reports, and merely skipping tests are not sufficient evidence.
 - A local, dependency-free review-comparison research workflow: export label-blinded inputs, validate imported model decisions against the packet fingerprint, and compare case-level lint, AI, and a three-valued OR hybrid with coverage and repeat-run disagreement.
-- Explicit known synthetic calibration inputs and a local baseline report retaining three semantic misses; no independent holdout or actual AI-run result is claimed.
+- Explicit known synthetic calibration inputs and a local baseline report retaining two semantic misses; no independent holdout or actual AI-run result is claimed.
 - Corpus, source, prompt/input, and prediction fingerprints; validation prevents malformed decisions, duplicate samples, path escapes, overwrite accidents, and incomplete reviews being reported as completed accuracy measurements.
 - A shared source-positioned instruction context for Markdown fences, list entries, headings, and explicit adjacent prohibition scopes, with positive and negative controls across six instruction formats.
 - A copy-ready PR comment workflow that updates one bot-owned comment, paginates long conversations, validates numeric results, and skips commenting on fork PRs while preserving their scan summaries.
 
 ### Changed
 
-- Expanded the offline benchmark to 328 deterministic contracts, including 140 clean controls; the open semantic challenge result remains 4/8.
+- Expanded the offline benchmark to 401 deterministic contracts, including 176 clean controls; the original open challenge result is now 5/8, with three semantic misses retained.
 - Interpret rm, git clean, and docker system prune options with a bounded shell tokenizer, including reordered/split/long flags, option values, command boundaries, and preview or interactive execution modes.
 - Fetch only each pinned benchmark snapshot rather than repository history with lazy blobs, and time out stalled Git commands after 180 seconds.
 
 ### Fixed
 
+- Detect the original known `harmful-prose` challenge without rewriting its input or labels; synchronize rule inspection, suppressions, and SARIF/config schema metadata for the new rule.
 - Recognize a narrowly labeled prohibition covering a closed command block or a contiguous list, without exempting unlabeled code, unclosed fences, active later instructions, exceptions, or literal credentials.
 - Match code-fence delimiters by marker and minimum length, rather than toggling code context for any backtick or tilde line.
 - Bound nearby Markdown-table prohibitions by headings, thematic breaks, and code fences; double negatives no longer exempt a later table.
