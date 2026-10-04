@@ -16,6 +16,10 @@ CORPUS = ROOT / "benchmarks" / "review-calibration.json"
 SPEC = importlib.util.spec_from_file_location("review_comparison", RUNNER)
 COMPARISON = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(COMPARISON)
+COLLECTOR_SPEC = importlib.util.spec_from_file_location("review_collector", ROOT / "scripts" / "collect_review_candidates.py")
+COLLECTOR = importlib.util.module_from_spec(COLLECTOR_SPEC)
+with patch.dict(sys.modules, {"run_review_comparison": COMPARISON}):
+    COLLECTOR_SPEC.loader.exec_module(COLLECTOR)
 
 
 class ReviewComparisonTests(unittest.TestCase):
@@ -57,6 +61,124 @@ class ReviewComparisonTests(unittest.TestCase):
         self.assertEqual(set(packet), {"schema_version", "prompt", "cases", "packet_sha256"})
         self.assertTrue(all(set(case) == {"id", "files"} for case in packet["cases"]))
         self.assertEqual(packet, COMPARISON.review_packet(corpus))
+
+    def candidate(self):
+        data = copy.deepcopy(self.corpus)
+        data.update(tier="candidate", used_for_rule_development=False, label_status="unreviewed", labelers=[])
+        for case in data["cases"]:
+            case["label"] = "unresolved"
+        return data
+
+    def test_candidate_exports_without_inventing_human_reference_labels(self):
+        corpus = self.load_modified(self.candidate())
+        packet = COMPARISON.review_packet(corpus)
+        form = COMPARISON.annotation_template(packet)
+        self.assertEqual(form["annotator"], "")
+        self.assertEqual(form["packet_sha256"], packet["packet_sha256"])
+        self.assertTrue(all(row["label"] == "unresolved" and row["rationale"] == ""
+                            for row in form["annotations"]))
+        self.assertEqual({row["id"] for row in form["annotations"]}, {row["id"] for row in packet["cases"]})
+        self.assertNotIn("source_ref", json.dumps(form))
+
+    def test_candidate_cannot_be_scored_even_if_a_caller_injects_a_resolved_label(self):
+        corpus = self.candidate()
+        for label in ("unresolved", "review"):
+            corpus["cases"][0]["label"] = label
+            with patch.object(COMPARISON, "analyze", side_effect=AssertionError("must not scan")):
+                with self.assertRaisesRegex(ValueError, "candidate collection"):
+                    COMPARISON.evaluate(corpus, [])
+
+    def test_candidate_status_requires_no_labelers_no_tuning_and_all_unresolved(self):
+        for key, value in (("labelers", ["Invented human"]), ("label_status", "adjudicated"),
+                           ("used_for_rule_development", True), ("tier", "calibration")):
+            corpus = self.candidate()
+            corpus[key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.load_modified(corpus)
+        corpus = self.candidate()
+        corpus["cases"][0]["label"] = "clean"
+        with self.assertRaisesRegex(ValueError, "unresolved reference"):
+            self.load_modified(corpus)
+
+    def test_committed_candidates_match_registered_provenance_and_notices(self):
+        import hashlib
+        directory = ROOT / "benchmarks" / "prospective-review-v1"
+        protocol = json.loads((directory / "protocol.json").read_text(encoding="utf-8"))
+        frozen_protocol = json.loads((directory / "collected" / "protocol.json").read_text(encoding="utf-8"))
+        corpus = COMPARISON.load_corpus(directory / "collected" / "corpus.json")
+        collection = json.loads((directory / "collected" / "collection.json").read_text(encoding="utf-8"))
+        self.assertEqual(protocol, frozen_protocol)
+        self.assertEqual(COMPARISON._digest(protocol), collection["protocol_sha256"])
+        self.assertEqual(COMPARISON._digest(corpus), collection["corpus_sha256"])
+        self.assertEqual(corpus["tier"], "candidate")
+        self.assertEqual(corpus["labelers"], [])
+        self.assertEqual(collection["included"], len(corpus["cases"]))
+        self.assertEqual(collection["included"] + collection["excluded"], len(protocol["repositories"]))
+        self.assertEqual([row["repository"] for row in collection["repositories"]],
+                         [row["repository"] for row in protocol["repositories"]])
+        for case in corpus["cases"]:
+            source = case["provenance"]
+            text = case["files"][source["path"]]
+            self.assertEqual(case["label"], "unresolved")
+            self.assertEqual(hashlib.sha256(text.encode("utf-8")).hexdigest(), source["source_sha256"])
+            self.assertEqual(len(text.splitlines()), source["line_end"])
+            notice = directory / "collected" / COMPARISON._fixture_path(source["license_notice"])
+            self.assertEqual(hashlib.sha256(notice.read_bytes()).hexdigest(), source["license_sha256"])
+            self.assertFalse(COLLECTOR.privacy_exclusion(text))
+
+    def test_collector_privacy_guard_never_returns_matching_values(self):
+        for text in ('api_key = "not-a-placeholder"', 'password: "possibly-sensitive"',
+                     'ghp_' + 'A' * 25, '-----BEGIN PRIVATE KEY-----'):
+            self.assertIs(COLLECTOR.privacy_exclusion(text), True)
+        for text in ('api_key = "placeholder"', 'Run tests honestly.', 'access_token = "your-token"'):
+            self.assertIs(COLLECTOR.privacy_exclusion(text), False)
+
+    def test_collector_retains_complete_file_and_pin_without_scanning(self):
+        import base64
+        protocol = json.loads(COLLECTOR.DEFAULT_PROTOCOL.read_text(encoding="utf-8"))
+        source = "# Example\nRun tests before submitting.\n"
+        def payload(text, path):
+            return {"type": "file", "encoding": "base64", "size": len(text), "path": path,
+                    "content": base64.b64encode(text.encode()).decode()}
+        license_data = payload("License fixture, not a real licensing declaration.\n", "LICENSE")
+        license_data["license"] = {"spdx_id": "MIT"}
+        responses = [{"private": False, "default_branch": "main"}, {"sha": "a" * 40},
+                     payload(source, "AGENTS.md"), license_data]
+        with patch.object(COLLECTOR, "github_json", side_effect=responses):
+            audit, case, notice = COLLECTOR.collect_one({"repository": "test/fixture", "group": "test"}, protocol)
+        self.assertEqual(audit["status"], "included")
+        self.assertEqual(case["files"], {"AGENTS.md": source})
+        self.assertEqual(case["label"], "unresolved")
+        self.assertIn("a" * 40, case["source_ref"])
+        self.assertEqual(notice[0], "licenses/test--fixture.txt")
+
+    def test_collector_missing_file_is_an_exclusion_not_a_clean_case(self):
+        protocol = json.loads(COLLECTOR.DEFAULT_PROTOCOL.read_text(encoding="utf-8"))
+        with patch.object(COLLECTOR, "github_json", side_effect=[
+            {"private": False, "default_branch": "main"}, {"sha": "a" * 40}, None,
+        ]):
+            audit, case, notice = COLLECTOR.collect_one({"repository": "test/fixture", "group": "test"}, protocol)
+        self.assertEqual(audit["reason"], "root_instruction_file_absent")
+        self.assertIsNone(case)
+        self.assertIsNone(notice)
+
+    def test_collector_transport_failure_cannot_be_reclassified_as_missing_input(self):
+        failed = subprocess.CompletedProcess([], 1, b"", b"transport error with private detail")
+        with patch.object(COLLECTOR.subprocess, "run", return_value=failed):
+            with self.assertRaisesRegex(ValueError, "API failed") as raised:
+                COLLECTOR.github_json("repos/test/fixture")
+        self.assertNotIn("private detail", str(raised.exception))
+        missing = subprocess.CompletedProcess([], 1, b'{"status":"404"}', b"gh: Not Found (HTTP 404)")
+        with patch.object(COLLECTOR.subprocess, "run", return_value=missing):
+            self.assertIsNone(COLLECTOR.github_json("repos/test/fixture"))
+
+    def test_collector_registry_validation_precedes_network_access(self):
+        protocol = json.loads(COLLECTOR.DEFAULT_PROTOCOL.read_text(encoding="utf-8"))
+        COLLECTOR.validate_protocol(protocol)
+        for rows in ([{"repository": "test/../fixture", "group": "test"}], protocol["repositories"] * 2):
+            changed = {**protocol, "repositories": rows}
+            with self.assertRaises(ValueError):
+                COLLECTOR.validate_protocol(changed)
 
     def test_input_or_prompt_change_invalidates_import_but_label_change_does_not_leak(self):
         original = self.packet["packet_sha256"]
@@ -251,6 +373,8 @@ class ReviewComparisonTests(unittest.TestCase):
             packet = json.loads((exported / "review-packet.json").read_text(encoding="utf-8"))
             self.assertEqual(packet, self.packet)
             template = json.loads((exported / "predictions-template.json").read_text(encoding="utf-8"))
+            annotations = json.loads((exported / "human-annotation-template.json").read_text(encoding="utf-8"))
+            self.assertEqual(annotations, COMPARISON.annotation_template(packet))
             with self.assertRaises(ValueError):
                 COMPARISON.validate_predictions(template, packet)
             self.assertNotEqual(run("export", "--output-dir", str(exported)).returncode, 0)
@@ -261,6 +385,12 @@ class ReviewComparisonTests(unittest.TestCase):
             self.assertEqual(output.read_bytes(), before)
             self.assertIn("not run", report.read_text(encoding="utf-8"))
             self.assertIn("Nothing was uploaded", run("export", "--output-dir", str(Path(directory) / "another")).stdout)
+            candidate = ROOT / "benchmarks" / "prospective-review-v1" / "collected" / "corpus.json"
+            candidate_output = Path(directory) / "must-not-exist.json"
+            rejected = run("score", "--corpus", str(candidate), "--output", str(candidate_output))
+            self.assertEqual(rejected.returncode, 2)
+            self.assertIn("scoring is not permitted", rejected.stderr)
+            self.assertFalse(candidate_output.exists())
 
 
 if __name__ == "__main__":

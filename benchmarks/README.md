@@ -24,6 +24,12 @@ than the exact-rule contract below; their metrics are not interchangeable.
 
 See [protocol, runnable commands, privacy boundaries, and holdout requirements](../docs/review-comparison.md).
 
+The separate [prospective candidate collection](prospective-review-v1/README.md)
+contains five pinned public root instruction files from a registered twelve-repository
+registry. It retains all seven exclusions and third-party license notices, but
+has no human labels or model results. Candidate export is allowed; scoring is
+refused until the research prerequisites are actually satisfied.
+
 ## Adversarial mutation Benchmark v1
 
 Benchmark v1 contains 474 deterministic contract cases and 8 explicitly labeled

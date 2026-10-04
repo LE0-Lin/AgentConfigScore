@@ -1,0 +1,2 @@
+# Preserve third-party license notices byte-for-byte on every checkout.
+benchmarks/prospective-review-v1/collected/licenses/* -text

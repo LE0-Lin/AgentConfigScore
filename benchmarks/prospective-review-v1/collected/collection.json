@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "collected_at_utc": "2026-10-04T19:38:41.897566+00:00",
+  "protocol_sha256": "18188a709fc2f752267037f27d03ea4905f6a248dd42dc43341816653db1a182",
+  "corpus_sha256": "1e90ef5aaba464d4ddbd308e11a5bb1e9e2c073a48bd0b34d927da6ba8efb12d",
+  "included": 5,
+  "excluded": 7,
+  "status": "unreviewed_candidates_only",
+  "repositories": [
+    {
+      "repository": "astral-sh/ruff",
+      "group": "astral-sh",
+      "revision": "1df6db3e463ffa1b587dcf47f25360d40389b0f7",
+      "license_spdx": "MIT",
+      "status": "included",
+      "case_id": "astral-sh--ruff",
+      "path": "AGENTS.md",
+      "line_start": 1,
+      "line_end": 222,
+      "source_sha256": "858627e80da82caeb4db75cb4306802ccc1df3d151c71ae5c2e77eefda22343a",
+      "source_url": "https://github.com/astral-sh/ruff/blob/1df6db3e463ffa1b587dcf47f25360d40389b0f7/AGENTS.md",
+      "license_url": "https://github.com/astral-sh/ruff/blob/1df6db3e463ffa1b587dcf47f25360d40389b0f7/LICENSE",
+      "license_notice": "licenses/astral-sh--ruff.txt",
+      "license_sha256": "2597d854122b77ddc71971564ca2350a37608575ce324adc5650a2b2051c8f18"
+    },
+    {
+      "repository": "astral-sh/uv",
+      "group": "astral-sh",
+      "revision": "46b84fd0bfec23b72f29e8e2185ba68a65052f48",
+      "license_spdx": "NOASSERTION",
+      "status": "excluded",
+      "reason": "license_not_in_registered_allowlist"
+    },
+    {
+      "repository": "pytest-dev/pytest",
+      "group": "pytest-dev/pytest",
+      "revision": "f5240bef4d8b31232d570fb80ea4f7c50b087d1b",
+      "status": "excluded",
+      "reason": "root_instruction_file_absent"
+    },
+    {
+      "repository": "pallets/flask",
+      "group": "pallets/flask",
+      "revision": "d73fa1cdcbd8b1465c151db8924ba58b1dd14e35",
+      "status": "excluded",
+      "reason": "root_instruction_file_absent"
+    },
+    {
+      "repository": "pydantic/pydantic",
+      "group": "pydantic/pydantic",
+      "revision": "e87e11b7a74068c2d8107e48ffed6102744abef8",
+      "status": "excluded",
+      "reason": "root_instruction_file_absent"
+    },
+    {
+      "repository": "vitejs/vite",
+      "group": "vitejs/vite",
+      "revision": "10033218d239c927cdc375970b5741cce408e81b",
+      "status": "excluded",
+      "reason": "root_instruction_file_absent"
+    },
+    {
+      "repository": "vercel/next.js",
+      "group": "vercel/next.js",
+      "revision": "ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+      "license_spdx": "MIT",
+      "status": "included",
+      "case_id": "vercel--next.js",
+      "path": "AGENTS.md",
+      "line_start": 1,
+      "line_end": 520,
+      "source_sha256": "07c35e7d11ff35a10a0bdb675e5e0306f9d046c6785b939cf06f72dca75ace61",
+      "source_url": "https://github.com/vercel/next.js/blob/ba80ee48fc319735151c3ad6d9bb9a8180c9f09e/AGENTS.md",
+      "license_url": "https://github.com/vercel/next.js/blob/ba80ee48fc319735151c3ad6d9bb9a8180c9f09e/license.md",
+      "license_notice": "licenses/vercel--next.js.txt",
+      "license_sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+    },
+    {
+      "repository": "microsoft/vscode",
+      "group": "microsoft/vscode",
+      "revision": "b993b3bce18ed4816ff7076e7c33d0fbf3e01cda",
+      "license_spdx": "MIT",
+      "status": "included",
+      "case_id": "microsoft--vscode",
+      "path": "AGENTS.md",
+      "line_start": 1,
+      "line_end": 5,
+      "source_sha256": "aa9b8989ec534e850e743e89bd345eaf9d88c522e86e98239e2ddcda435db45f",
+      "source_url": "https://github.com/microsoft/vscode/blob/b993b3bce18ed4816ff7076e7c33d0fbf3e01cda/AGENTS.md",
+      "license_url": "https://github.com/microsoft/vscode/blob/b993b3bce18ed4816ff7076e7c33d0fbf3e01cda/LICENSE.txt",
+      "license_notice": "licenses/microsoft--vscode.txt",
+      "license_sha256": "9480271317925265e806a9a196aaa33410a962fa9d4d1e248a4a5187bc8c9df9"
+    },
+    {
+      "repository": "fastapi/fastapi",
+      "group": "fastapi/fastapi",
+      "revision": "5f9fc5c59a9bb54608aa35376715f3ba9708188e",
+      "status": "excluded",
+      "reason": "root_instruction_file_absent"
+    },
+    {
+      "repository": "django/django",
+      "group": "django/django",
+      "revision": "a461af8ce48762d7ec602260aaff81014ddccbcb",
+      "status": "excluded",
+      "reason": "root_instruction_file_absent"
+    },
+    {
+      "repository": "huggingface/transformers",
+      "group": "huggingface/transformers",
+      "revision": "469230357aab0f2b303b0d638c1f8d06edb14184",
+      "license_spdx": "Apache-2.0",
+      "status": "included",
+      "case_id": "huggingface--transformers",
+      "path": "AGENTS.md",
+      "line_start": 1,
+      "line_end": 40,
+      "source_sha256": "3b8068581af0440562f2d4f1604ecace45ccde8ab0a817e71b3d49d87462ff77",
+      "source_url": "https://github.com/huggingface/transformers/blob/469230357aab0f2b303b0d638c1f8d06edb14184/AGENTS.md",
+      "license_url": "https://github.com/huggingface/transformers/blob/469230357aab0f2b303b0d638c1f8d06edb14184/LICENSE",
+      "license_notice": "licenses/huggingface--transformers.txt",
+      "license_sha256": "77fd4710def9ec3c0f6225800e0235f15a425abd4a8b03559127fcd782612049"
+    },
+    {
+      "repository": "scikit-learn/scikit-learn",
+      "group": "scikit-learn/scikit-learn",
+      "revision": "a442e4bb39551feb7b0af4c00075e2cb91cf9b77",
+      "license_spdx": "BSD-3-Clause",
+      "status": "included",
+      "case_id": "scikit-learn--scikit-learn",
+      "path": "AGENTS.md",
+      "line_start": 1,
+      "line_end": 28,
+      "source_sha256": "1c3209d3ade6b77652d8e6cf4100494e37db123d8036deab15f778e862ea5f00",
+      "source_url": "https://github.com/scikit-learn/scikit-learn/blob/a442e4bb39551feb7b0af4c00075e2cb91cf9b77/AGENTS.md",
+      "license_url": "https://github.com/scikit-learn/scikit-learn/blob/a442e4bb39551feb7b0af4c00075e2cb91cf9b77/COPYING",
+      "license_notice": "licenses/scikit-learn--scikit-learn.txt",
+      "license_sha256": "50d6a9d340f19ab355609917993114daf5f47e3161067bcf34955bbd05cd9cb0"
+    }
+  ]
+}
