@@ -4,6 +4,7 @@
 
 ### Added
 
+- Five pinned public instruction-file candidates with a predeclared sampling registry, retained exclusions and license notices, an empty human-annotation form, and an explicitly unreviewed candidate tier that cannot be scored. These are evaluation preparations, not human feedback, a completed holdout, or actual AI comparison results; scanner rules are unchanged.
 - A conservative `broad-environment-upload` warning requiring an affirmative transfer action, a bulk environment-variable source, and an explicit network sink together; names-only metadata, qualified redaction, logs, prohibitions, examples, and literal loopback do not satisfy the grammar. This is a potential exposure signal, not proof of malicious intent or transmission.
 - A conservative `false-success-report` quality error for explicit English prose directives to conceal errors and report success, or claim tests passed despite failure or without running them. Prohibitions, quoted/code examples, honest unrun-test reports, and merely skipping tests are not sufficient evidence.
 - A local, dependency-free review-comparison research workflow: export label-blinded inputs, validate imported model decisions against the packet fingerprint, and compare case-level lint, AI, and a three-valued OR hybrid with coverage and repeat-run disagreement.

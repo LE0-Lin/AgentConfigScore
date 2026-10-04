@@ -10,6 +10,12 @@ results.
 inputs are synthetic calibration fixtures with provisional project-authored
 labels. They reuse known cases and must not be called held-out or real user data.
 
+A separate [prospective candidate collection](../benchmarks/prospective-review-v1/README.md)
+now retains five pinned public root instruction files, a predeclared twelve-repository
+registry, every exclusion, and third-party license notices. It is **unreviewed
+preparation material**, not a completed study. Repository context, human reference
+labels, and actual independent AI runs still need to be supplied.
+
 ## Run the local baseline
 
 From a repository checkout with the package installed:
@@ -35,7 +41,7 @@ python scripts/run_review_comparison.py export \
   --output-dir .agent-config-score/review-run-01
 ```
 
-This creates two local files:
+This creates three local files:
 
 - `review-packet.json`: a neutral review prompt, opaque case IDs, and the supplied
   files. No reference labels, rationales, source metadata, original case names,
@@ -43,6 +49,9 @@ This creates two local files:
 - `predictions-template.json`: the response shape with empty reviewer/run IDs
   and null decisions. The unchanged template cannot be presented as a completed
   model run.
+- `human-annotation-template.json`: an empty reference-label form for actual
+  independent human reviewers, with rationale and missing-context fields. It
+  is not an AI prediction, completed human annotation, or automatic adjudicator.
 
 Review the packet before sharing. Only send the packet and template to a fresh
 AI session, not the labeled corpus, this guide's results, or a tool report.
@@ -153,6 +162,11 @@ portable in-repository fixture paths. **It cannot prove independence, correct
 labels, provenance, licensing, or reviewer identity.** Metadata is not evidence
 of a study having happened. Small correlated samples also do not support a
 general real-world accuracy claim.
+
+Unlabeled preparations can instead use `tier: "candidate"`,
+`used_for_rule_development: false`, `label_status: "unreviewed"`, `labelers: []`,
+and only `unresolved` labels. They may be exported but **cannot be scored**.
+This records work still missing without inventing reviewers or reference labels.
 
 This is a repository research script, not a new installed CLI subcommand. The
 deterministic scanner, report schema, runtime dependencies, and existing rule

@@ -69,20 +69,29 @@ def _fixture_path(value: Any) -> Path:
 
 
 def load_corpus(path: Path) -> dict[str, Any]:
-    corpus = json.loads(path.read_text(encoding="utf-8"))
+    return validate_corpus(json.loads(path.read_text(encoding="utf-8")))
+
+
+def validate_corpus(corpus: Any) -> dict[str, Any]:
     if (not isinstance(corpus, dict) or type(corpus.get("schema_version")) is not int
             or corpus.get("schema_version") != 1):
         raise ValueError("review corpus schema_version must be 1")
-    if not _nonempty(corpus.get("name")) or corpus.get("tier") not in ("calibration", "holdout"):
-        raise ValueError("review corpus needs a name and calibration/holdout tier")
+    if not _nonempty(corpus.get("name")) or corpus.get("tier") not in ("calibration", "holdout", "candidate"):
+        raise ValueError("review corpus needs a name and calibration/holdout/candidate tier")
     if type(corpus.get("used_for_rule_development")) is not bool:
         raise ValueError("used_for_rule_development must be a boolean")
     labelers = corpus.get("labelers")
-    if (not isinstance(labelers, list) or not labelers or not all(_nonempty(v) for v in labelers)
+    if (not isinstance(labelers, list) or (not labelers and corpus["tier"] != "candidate")
+            or not all(_nonempty(v) for v in labelers)
             or len({value.strip().casefold() for value in labelers}) != len(labelers)):
         raise ValueError("labelers must be unique, nonempty reviewer identifiers")
-    if corpus.get("label_status") not in ("provisional", "adjudicated") or not _nonempty(corpus.get("sampling_note")):
-        raise ValueError("declare provisional/adjudicated labels and the sampling method")
+    if corpus.get("label_status") not in ("provisional", "adjudicated", "unreviewed") or not _nonempty(corpus.get("sampling_note")):
+        raise ValueError("declare label status and the sampling method")
+    if corpus["tier"] == "candidate":
+        if corpus["used_for_rule_development"] or corpus["label_status"] != "unreviewed" or labelers:
+            raise ValueError("candidate requires unused inputs, unreviewed labels, and no declared labelers")
+    elif corpus["label_status"] == "unreviewed":
+        raise ValueError("unreviewed labels require candidate tier")
     if corpus["tier"] == "holdout" and (
         corpus["used_for_rule_development"] or corpus["label_status"] != "adjudicated" or len(labelers) < 2
     ):
@@ -100,6 +109,8 @@ def load_corpus(path: Path) -> dict[str, Any]:
                 or not all(_nonempty(case.get(key)) for key in ("category", "group", "rationale", "source_ref"))
                 or case.get("source_kind") not in ("synthetic", "repository_excerpt", "repository_snapshot")):
             raise ValueError("each case needs a label, category, group, rationale, and declared provenance")
+        if corpus["tier"] == "candidate" and case["label"] != "unresolved":
+            raise ValueError("candidate cases must keep unresolved reference labels")
         files = case.get("files")
         if not isinstance(files, dict) or not files or not all(isinstance(v, str) for v in files.values()):
             raise ValueError("case files must be a nonempty mapping of paths to text")
@@ -136,6 +147,21 @@ def predictions_template(packet: dict[str, Any]) -> dict[str, Any]:
     return {
         "schema_version": 1, "packet_sha256": packet["packet_sha256"], "reviewer": "", "run_id": "",
         "predictions": [{"id": row["id"], "review_needed": None, "reason": ""} for row in packet["cases"]],
+    }
+
+
+def annotation_template(packet: dict[str, Any]) -> dict[str, Any]:
+    """An empty human reference form, not a model prediction or adjudication."""
+    return {
+        "schema_version": 1, "packet_sha256": packet["packet_sha256"], "annotator": "",
+        "instructions": (
+            "Review independently using only the packet. Do not inspect tool/model outputs or other annotations. "
+            "Use review for an evidenced concrete issue, clean for no issue within the supplied evidence, "
+            "and unresolved when missing context prevents a decision. Record a rationale and needed context. "
+            "Do not quote credential values. This blank form is not a completed annotation."
+        ),
+        "annotations": [{"id": row["id"], "label": "unresolved", "rationale": "", "context_needed": ""}
+                        for row in packet["cases"]],
     }
 
 
@@ -213,6 +239,8 @@ def _by_category(cases: list[dict[str, Any]], decisions: dict[str, bool | None])
 
 
 def evaluate(corpus: dict[str, Any], prediction_runs: list[dict[str, Any]]) -> dict[str, Any]:
+    if corpus["tier"] == "candidate":
+        raise ValueError("candidate collection is unreviewed preparation material; scoring is not permitted")
     if not any(case["label"] != "unresolved" for case in corpus["cases"]):
         raise ValueError("at least one resolved reference label is required for scoring")
     packet = review_packet(corpus)
@@ -361,8 +389,9 @@ def main() -> int:
             _write_outputs([
                 (args.output_dir / "review-packet.json", json.dumps(packet, indent=2, ensure_ascii=False) + "\n"),
                 (args.output_dir / "predictions-template.json", json.dumps(predictions_template(packet), indent=2) + "\n"),
+                (args.output_dir / "human-annotation-template.json", json.dumps(annotation_template(packet), indent=2) + "\n"),
             ])
-            print("Wrote blinded packet and empty template locally. Nothing was uploaded.")
+            print("Wrote blinded packet and empty model/human templates locally. Nothing was uploaded.")
         else:
             imported = [json.loads(path.read_text(encoding="utf-8")) for path in args.predictions]
             result = evaluate(corpus, imported)

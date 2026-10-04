@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "name": "prospective-review-v1",
+  "registered_at_utc": "2026-10-04T19:35:18Z",
+  "scanner_revision": "35f48d7a40d3a19a84fe1c6c4bc0c7378b122d43",
+  "selection": "Convenience registry chosen before reading instruction contents or running predictions. One root AGENTS.md per repository, in the order below; no replacements for exclusions and no outcome-based balancing.",
+  "pilot_disclosure": "A GitHub filename search had already confirmed that astral-sh/ruff has a root AGENTS.md. No instruction contents or scanner predictions from this registry were inspected before registration. This is not a random sample or a claim about model-training contamination.",
+  "source_path": "AGENTS.md",
+  "maximum_source_bytes": 32768,
+  "allowed_licenses": ["MIT", "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause"],
+  "privacy_exclusion": "Exclude complete files matching any existing secret-category pattern or a non-placeholder quoted assignment to password, api_key, access_token, auth_token, or client_secret. Never print matching text. This guard is incomplete and does not certify absence of secrets.",
+  "context_boundary": "Only the complete root instruction file is collected, not the repository tree, linked documents, code, nested directives, or command results. Missing context must not be interpreted as a broken path or a confirmed defect. The exported packet is preparation material, not yet a frozen scoring dataset; add shared evidence and re-export before adjudicating context-dependent claims.",
+  "reference_labels": "All cases stay unresolved, with zero declared labelers, until actual independent human annotation. Do not substitute model-generated labels for human review. Two humans must review independently without system outputs; retain original annotations and adjudicate disagreements before declaring holdout status.",
+  "evaluation": "Keep scanner rules unchanged. Freeze final evidence, prompt, reference labels, and source before running tool, independent AI, and OR hybrid. Retain failures, abstentions, exclusions, and unfavorable results. Do not estimate recall without reference-positive cases. This small convenience sample cannot establish general accuracy or user adoption.",
+  "repositories": [
+    {"repository": "astral-sh/ruff", "group": "astral-sh"},
+    {"repository": "astral-sh/uv", "group": "astral-sh"},
+    {"repository": "pytest-dev/pytest", "group": "pytest-dev/pytest"},
+    {"repository": "pallets/flask", "group": "pallets/flask"},
+    {"repository": "pydantic/pydantic", "group": "pydantic/pydantic"},
+    {"repository": "vitejs/vite", "group": "vitejs/vite"},
+    {"repository": "vercel/next.js", "group": "vercel/next.js"},
+    {"repository": "microsoft/vscode", "group": "microsoft/vscode"},
+    {"repository": "fastapi/fastapi", "group": "fastapi/fastapi"},
+    {"repository": "django/django", "group": "django/django"},
+    {"repository": "huggingface/transformers", "group": "huggingface/transformers"},
+    {"repository": "scikit-learn/scikit-learn", "group": "scikit-learn/scikit-learn"}
+  ]
+}

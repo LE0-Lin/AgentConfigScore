@@ -271,6 +271,10 @@ decisions and compare coverage, false positives, misses, and an OR combination.
 Its bundled data is explicitly known, synthetic calibration material; it is not
 a held-out accuracy claim or real user feedback. The [baseline report](benchmarks/review-calibration-report.md)
 keeps one semantic miss visible and marks unperformed AI runs as **not run**.
+Five [pinned public candidate inputs](benchmarks/prospective-review-v1/README.md)
+are now collected separately, with registered sampling, retained exclusions, and
+license notices. They are unreviewed preparations; shared repository context,
+human labels, and actual independent AI runs are still missing.
 
 ## Share a real-world case safely
 
