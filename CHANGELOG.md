@@ -4,21 +4,24 @@
 
 ### Added
 
+- A conservative `broad-environment-upload` warning requiring an affirmative transfer action, a bulk environment-variable source, and an explicit network sink together; names-only metadata, qualified redaction, logs, prohibitions, examples, and literal loopback do not satisfy the grammar. This is a potential exposure signal, not proof of malicious intent or transmission.
 - A conservative `false-success-report` quality error for explicit English prose directives to conceal errors and report success, or claim tests passed despite failure or without running them. Prohibitions, quoted/code examples, honest unrun-test reports, and merely skipping tests are not sufficient evidence.
 - A local, dependency-free review-comparison research workflow: export label-blinded inputs, validate imported model decisions against the packet fingerprint, and compare case-level lint, AI, and a three-valued OR hybrid with coverage and repeat-run disagreement.
-- Explicit known synthetic calibration inputs and a local baseline report retaining two semantic misses; no independent holdout or actual AI-run result is claimed.
+- Explicit known synthetic calibration inputs and a local baseline report retaining one semantic miss; no independent holdout or actual AI-run result is claimed.
 - Corpus, source, prompt/input, and prediction fingerprints; validation prevents malformed decisions, duplicate samples, path escapes, overwrite accidents, and incomplete reviews being reported as completed accuracy measurements.
 - A shared source-positioned instruction context for Markdown fences, list entries, headings, and explicit adjacent prohibition scopes, with positive and negative controls across six instruction formats.
 - A copy-ready PR comment workflow that updates one bot-owned comment, paginates long conversations, validates numeric results, and skips commenting on fork PRs while preserving their scan summaries.
 
 ### Changed
 
-- Expanded the offline benchmark to 401 deterministic contracts, including 176 clean controls; the original open challenge result is now 5/8, with three semantic misses retained.
+- Expanded the offline benchmark to 474 deterministic contracts, including 212 clean controls; the original open challenge result is now 6/8, with two semantic misses retained.
+- Share conservative prose eligibility between the two workflow rules while preserving URL path/query data and keeping command/credential checks independent.
 - Interpret rm, git clean, and docker system prune options with a bounded shell tokenizer, including reordered/split/long flags, option values, command boundaries, and preview or interactive execution modes.
 - Fetch only each pinned benchmark snapshot rather than repository history with lazy blobs, and time out stalled Git commands after 180 seconds.
 
 ### Fixed
 
+- Detect the unchanged known bulk environment-upload challenge without needing literal credentials; preserve generic, non-sensitive finding messages and synchronize rule inspection, suppressions, and SARIF/config schema metadata.
 - Detect the original known `harmful-prose` challenge without rewriting its input or labels; synchronize rule inspection, suppressions, and SARIF/config schema metadata for the new rule.
 - Recognize a narrowly labeled prohibition covering a closed command block or a contiguous list, without exempting unlabeled code, unclosed fences, active later instructions, exceptions, or literal credentials.
 - Match code-fence delimiters by marker and minimum length, rather than toggling code context for any backtick or tilde line.

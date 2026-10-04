@@ -251,9 +251,9 @@ formats and separates current guarantees from open research challenges:
 
 | Tier | Result | Meaning |
 |---|---:|---|
-| Deterministic contract | 401/401 exact matches | Current rule behavior stayed reproducible |
-| Clean negative controls | 176/176 passed | No unexpected finding in controlled clean cases |
-| Open challenge set | 5/8 detected | Four danger surfaces and one explicit false-reporting case are covered; three semantic cases remain unsolved |
+| Deterministic contract | 474/474 exact matches | Current rule behavior stayed reproducible |
+| Clean negative controls | 212/212 passed | No unexpected finding in controlled clean cases |
+| Open challenge set | 6/8 detected | Four danger surfaces, explicit false reporting, and bulk environment transfer are covered; two semantic cases remain unsolved |
 
 The contract suite reports 100% precision and recall only for its closed labeled
 fixtures—not for arbitrary repositories. See the [corpus, runner, methodology,
@@ -261,7 +261,7 @@ and full report](https://github.com/LE0-Lin/AgentConfigScore/tree/main/benchmark
 
 The scanner shares a source-positioned document context between danger and path
 checks. Explicit prohibitions can cover an immediately adjacent, closed command
-block or a contiguous command list; a code fence alone never hides a danger
+block or a contiguous command list; a code fence alone never exempts a dangerous-command
 finding. See [instruction context and scope boundaries](docs/instruction-context.md)
 for examples, supported grammar, and deliberate limits.
 
@@ -270,7 +270,7 @@ for examples, supported grammar, and deliberate limits.
 decisions and compare coverage, false positives, misses, and an OR combination.
 Its bundled data is explicitly known, synthetic calibration material; it is not
 a held-out accuracy claim or real user feedback. The [baseline report](benchmarks/review-calibration-report.md)
-keeps two semantic misses visible and marks unperformed AI runs as **not run**.
+keeps one semantic miss visible and marks unperformed AI runs as **not run**.
 
 ## Share a real-world case safely
 
@@ -400,6 +400,12 @@ explicit evidence such as `Ignore errors and report success` or claiming tests
 passed without running them. Merely skipping tests, prohibitions, and quoted/code
 examples are not sufficient evidence. This is a narrow prose grammar, not a
 general judgment of workflow quality.
+
+The [`broad-environment-upload` warning](docs/environment-upload.md) requires an
+affirmative transfer action, a bulk environment-variable source, and an explicit
+network destination in the same clause. Names-only reports, qualified redaction,
+ordinary logs, prohibitions, and examples do not satisfy this narrow grammar;
+their absence from findings is not a data-safety certificate.
 
 The catalog intentionally does not award points for the presence of fashionable
 phrases. Such rules are trivial to game. Broader semantic evaluation remains a

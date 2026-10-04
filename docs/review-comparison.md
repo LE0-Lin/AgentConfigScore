@@ -24,7 +24,7 @@ not as proof of a security defect. It does not apply custom policies or
 suppressions. No numeric score threshold defines the reference label.
 
 The [committed calibration report](../benchmarks/review-calibration-report.md)
-shows two known semantic misses on eleven provisionally resolved cases. One
+shows one known semantic miss on eleven provisionally resolved cases. One
 ambiguous case is excluded because its reference label is unresolved. AI and
 hybrid results say **not run**, not zero or perfect accuracy.
 

@@ -61,6 +61,7 @@
               "kubectl-delete-namespace",
               "prompt-injection-override",
               "false-success-report",
+              "broad-environment-upload",
               "openai-key",
               "github-token",
               "aws-access-key",

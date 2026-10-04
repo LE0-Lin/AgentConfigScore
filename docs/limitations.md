@@ -28,7 +28,7 @@ The scanner also builds a shared, source-positioned document context once per
 file. A narrowly recognized English prohibition can cover an immediately adjacent
 closed fence or a contiguous list of direct command entries. This is not a full
 Markdown parser or an intent classifier: unlabeled code remains active for
-danger rules, unclosed fences do not inherit prohibitions, and literal
+dangerous-command rules, unclosed fences do not inherit prohibitions, and literal
 credentials are checked independently. See the supported grammar and safety
 boundaries in [instruction context](instruction-context.md).
 
@@ -58,6 +58,17 @@ and quoted/code examples are not enough. It does not combine evidence across
 sentences or lines, inspect actual test execution, or judge arbitrary workflow
 intent. Other harmful prose can still pass. See the [supported grammar and
 negative controls](verification-reporting.md).
+
+## Bulk environment transfers
+
+The `broad-environment-upload` warning requires an explicit transfer action,
+a full environment-variable source, and a network sink in one English prose
+clause. Names-only metadata, qualified redaction, logs, prohibitions, and code
+examples do not satisfy this grammar. The scanner does not examine the process
+environment, verify sanitization, resolve destinations, or prove malicious
+intent. Literal loopback is excluded without analyzing forwarding. Shell uploads,
+other languages, and arbitrary paraphrases remain unsupported. See the
+[supported evidence and deliberate limits](environment-upload.md).
 
 ## Local Markdown links
 
@@ -106,9 +117,9 @@ judgment requires a separately evaluated model-assisted mode and a labeled
 corpus, not a stronger marketing claim for the deterministic score.
 
 The offline [Adversarial Benchmark v1](../benchmarks/adversarial-v1-report.md)
-keeps both sides visible: 401/401 maintained deterministic contracts currently
-match, while 5/8 labeled challenges are detected. The three remaining misses are
-semantic cases. Fixing one already-known false-reporting case is development
+keeps both sides visible: 474/474 maintained deterministic contracts currently
+match, while 6/8 labeled challenges are detected. The two remaining misses are
+semantic cases. Fixing already-known false-reporting and environment-upload cases is development
 progress, not an independent accuracy estimate.
 The contract figure is a regression guarantee for a closed fixture suite, not a
 real-world accuracy estimate.

@@ -94,7 +94,7 @@ source offsets, its block kind, and any recognized prohibition scope. Danger
 candidates are then interpreted with the command grammar and this context; local
 path checks reuse the same fence boundaries. No instruction or command is executed.
 Literal credentials bypass danger-context exemptions. The public report schema
-and stable rule IDs are unchanged.
+is unchanged, and existing stable rule IDs are retained.
 
 The supported fence subset follows the marker and length rules in the
 [CommonMark fenced-code specification](https://spec.commonmark.org/0.31.2/#fenced-code-blocks):
@@ -104,11 +104,15 @@ backtick info strings cannot contain backticks. Fences indented by zero to three
 spaces are supported. Block-quote containers, deeply nested list containers,
 indented code blocks, front matter, and a complete Markdown AST are not modeled.
 
-The context layer is shared by danger and path checks, not yet by all rules.
+The context layer is shared by dangerous-command and path checks, not yet by all rules.
+It also supplies prose/list eligibility for [misleading verification reporting](verification-reporting.md)
+and [bulk environment-upload warnings](environment-upload.md). Those narrow
+**prose** rules decline code/quoted examples, unlike dangerous-command rules;
+that is not a blanket exemption for dangerous commands or literal credentials.
 Contradiction detection still uses conservative exact directive-body matching
 and file precedence; duplication and token budgeting still consider raw text.
-This change does not solve the four published semantic challenge misses or turn
-an A 100 score into an instruction-quality guarantee.
+Context alone does not solve arbitrary semantic challenges or turn an A 100
+score into an instruction-quality guarantee.
 
 See the [score contract and limitations](limitations.md) and the
 [offline adversarial benchmark](../benchmarks/adversarial-v1-report.md).

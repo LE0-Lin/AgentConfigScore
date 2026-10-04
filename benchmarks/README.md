@@ -18,29 +18,29 @@ answers as clean or unknown API cost as zero.
 
 The bundled [calibration corpus](review-calibration.json) has twelve synthetic,
 already-known inputs with provisional labels, not an independent holdout. Its
-[local baseline report](review-calibration-report.md) deliberately retains two
-semantic misses and says AI/hybrid **not run**. This case-level task is broader
+[local baseline report](review-calibration-report.md) deliberately retains one
+semantic miss and says AI/hybrid **not run**. This case-level task is broader
 than the exact-rule contract below; their metrics are not interchangeable.
 
 See [protocol, runnable commands, privacy boundaries, and holdout requirements](../docs/review-comparison.md).
 
 ## Adversarial mutation Benchmark v1
 
-Benchmark v1 contains 401 deterministic contract cases and 8 explicitly labeled
+Benchmark v1 contains 474 deterministic contract cases and 8 explicitly labeled
 open challenges. The contracts cover positive detections and clean negative
 controls across `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, legacy and modern Cursor
 rules, and GitHub Copilot instructions.
 
 The current committed result is:
 
-- 401/401 exact contract matches;
-- 226 expected rule detections with no extra or missing rule IDs;
-- 176/176 clean negative controls;
-- 5/8 challenge cases detected: four danger surfaces and one explicit false-reporting directive.
+- 474/474 exact contract matches;
+- 263 expected rule detections with no extra or missing rule IDs;
+- 212/212 clean negative controls;
+- 6/8 challenge cases detected: four danger surfaces, explicit false reporting, and bulk environment transfer.
 
 The 100% contract precision and recall describe this closed, maintained test
-suite only. They are not estimates of real-world precision or recall. The 5/8
-challenge result—and the three remaining semantic misses—is published beside
+suite only. They are not estimates of real-world precision or recall. The 6/8
+challenge result—and the two remaining semantic misses—is published beside
 them to make that boundary impossible to miss.
 
 Run the fully offline benchmark:
@@ -65,6 +65,11 @@ The verification-reporting contracts cover explicit concealment and false
 passing claims alongside prohibitions, honest skipped-test reports, quoted/code
 examples, and unrelated sentences. The original harmful-prose challenge is
 retained unchanged; its detection is development evidence, not a held-out result.
+
+The bulk-environment contracts require a transfer action, a full variable-value
+source, and a network sink in the same clause. They pair active transfers with
+names-only metadata, qualified redaction, logs, loopback, and prohibited/example
+controls. The original environment-upload challenge input is also unchanged.
 
 ## Real-repository smoke benchmark
 
