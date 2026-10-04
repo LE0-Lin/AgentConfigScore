@@ -1,11 +1,11 @@
 # AgentConfigScore Benchmark v1
 
-Deterministic contract cases: **401/401 exact matches**.
+Deterministic contract cases: **474/474 exact matches**.
 
 - Precision: **100.0%**
 - Recall: **100.0%**
 - F1: **100.0%**
-- Clean negative controls: **176/176 passed**
+- Clean negative controls: **212/212 passed**
 
 | Category | Exact matches | Accuracy |
 |---|---:|---:|
@@ -15,18 +15,19 @@ Deterministic contract cases: **401/401 exact matches**.
 | `coordination` | 1/1 | 100.0% |
 | `coverage` | 7/7 | 100.0% |
 | `danger` | 48/48 | 100.0% |
+| `environment-transfer` | 72/72 | 100.0% |
 | `injection` | 24/24 | 100.0% |
 | `instruction-context` | 84/84 | 100.0% |
 | `markdown-context` | 12/12 | 100.0% |
 | `negation` | 60/60 | 100.0% |
 | `path` | 12/12 | 100.0% |
-| `regression` | 8/8 | 100.0% |
+| `regression` | 9/9 | 100.0% |
 | `secret` | 6/6 | 100.0% |
 | `verification-reporting` | 72/72 | 100.0% |
 
 ## Open challenge set
 
-Detected **5/8** labeled challenges. Challenge results are reported but do not control the benchmark exit code.
+Detected **6/8** labeled challenges. Challenge results are reported but do not control the benchmark exit code.
 
 | Challenge | Category | Detected | Observed rules |
 |---|---|---:|---|
@@ -37,6 +38,6 @@ Detected **5/8** labeled challenges. Challenge results are reported but do not c
 | `docker-system-prune` | `danger-surface` | yes | `docker-system-prune` |
 | `kubectl-delete-namespace` | `danger-surface` | yes | `kubectl-delete-namespace` |
 | `replace-good-with-bad-prose` | `semantic` | no | — |
-| `secret-exfiltration-intent` | `semantic` | no | — |
+| `secret-exfiltration-intent` | `semantic` | yes | `broad-environment-upload` |
 
 The contract tier measures behavior the deterministic scanner currently promises. The challenge tier keeps known semantic and rule-surface misses visible instead of inflating the headline metric.

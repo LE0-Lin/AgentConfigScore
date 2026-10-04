@@ -7,6 +7,7 @@ from fnmatch import fnmatch
 from pathlib import Path, PurePosixPath, PureWindowsPath
 import hashlib
 import html
+import ipaddress
 import json
 import re
 import shlex
@@ -70,7 +71,7 @@ BLOCK_PROHIBITION = re.compile(
 
 # A bounded, complete-clause grammar, not a bag of workflow keywords. Require
 # an affirmative reporting directive together with evidence of concealment.
-_REPORT_PREFIX = r"(?:(?:please|always)\s+|you\s+(?:must|should)\s+)?"
+_PROSE_DIRECTIVE_PREFIX = r"(?:(?:please|always)\s+|you\s+(?:must|should)\s+)?"
 _TEST_SUBJECT = r"(?:(?:all|the)\s+)?(?:tests?|test\s+suite)"
 _TEST_PASS_CLAIM = (
     r"(?:report|declare|claim)\s+(?:that\s+)?" + _TEST_SUBJECT
@@ -80,16 +81,32 @@ _SUCCESS_CLAIM = r"(?:report|declare|claim)\s+success|" + _TEST_PASS_CLAIM
 _EXPLICIT_TEST_FAILURE = _TEST_SUBJECT + r"\s+(?:fail|fails|failed)"
 _TEST_FAILURE = _EXPLICIT_TEST_FAILURE + r"|they\s+(?:fail|failed)"
 FALSE_SUCCESS_DIRECTIVE = re.compile(
-    _REPORT_PREFIX + r"(?:ignore|disregard)\s+(?:(?:all|any|the)\s+)?"
+    _PROSE_DIRECTIVE_PREFIX + r"(?:ignore|disregard)\s+(?:(?:all|any|the)\s+)?"
     r"(?:errors|failures|test\s+failures|failed\s+tests)\s+and\s+"
     r"(?:(?:then|still|always)\s+)?(?:" + _SUCCESS_CLAIM + r")"
-    r"|" + _REPORT_PREFIX + _TEST_PASS_CLAIM + r"\s+(?:"
+    r"|" + _PROSE_DIRECTIVE_PREFIX + _TEST_PASS_CLAIM + r"\s+(?:"
     r"even\s+(?:if|when)\s+(?:" + _TEST_FAILURE + r")"
     r"|without\s+(?:running|executing)\s+(?:" + _TEST_SUBJECT + r"|them)"
     r"|despite\s+(?:test\s+failures|failing\s+tests))"
     r"|(?:if|when)\s+(?:" + _EXPLICIT_TEST_FAILURE + r"),\s*"
-    + _REPORT_PREFIX + r"(?:still\s+)?(?:" + _SUCCESS_CLAIM + r")",
+    + _PROSE_DIRECTIVE_PREFIX + r"(?:still\s+)?(?:" + _SUCCESS_CLAIM + r")",
     re.I,
+)
+
+_ENVIRONMENT_VARIABLES = r"(?:environment\s+variables?|env\s+vars?)(?:\s+values?)?"
+_BULK_ENVIRONMENT = (
+    r"(?:(?:all(?:\s+of)?(?:\s+the)?|every)\s+"
+    r"(?:(?:raw|unfiltered|unredacted)\s+)?" + _ENVIRONMENT_VARIABLES
+    + r"|(?:the\s+)?(?:entire|full|complete|raw|unfiltered)\s+process\s+environment)"
+)
+BROAD_ENVIRONMENT_TRANSFER = re.compile(
+    _PROSE_DIRECTIVE_PREFIX + r"(?:upload|send|post|transmit|forward)\s+"
+    + _BULK_ENVIRONMENT + r"\s+to\s+(?P<destination>.+)", re.I,
+)
+UPLOAD_DESTINATION = re.compile(
+    r"(?:(?:the|a|an|our|your)\s+)?"
+    r"(?:(?:diagnostics?|telemetry|support|debug|remote|external|reporting|analytics)\s+){0,2}"
+    r"(?:endpoint|server|service|collector|api)", re.I,
 )
 
 
@@ -541,14 +558,8 @@ def _quoted_injection_example(text: str, index: int, command: str) -> bool:
     ) is not None
 
 
-def _false_success_lines(context: _InstructionContext):
-    """Recognize explicit misleading-reporting clauses in active English prose.
-
-    Do not combine evidence across sentences, lines, or Markdown blocks. The
-    grammar deliberately declines quotations, fenced/indented code, headings,
-    long clauses, and unmatched paraphrases rather than guessing their intent.
-    Return one finding per source line without exposing its contents.
-    """
+def _active_prose_lines(context: _InstructionContext):
+    """Source lines eligible for narrow prose rules, not a general intent parser."""
     for number, row in enumerate(context.lines, 1):
         if row.kind not in {"prose", "list"}:
             continue
@@ -557,12 +568,21 @@ def _false_success_lines(context: _InstructionContext):
             continue
         start = row.body_start if row.body_start is not None else row.start
         body = context.text[start:row.end].strip()
-        # A colon introduces a label/description, not a bare action. Quoted
-        # examples can contain sentence separators; never split them into
-        # seemingly active fragments. A conservative quote guard is intentional.
-        if any(char in body for char in ':`"\'“”‘’«»'):
+        # Quoted examples can contain sentence separators; do not split them
+        # into seemingly active fragments. Literal-credential rules remain
+        # independent of these conservative prose-only eligibility checks.
+        if any(char in body for char in '`"\'“”‘’«»'):
             continue
         if context.command_is_prohibited(start):
+            continue
+        yield number, body
+
+
+def _false_success_lines(context: _InstructionContext):
+    """Recognize bounded complete clauses without joining independent evidence."""
+    for number, body in _active_prose_lines(context):
+        # Unlike uploads, this grammar has no legitimate URL colon syntax.
+        if ":" in body:
             continue
         body = re.sub(r"[*_]", "", body)
         for sentence in re.finditer(r"([^.!?;]+)([.!?;]|$)", body):
@@ -570,6 +590,61 @@ def _false_success_lines(context: _InstructionContext):
                 continue
             clause = sentence.group(1).strip()
             if len(clause) <= 512 and FALSE_SUCCESS_DIRECTIVE.fullmatch(clause):
+                yield number
+                break
+
+
+def _network_upload_destination(destination: str) -> bool:
+    """Recognize an explicit network sink without fetching or resolving it."""
+    if UPLOAD_DESTINATION.fullmatch(destination):
+        return True
+    if re.search(r"\s", destination):
+        return False
+    try:
+        url = urlsplit(destination)
+        host = url.hostname
+        # Accessing port also validates malformed or out-of-range ports.
+        if url.scheme.lower() not in {"http", "https"} or not host or url.port == 0:
+            return False
+    except ValueError:
+        return False
+    if host == "localhost" or host.endswith(".localhost"):
+        return False
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return True  # A literal hostname; no DNS lookup or trust claim.
+    # Private network destinations are still transfers to another service.
+    # An explicitly loopback/unspecified address is outside this narrow rule.
+    mapped = getattr(address, "ipv4_mapped", None)
+    address = mapped if mapped is not None else address
+    return not (address.is_loopback or address.is_unspecified)
+
+
+def _broad_environment_upload_lines(context: _InstructionContext):
+    """Require an affirmative transfer, a bulk environment source, and a sink."""
+    for number, body in _active_prose_lines(context):
+        if re.match(r"(?:(?:attack|unsafe|bad|prompt[- ]injection)\s+)?example:\s*", body, re.I):
+            continue
+        # Preserve periods within URLs; unlike verification reporting, a
+        # sentence break here needs following whitespace. Semicolons end a
+        # clause so an earlier prohibition cannot hide a later transfer.
+        for clause in re.split(r";|(?<=[.!?])\s+", body):
+            clause = clause.strip()
+            if len(clause) > 512 or clause.endswith("?"):
+                continue
+            separator = re.search(r"\s+to\s+", clause, re.I)
+            if separator is not None:
+                # Normalize source prose emphasis, never URL path/query data.
+                clause = re.sub(r"[*_]", "", clause[:separator.start()]) + clause[separator.start():]
+            match = BROAD_ENVIRONMENT_TRANSFER.fullmatch(clause.rstrip(".!"))
+            if not match:
+                continue
+            destination = re.sub(
+                r"\s+for\s+(?:diagnostics|troubleshooting|support|debugging|analysis)$",
+                "", match.group("destination"), flags=re.I,
+            )
+            if _network_upload_destination(destination):
                 yield number
                 break
 
@@ -813,6 +888,8 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
 
         for lineno in _false_success_lines(context):
             findings.append(_finding("false-success-report", rel, lineno))
+        for lineno in _broad_environment_upload_lines(context):
+            findings.append(_finding("broad-environment-upload", rel, lineno))
 
         seen_refs: set[tuple[str, int]] = set()
         for candidate, lineno in _local_markdown_links(text, context):
