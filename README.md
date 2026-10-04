@@ -251,9 +251,9 @@ formats and separates current guarantees from open research challenges:
 
 | Tier | Result | Meaning |
 |---|---:|---|
-| Deterministic contract | 328/328 exact matches | Current rule behavior stayed reproducible |
-| Clean negative controls | 140/140 passed | No unexpected finding in controlled clean cases |
-| Open challenge set | 4/8 detected | Four danger surfaces are covered; four semantic cases remain unsolved |
+| Deterministic contract | 401/401 exact matches | Current rule behavior stayed reproducible |
+| Clean negative controls | 176/176 passed | No unexpected finding in controlled clean cases |
+| Open challenge set | 5/8 detected | Four danger surfaces and one explicit false-reporting case are covered; three semantic cases remain unsolved |
 
 The contract suite reports 100% precision and recall only for its closed labeled
 fixtures—not for arbitrary repositories. See the [corpus, runner, methodology,
@@ -270,7 +270,7 @@ for examples, supported grammar, and deliberate limits.
 decisions and compare coverage, false positives, misses, and an OR combination.
 Its bundled data is explicitly known, synthetic calibration material; it is not
 a held-out accuracy claim or real user feedback. The [baseline report](benchmarks/review-calibration-report.md)
-keeps three semantic misses visible and marks unperformed AI runs as **not run**.
+keeps two semantic misses visible and marks unperformed AI runs as **not run**.
 
 ## Share a real-world case safely
 
@@ -393,7 +393,13 @@ agent-config-score rules dead-path --json
 
 The scanner, scoring categories, CLI rule inspection, SARIF metadata, suppression validation, and config JSON Schema all derive from or are tested against the same stable catalog.
 
-Current rule families include context size, cross-file duplication, contradictions, dead paths, dangerous shell and infrastructure commands, common credential patterns, and missing canonical `AGENTS.md` coordination.
+Current rule families include context size, cross-file duplication, contradictions, dead paths, dangerous shell and infrastructure commands, common credential patterns, explicit misleading verification reporting, and missing canonical `AGENTS.md` coordination.
+
+The [`false-success-report` rule](docs/verification-reporting.md) requires
+explicit evidence such as `Ignore errors and report success` or claiming tests
+passed without running them. Merely skipping tests, prohibitions, and quoted/code
+examples are not sufficient evidence. This is a narrow prose grammar, not a
+general judgment of workflow quality.
 
 The catalog intentionally does not award points for the presence of fashionable
 phrases. Such rules are trivial to game. Broader semantic evaluation remains a

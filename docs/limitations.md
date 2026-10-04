@@ -49,6 +49,16 @@ still trigger warnings; use a reasoned suppression after review. This rule does
 not detect arbitrary paraphrases, other languages, or instructions delivered at
 runtime through tool output or remote content.
 
+## Verification reporting
+
+The `false-success-report` error requires a complete English prose clause that
+explicitly conceals errors while reporting success, or claims tests passed
+despite failure or without running them. Merely skipping tests, prohibitions,
+and quoted/code examples are not enough. It does not combine evidence across
+sentences or lines, inspect actual test execution, or judge arbitrary workflow
+intent. Other harmful prose can still pass. See the [supported grammar and
+negative controls](verification-reporting.md).
+
 ## Local Markdown links
 
 Simple inline links and image destinations are checked relative to the instruction
@@ -96,9 +106,10 @@ judgment requires a separately evaluated model-assisted mode and a labeled
 corpus, not a stronger marketing claim for the deterministic score.
 
 The offline [Adversarial Benchmark v1](../benchmarks/adversarial-v1-report.md)
-keeps both sides visible: 328/328 maintained deterministic contracts currently
-match, while 4/8 labeled challenges are detected. The four remaining misses are
-semantic cases rather than literal command patterns.
+keeps both sides visible: 401/401 maintained deterministic contracts currently
+match, while 5/8 labeled challenges are detected. The three remaining misses are
+semantic cases. Fixing one already-known false-reporting case is development
+progress, not an independent accuracy estimate.
 The contract figure is a regression guarantee for a closed fixture suite, not a
 real-world accuracy estimate.
 

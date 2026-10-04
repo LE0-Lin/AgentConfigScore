@@ -68,6 +68,30 @@ BLOCK_PROHIBITION = re.compile(
     re.I,
 )
 
+# A bounded, complete-clause grammar, not a bag of workflow keywords. Require
+# an affirmative reporting directive together with evidence of concealment.
+_REPORT_PREFIX = r"(?:(?:please|always)\s+|you\s+(?:must|should)\s+)?"
+_TEST_SUBJECT = r"(?:(?:all|the)\s+)?(?:tests?|test\s+suite)"
+_TEST_PASS_CLAIM = (
+    r"(?:report|declare|claim)\s+(?:that\s+)?" + _TEST_SUBJECT
+    + r"\s+(?:(?:as|are|were|have)\s+)?(?:passed|passing|successful)"
+)
+_SUCCESS_CLAIM = r"(?:report|declare|claim)\s+success|" + _TEST_PASS_CLAIM
+_EXPLICIT_TEST_FAILURE = _TEST_SUBJECT + r"\s+(?:fail|fails|failed)"
+_TEST_FAILURE = _EXPLICIT_TEST_FAILURE + r"|they\s+(?:fail|failed)"
+FALSE_SUCCESS_DIRECTIVE = re.compile(
+    _REPORT_PREFIX + r"(?:ignore|disregard)\s+(?:(?:all|any|the)\s+)?"
+    r"(?:errors|failures|test\s+failures|failed\s+tests)\s+and\s+"
+    r"(?:(?:then|still|always)\s+)?(?:" + _SUCCESS_CLAIM + r")"
+    r"|" + _REPORT_PREFIX + _TEST_PASS_CLAIM + r"\s+(?:"
+    r"even\s+(?:if|when)\s+(?:" + _TEST_FAILURE + r")"
+    r"|without\s+(?:running|executing)\s+(?:" + _TEST_SUBJECT + r"|them)"
+    r"|despite\s+(?:test\s+failures|failing\s+tests))"
+    r"|(?:if|when)\s+(?:" + _EXPLICIT_TEST_FAILURE + r"),\s*"
+    + _REPORT_PREFIX + r"(?:still\s+)?(?:" + _SUCCESS_CLAIM + r")",
+    re.I,
+)
+
 
 @dataclass(frozen=True)
 class _ProhibitionScope:
@@ -517,6 +541,39 @@ def _quoted_injection_example(text: str, index: int, command: str) -> bool:
     ) is not None
 
 
+def _false_success_lines(context: _InstructionContext):
+    """Recognize explicit misleading-reporting clauses in active English prose.
+
+    Do not combine evidence across sentences, lines, or Markdown blocks. The
+    grammar deliberately declines quotations, fenced/indented code, headings,
+    long clauses, and unmatched paraphrases rather than guessing their intent.
+    Return one finding per source line without exposing its contents.
+    """
+    for number, row in enumerate(context.lines, 1):
+        if row.kind not in {"prose", "list"}:
+            continue
+        raw = context.text[row.start:row.end]
+        if raw.startswith(("    ", "\t")) or raw.lstrip().startswith(">"):
+            continue
+        start = row.body_start if row.body_start is not None else row.start
+        body = context.text[start:row.end].strip()
+        # A colon introduces a label/description, not a bare action. Quoted
+        # examples can contain sentence separators; never split them into
+        # seemingly active fragments. A conservative quote guard is intentional.
+        if any(char in body for char in ':`"\'“”‘’«»'):
+            continue
+        if context.command_is_prohibited(start):
+            continue
+        body = re.sub(r"[*_]", "", body)
+        for sentence in re.finditer(r"([^.!?;]+)([.!?;]|$)", body):
+            if sentence.group(2) == "?":
+                continue
+            clause = sentence.group(1).strip()
+            if len(clause) <= 512 and FALSE_SUCCESS_DIRECTIVE.fullmatch(clause):
+                yield number
+                break
+
+
 def _normalized_line(line: str) -> str | None:
     line = re.sub(r"[`*_>#-]", "", line.strip().lower())
     line = re.sub(r"\s+", " ", line).strip()
@@ -753,6 +810,9 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
                 ):
                     continue
                 findings.append(_finding(pattern_rule.rule.code, rel, _line(text, index)))
+
+        for lineno in _false_success_lines(context):
+            findings.append(_finding("false-success-report", rel, lineno))
 
         seen_refs: set[tuple[str, int]] = set()
         for candidate, lineno in _local_markdown_links(text, context):

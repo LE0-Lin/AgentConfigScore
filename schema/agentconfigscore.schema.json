@@ -60,6 +60,7 @@
               "docker-system-prune",
               "kubectl-delete-namespace",
               "prompt-injection-override",
+              "false-success-report",
               "openai-key",
               "github-token",
               "aws-access-key",
