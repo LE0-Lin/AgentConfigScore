@@ -1,0 +1,13 @@
+{
+  "status": "response_validated_unscored",
+  "packet_sha256": "12a6dadbf07760b8c13b2f17456bf8117e8ce6176ace82e444cfc1be48939b2e",
+  "response_sha256": "50c44a5a169587d1debf5c626002dca88d5a698fd998d56998736bb3696d7c16",
+  "reviewer": "Codex fresh-context sub-agent (exact model/version unavailable)",
+  "run_id": "fresh-context-pilot-01",
+  "packet_cases": 1,
+  "answered_cases": 1,
+  "missing_cases": 0,
+  "abstained_cases": 0,
+  "reference_labels": "not_used",
+  "metrics": null
+}

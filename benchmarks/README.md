@@ -29,6 +29,12 @@ contains five pinned public root instruction files from a registered twelve-repo
 registry. It retains all seven exclusions and third-party license notices, but
 has no human labels or model results. Candidate export is allowed; scoring is
 refused until the research prerequisites are actually satisfied.
+A [bounded-context extension](prospective-review-v1/context/README.md) retains
+referenced text, complete Git-tree audit archives, path-origin alternatives,
+and omissions. Export is supported; tool-checkout parity remains a scoring gate.
+A separate [one-case fresh-context pilot](prospective-review-v1/pilot/README.md)
+retains an actual AI response and its integrity validation. It has no human
+reference labels, matched tool/hybrid result, or correctness metrics.
 
 ## Adversarial mutation Benchmark v1
 

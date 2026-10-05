@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "collected_at_utc": "2026-10-05T05:57:27.143799+00:00",
+  "status": "unreviewed_context_only",
+  "parent_corpus_sha256": "1e90ef5aaba464d4ddbd308e11a5bb1e9e2c073a48bd0b34d927da6ba8efb12d",
+  "corpus_sha256": "2f6fbbc6d77c43e688ea0d6020cf8a74232faf6ce2eaeee140eb27015dfb8b7d",
+  "protocol_sha256": "7ae0c4dbffd7f14eb95306b6094f990b5e751526e43377f56209401a16b6908a",
+  "cases": [
+    {
+      "id": "astral-sh--ruff",
+      "root_source_path": "AGENTS.md",
+      "tree_entries": 12085,
+      "additional_documents": 12,
+      "additional_bytes": 130198,
+      "reference_facts": 252,
+      "omissions": [
+        {
+          "path": "BREAKING_CHANGES.md",
+          "reason": "context_byte_limit"
+        },
+        {
+          "path": "CHANGELOG.md",
+          "reason": "context_byte_limit"
+        },
+        {
+          "path": "docs/configuration.md",
+          "reason": "context_byte_limit"
+        },
+        {
+          "path": "agents/references/cli-threat-model.md",
+          "reason": "context_byte_limit"
+        },
+        {
+          "path": "agents/references/playground-threat-model.md",
+          "reason": "document_count_limit"
+        }
+      ]
+    },
+    {
+      "id": "vercel--next.js",
+      "root_source_path": "AGENTS.md",
+      "tree_entries": 50749,
+      "additional_documents": 10,
+      "additional_bytes": 25052,
+      "reference_facts": 228,
+      "omissions": []
+    },
+    {
+      "id": "microsoft--vscode",
+      "root_source_path": "AGENTS.md",
+      "tree_entries": 24533,
+      "additional_documents": 3,
+      "additional_bytes": 45300,
+      "reference_facts": 64,
+      "omissions": [
+        {
+          "path": ".github/instructions/coding-guidelines.instructions.md",
+          "reason": "document_depth_limit"
+        }
+      ]
+    },
+    {
+      "id": "huggingface--transformers",
+      "root_source_path": ".ai/AGENTS.md",
+      "tree_entries": 7856,
+      "additional_documents": 2,
+      "additional_bytes": 39780,
+      "reference_facts": 75,
+      "omissions": []
+    },
+    {
+      "id": "scikit-learn--scikit-learn",
+      "root_source_path": "AGENTS.md",
+      "tree_entries": 2080,
+      "additional_documents": 0,
+      "additional_bytes": 0,
+      "reference_facts": 0,
+      "omissions": []
+    }
+  ]
+}

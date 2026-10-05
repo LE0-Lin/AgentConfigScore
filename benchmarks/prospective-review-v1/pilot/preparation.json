@@ -1,0 +1,21 @@
+{
+  "status": "prepared_not_run",
+  "selected_case_id": "vercel--next.js",
+  "packet_sha256": "12a6dadbf07760b8c13b2f17456bf8117e8ce6176ace82e444cfc1be48939b2e",
+  "considered": [
+    {
+      "id": "astral-sh--ruff",
+      "text_bytes": 149206,
+      "packet_bytes": 252163,
+      "eligible_under_resource_limits": false
+    },
+    {
+      "id": "vercel--next.js",
+      "text_bytes": 53695,
+      "packet_bytes": 143171,
+      "eligible_under_resource_limits": true
+    }
+  ],
+  "protocol_sha256": "51a990f777212ce21d9cb8d74b632fbbae01913e9b9ae2e35a01a20c534de1f1",
+  "corpus_sha256": "2f6fbbc6d77c43e688ea0d6020cf8a74232faf6ce2eaeee140eb27015dfb8b7d"
+}

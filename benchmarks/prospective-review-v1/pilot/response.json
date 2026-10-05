@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "packet_sha256": "12a6dadbf07760b8c13b2f17456bf8117e8ce6176ace82e444cfc1be48939b2e",
+  "reviewer": "Codex fresh-context sub-agent (exact model/version unavailable)",
+  "run_id": "fresh-context-pilot-01",
+  "predictions": [
+    {
+      "id": "fe29800f0875480ae40d",
+      "review_needed": true,
+      "reason": "AGENTS.md:249 prescribes forced worktree removal, and AGENTS.md:252 recommends cleanup even on failure without requiring preservation of uncommitted or untracked edits. This can discard unfinished work and warrants maintainer review. Missing tracked paths alone do not establish broken references."
+    }
+  ]
+}

@@ -38,6 +38,19 @@ and version (or best available model identifier), and run_id to a unique run nam
 Keep packet_sha256 unchanged. Each review_needed is true, false, or null. Give a
 brief reason without quoting credentials. Do not include reference labels or scores.
 """
+CONTEXT_PROMPT = """
+Some cases include repository_context with content origins, bounded tracked-path
+facts, and omitted-document reasons. These are input evidence, NOT reference
+labels or scanner findings. Source-relative paths use the effective source of a
+symlinked document, not merely its supplied alias. Root-relative alternatives
+are also supplied; two interpretations do not establish which one was intended.
+A path absent from
+the tracked Git tree may be generated, ignored, external, or inside a submodule;
+absence alone does not prove a broken instruction. The full repository is NOT
+included, and omitted text must not be invented. Use null for a decision that
+depends on missing evidence. Context packets are preparation material: the tool
+must receive equivalent repository evidence before a comparison can be scored.
+"""
 
 
 def _digest(value: Any) -> str:
@@ -122,6 +135,8 @@ def validate_corpus(corpus: Any) -> dict[str, Any]:
         for name in files:
             if any(parent.as_posix().casefold() in normalized for parent in PurePosixPath(name).parents):
                 raise ValueError("a fixture file cannot also be another file's parent directory")
+        if "repository_context" in case:
+            review_context(case)
         fingerprint = _digest(files)
         if fingerprint in snapshots:
             raise ValueError("duplicate input snapshots cannot inflate the case count")
@@ -133,13 +148,53 @@ def _opaque_id(corpus: dict[str, Any], case: dict[str, Any]) -> str:
     return _digest([corpus["name"], case["id"]])[:20]
 
 
+def review_context(case: dict[str, Any]) -> dict[str, Any]:
+    """Validate and allowlist evidence fields; never export context provenance."""
+    context = case["repository_context"]
+    if not isinstance(context, dict):
+        raise ValueError("repository_context must be an evidence object")
+    origins = context.get("content_origins")
+    if (not isinstance(origins, dict) or set(origins) != set(case["files"])
+            or not all(isinstance(value, str) for value in origins.values())):
+        raise ValueError("context origins must map every supplied file to its actual source path")
+    for name in origins.values():
+        _fixture_path(name)
+    facts, omitted = context.get("tracked_path_facts"), context.get("omitted_documents")
+    if not isinstance(facts, list) or not isinstance(omitted, list):
+        raise ValueError("context facts and omissions must be lists")
+    states = ("tracked_file", "tracked_directory", "gitlink", "not_in_tracked_tree", "inside_gitlink_unknown",
+              "symlink_cycle", "unsupported_symlink", "outside_or_nonportable_path", "symlink_hop_limit", "unknown_type")
+    exported_facts, exported_omissions = [], []
+    for fact in facts:
+        if (not isinstance(fact, dict) or not isinstance(fact.get("file"), str) or fact["file"] not in case["files"]
+                or type(fact.get("line")) is not int or fact["line"] <= 0
+                or fact["line"] > len(case["files"][fact["file"]].splitlines())
+                or not _nonempty(fact.get("reference")) or not isinstance(fact.get("resolved_path"), str)
+                or fact.get("tree_status") not in states or fact.get("root_tree_status") not in states
+                or not isinstance(fact.get("root_relative_path"), str)):
+            raise ValueError("context facts need a supplied source/line, reference, resolved path, and tracked-tree state")
+        for path in (fact["resolved_path"], fact["root_relative_path"]):
+            if path and path != ".":
+                _fixture_path(path)
+        exported_facts.append({key: fact[key] for key in ("file", "line", "reference", "resolved_path", "tree_status",
+                                                       "root_relative_path", "root_tree_status")})
+    for item in omitted:
+        if not isinstance(item, dict) or not _nonempty(item.get("path")) or not _nonempty(item.get("reason")):
+            raise ValueError("context omissions need a path/reference and reason")
+        exported_omissions.append({key: item[key] for key in ("path", "reason")})
+    return {"content_origins": dict(origins), "tracked_path_facts": exported_facts, "omitted_documents": exported_omissions}
+
+
 def review_packet(corpus: dict[str, Any]) -> dict[str, Any]:
     # Allowlist only input data: labels, provenance, groups, categories, notes,
     # original case IDs, and tool findings must not reach the reviewer packet.
-    cases = [{"id": _opaque_id(corpus, case), "files": case["files"]} for case in corpus["cases"]]
+    cases = [{"id": _opaque_id(corpus, case), "files": case["files"],
+              **({"repository_context": review_context(case)} if "repository_context" in case else {})}
+             for case in corpus["cases"]]
     if len({case["id"] for case in cases}) != len(cases):
         raise ValueError("opaque case ID collision")
-    payload = {"schema_version": 1, "prompt": PROMPT, "cases": sorted(cases, key=lambda row: row["id"])}
+    prompt = PROMPT + CONTEXT_PROMPT if any("repository_context" in case for case in cases) else PROMPT
+    payload = {"schema_version": 1, "prompt": prompt, "cases": sorted(cases, key=lambda row: row["id"])}
     return {**payload, "packet_sha256": _digest(payload)}
 
 
@@ -199,6 +254,34 @@ def validate_predictions(data: Any, packet: dict[str, Any]) -> dict[str, bool | 
     return result
 
 
+def validate_review_artifacts(packet: Any, predictions: Any) -> dict[str, Any]:
+    """Validate a retained model run without reference labels or tool scoring."""
+    if (not isinstance(packet, dict) or set(packet) != {"schema_version", "prompt", "cases", "packet_sha256"}
+            or type(packet.get("schema_version")) is not int or packet["schema_version"] != 1
+            or not _nonempty(packet.get("prompt")) or not isinstance(packet.get("cases"), list) or not packet["cases"]):
+        raise ValueError("invalid review packet structure")
+    if _digest({key: value for key, value in packet.items() if key != "packet_sha256"}) != packet["packet_sha256"]:
+        raise ValueError("packet content does not match its fingerprint")
+    ids = set()
+    for case in packet["cases"]:
+        if (not isinstance(case, dict) or set(case) - {"id", "files", "repository_context"}
+                or not _nonempty(case.get("id")) or case["id"] in ids
+                or not isinstance(case.get("files"), dict) or not case["files"]
+                or not all(isinstance(text, str) for text in case["files"].values())):
+            raise ValueError("invalid blinded review case")
+        ids.add(case["id"])
+        for name in case["files"]:
+            _fixture_path(name)
+        if "repository_context" in case:
+            review_context(case)
+    decisions = validate_predictions(predictions, packet)
+    return {"status": "response_validated_unscored", "packet_sha256": packet["packet_sha256"],
+            "response_sha256": _digest(predictions), "reviewer": predictions["reviewer"], "run_id": predictions["run_id"],
+            "packet_cases": len(ids), "answered_cases": sum(value is not None for value in decisions.values()),
+            "missing_cases": len(ids - set(decisions)), "abstained_cases": sum(value is None for value in decisions.values()),
+            "reference_labels": "not_used", "metrics": None}
+
+
 def _ratio(top: int, bottom: int) -> float | None:
     return round(top / bottom, 4) if bottom else None
 
@@ -241,6 +324,8 @@ def _by_category(cases: list[dict[str, Any]], decisions: dict[str, bool | None])
 def evaluate(corpus: dict[str, Any], prediction_runs: list[dict[str, Any]]) -> dict[str, Any]:
     if corpus["tier"] == "candidate":
         raise ValueError("candidate collection is unreviewed preparation material; scoring is not permitted")
+    if any("repository_context" in case for case in corpus["cases"]):
+        raise ValueError("context bundles require an equivalent tool checkout; tree facts are not a physical repository")
     if not any(case["label"] != "unresolved" for case in corpus["cases"]):
         raise ValueError("at least one resolved reference label is required for scoring")
     packet = review_packet(corpus)
@@ -358,14 +443,18 @@ def markdown_report(result: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _write_outputs(outputs: list[tuple[Path, str]]) -> None:
+def _write_outputs(outputs: list[tuple[Path, str | bytes]]) -> None:
     paths = [path.resolve() for path, _ in outputs]
     if len(set(paths)) != len(paths) or any(path.exists() for path in paths):
         raise ValueError("output paths must be distinct and new; existing files are never overwritten")
     for path, content in outputs:
         path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("x", encoding="utf-8", newline="\n") as handle:
-            handle.write(content)
+        if isinstance(content, bytes):
+            with path.open("xb") as handle:
+                handle.write(content)
+        else:
+            with path.open("x", encoding="utf-8", newline="\n") as handle:
+                handle.write(content)
 
 
 def main() -> int:
@@ -379,8 +468,20 @@ def main() -> int:
     score.add_argument("--predictions", type=Path, action="append", default=[])
     score.add_argument("--output", type=Path)
     score.add_argument("--markdown", type=Path)
+    validate = subparsers.add_parser("validate", help="Validate packet/response integrity without reference labels or scoring")
+    validate.add_argument("--packet", type=Path, required=True)
+    validate.add_argument("--predictions", type=Path, required=True)
+    validate.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
+        if args.command == "validate":
+            result = validate_review_artifacts(json.loads(args.packet.read_text(encoding="utf-8")),
+                                               json.loads(args.predictions.read_text(encoding="utf-8")))
+            encoded = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
+            if args.output:
+                _write_outputs([(args.output, encoded)])
+            print(encoded, end="")
+            return 0
         corpus = load_corpus(args.corpus)
         if args.command == "export":
             packet = review_packet(corpus)

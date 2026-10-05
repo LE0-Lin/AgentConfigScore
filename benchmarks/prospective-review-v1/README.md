@@ -1,8 +1,15 @@
 # Prospective review candidates v1
 
 **Status: five unreviewed public instruction snapshots, not a completed holdout
-or AI comparison.** No scanner predictions, model responses, human reference
-labels, user feedback, or accuracy estimates are included here.
+or AI comparison.** The original collection has no scanner predictions, human
+reference labels, user feedback, or accuracy estimates. A separate
+[single-case exploratory pilot](pilot/README.md) now retains one actual
+fresh-context AI response, unscored and not substituted for human labels.
+
+A subsequent [bounded-context capture](context/README.md) adds 27 documents,
+complete pinned Git trees, symlink origins, and source-relative/root-relative
+path facts. It retains all five cases and all missing-context limitations.
+Equivalent tool-checkout evidence, human labels, and a comparative model batch remain outstanding.
 
 The [registered protocol](protocol.json) was written before downloading the
 instruction contents or inspecting predictions. It names twelve repositories;
@@ -43,7 +50,7 @@ does not execute their commands, contact authors, or run the scanner/model.
 
 ## What is deliberately missing
 
-Only root instruction files were collected. Repository trees, linked documents,
+In the original `collected/` corpus, only root instruction files were collected. Repository trees, linked documents,
 code, nested instruction scopes, and command results are absent. A short file
 that delegates to another document is retained rather than silently replaced.
 Do not label omitted local paths as broken or treat absent context as a clean
