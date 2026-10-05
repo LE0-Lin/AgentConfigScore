@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "name": "prospective-review-v1-context",
+  "registered_at_utc": "2026-10-05T05:44:27Z",
+  "input_corpus_sha256": "1e90ef5aaba464d4ddbd308e11a5bb1e9e2c073a48bd0b34d927da6ba8efb12d",
+  "scanner_revision": "35f48d7a40d3a19a84fe1c6c4bc0c7378b122d43",
+  "selection": "Retain every one of the five previously collected cases, at its existing pinned revision. Do not add repositories, change root instruction text, replace difficult cases, inspect predictions, or run scanner rules.",
+  "pilot_disclosure": "The parent root files were already read as collection data. A tree-only query confirmed eleven instruction-named paths in VS Code; none of their additional contents or system predictions were inspected before this protocol. This is local registration, not externally timestamped preregistration.",
+  "maximum_tree_entries": 100000,
+  "maximum_documents_per_case": 12,
+  "maximum_document_bytes": 65536,
+  "maximum_context_bytes_per_case": 131072,
+  "maximum_document_depth": 2,
+  "maximum_symlink_hops": 8,
+  "maximum_reference_facts_per_case": 512,
+  "document_extensions": [".md", ".rst", ".txt"],
+  "method_amendment": {"recorded_at_utc": "2026-10-05T05:55:14Z", "previous_protocol_sha256": "31875626972d55b56afdcb427f12a5315c7bf167eb802d3373c1ea6b225d794f", "reason": "The first capture exposed ambiguous bare-path interpretation in symlinked root instructions. Before any reference labels or predictions, preserve both source-relative and repository-root-relative tree facts and traverse eligible documents under either interpretation. Keep all repositories, revisions, root text, and budgets unchanged. Retain the initial protocol and disclose this collection-method revision."},
+  "reference_selection": "Extract local Markdown link targets, simple backtick paths, and bare filename/path tokens with common text/code extensions. Ignore URLs and anchors. Preserve source-relative and repository-root-relative path interpretations without deciding author intent. Traverse eligible document references under either interpretation breadth-first in sorted path order, resolving local symlinks from their Git blobs. Retain every omission with its reason; grammar, depth and byte limits mean this is not complete semantic dependency discovery.",
+  "tree_boundary": "Require a nontruncated Git tree. Facts describe only paths tracked at this revision, not generated, ignored, runtime, external, or submodule contents. Not-in-tracked-tree is a fact, not a defect label. Preserve the complete captured tree separately in deterministic gzip archives; export bounded reference facts rather than tens of thousands of paths to the model.",
+  "privacy_exclusion": "Apply the parent's credential-shaped privacy guard to every additional text document. Keep the case and record the omitted document, never its matching value. Transport errors and changed pinned root contents fail the collection rather than becoming clean decisions.",
+  "review_boundary": "All reference labels remain unresolved and there are no declared human labelers. Exported context packets remain preparation material. Do not score a context bundle until the tool can consume equivalent repository evidence; do not fabricate a checkout from empty placeholder files. No AI review or human adjudication is performed by collection."
+}

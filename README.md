@@ -273,8 +273,11 @@ a held-out accuracy claim or real user feedback. The [baseline report](benchmark
 keeps one semantic miss visible and marks unperformed AI runs as **not run**.
 Five [pinned public candidate inputs](benchmarks/prospective-review-v1/README.md)
 are now collected separately, with registered sampling, retained exclusions, and
-license notices. They are unreviewed preparations; shared repository context,
-human labels, and actual independent AI runs are still missing.
+license notices. Their [bounded context extension](benchmarks/prospective-review-v1/context/README.md)
+now preserves referenced documents and symlink-aware path facts. These remain
+unreviewed preparations. A [single-case exploratory AI pilot](benchmarks/prospective-review-v1/pilot/README.md)
+retains one actual fresh-context response, but equivalent tool evidence and
+human reference labels are still missing; no accuracy or superiority is claimed.
 
 ## Share a real-world case safely
 

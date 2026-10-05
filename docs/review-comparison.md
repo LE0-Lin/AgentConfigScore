@@ -13,8 +13,16 @@ labels. They reuse known cases and must not be called held-out or real user data
 A separate [prospective candidate collection](../benchmarks/prospective-review-v1/README.md)
 now retains five pinned public root instruction files, a predeclared twelve-repository
 registry, every exclusion, and third-party license notices. It is **unreviewed
-preparation material**, not a completed study. Repository context, human reference
-labels, and actual independent AI runs still need to be supplied.
+preparation material**, not a completed study. Equivalent tool-checkout evidence, human reference
+labels, and a matched comparative model batch still need to be supplied. A
+[single-case exploratory pilot](../benchmarks/prospective-review-v1/pilot/README.md)
+retains an actual fresh-context response, not a reference label or scored study.
+
+The [context extension](../benchmarks/prospective-review-v1/context/README.md)
+adds bounded referenced text and tracked-path facts without predicting defects.
+Export preserves this allowlisted evidence and changes the packet fingerprint.
+Scoring refuses these bundles until an equivalent tool checkout and matched
+instruction scope can be provided; directory metadata is not actual file content.
 
 ## Run the local baseline
 
@@ -171,3 +179,8 @@ This records work still missing without inventing reviewers or reference labels.
 This is a repository research script, not a new installed CLI subcommand. The
 deterministic scanner, report schema, runtime dependencies, and existing rule
 contracts are unchanged.
+
+For a retained packet/response without human reference labels, use the research
+script's `validate --packet PATH --predictions PATH` command. It verifies packet
+integrity, prediction shape, and coverage without running lint or computing
+correctness metrics. Format validity cannot establish the answer is right.
