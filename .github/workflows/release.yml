@@ -195,18 +195,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          notes="docs/releases/$TAG.md"
+          if [[ -f "$notes" ]]; then
+            note_args=(--notes-file "$notes")
+          else
+            note_args=(--generate-notes)
+          fi
           if [[ "$EXISTING_RELEASE" == "true" ]]; then
             gh release upload "$TAG" dist/* --clobber
           elif [[ "$EXISTING_TAG" == "true" ]]; then
             gh release create "$TAG" dist/* \
               --verify-tag \
               --title "AgentConfigScore $TAG" \
-              --generate-notes
+              "${note_args[@]}"
           else
             gh release create "$TAG" dist/* \
               --target "$GITHUB_SHA" \
               --title "AgentConfigScore $TAG" \
-              --generate-notes
+              "${note_args[@]}"
           fi
 
       - name: Update rolling v0 branch

@@ -609,7 +609,7 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] installed-wheel end-to-end acceptance on Linux, Windows and macOS in CI
 - [x] source and installed-package gates before publication
 - [x] user guide, exit-code reference and troubleshooting
-- [ ] next package cut after version/changelog review
+- [x] versioned English core package with release notes and compatibility guidance
 - [ ] optional Simplified and Traditional Chinese documentation and README language switch
 - [ ] optional semantic contradiction plugin
 

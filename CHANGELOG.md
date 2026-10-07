@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+No changes yet.
+
+## v0.23.0
+
+The English core workflow is packaged as a local deterministic linter and CI
+regression gate. This remains a Beta release, not a semantic quality or security
+certification. See the [release notes](docs/releases/v0.23.0.md) for installation,
+compatibility changes, and known limits.
+
 ### Added
 
 - An offline installed-package acceptance journey covering both console aliases and the module entrypoint, setup, reports, pass/fail regression behavior, baseline-policy bypass protection and operational failures. CI exercises the wheel on Linux, Windows and macOS; manual publication now waits for the full source suite and all installed acceptance jobs.
