@@ -90,6 +90,14 @@ jobs:
           test "$(find dist -maxdepth 1 -type f -name '*.whl' | wc -l)" -eq 1
           test "$(find dist -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 1
 
+      - name: Run source regression suite before publishing
+        if: steps.preflight.outputs.skip != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -e .
+          python -m unittest discover -s tests -v
+
       - name: Validate built wheel
         if: steps.preflight.outputs.skip != 'true'
         env:
@@ -116,9 +124,48 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  acceptance:
+    name: Installed package acceptance (${{ matrix.os }})
+    needs: build
+    if: needs.build.outputs.skip != 'true'
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Retrieve verified distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: python-package-distributions-${{ needs.build.outputs.version }}
+          path: dist
+      - name: Verify installed wheel end to end
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel="$(find "$GITHUB_WORKSPACE/dist" -maxdepth 1 -type f -name '*.whl' -print -quit)"
+          python -m venv "$RUNNER_TEMP/agent-config-score-acceptance"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            wheel_python="$RUNNER_TEMP/agent-config-score-acceptance/Scripts/python.exe"
+          else
+            wheel_python="$RUNNER_TEMP/agent-config-score-acceptance/bin/python"
+          fi
+          "$wheel_python" -m pip install --no-deps "$wheel"
+          cd "$RUNNER_TEMP"
+          python "$GITHUB_WORKSPACE/scripts/verify_installed_package.py" \
+            --python "$wheel_python" --expected-version "$VERSION"
+
   github-release:
     name: Publish GitHub release
-    needs: build
+    needs: [build, acceptance]
     if: needs.build.outputs.skip != 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -168,7 +215,7 @@ jobs:
 
   pypi-publish:
     name: Publish to PyPI
-    needs: [build, github-release]
+    needs: [build, acceptance, github-release]
     if: needs.build.outputs.skip != 'true'
     runs-on: ubuntu-latest
     environment:

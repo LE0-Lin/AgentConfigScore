@@ -22,6 +22,13 @@ class PinnedToolProbeTests(unittest.TestCase):
     def setUp(self):
         self.protocol = json.loads((PROBE.BASE / "tool-probe-protocol.json").read_text(encoding="utf-8"))
 
+    def synthetic_protocol(self):
+        # Disposable helper fixtures test today's implementation, not a replay
+        # of the frozen public-source experiment. Never edit the retained file
+        # to make a changed product look like the registered research tool.
+        return {**self.protocol, "name": "synthetic-current-tool-unit-test",
+                "tool_source_sha256": PROBE._tool_fingerprint()}
+
     def fixture(self, directory, files=None, mutate=None):
         files = files or {"AGENTS.md": b"Use the tests before reporting success.\n", "docs/guide.md": b"Reference material.\n"}
         index = {}
@@ -183,7 +190,7 @@ class PinnedToolProbeTests(unittest.TestCase):
             report = analyze(root)
             with patch.object(PROBE.scanner, "analyze", side_effect=[report, ValueError("scoped failure")]):
                 with self.assertRaisesRegex(ValueError, "scoped failure"):
-                    PROBE.probe(root, self.case(), self.protocol)
+                    PROBE.probe(root, self.case(), self.synthetic_protocol())
             self.assertIs(PROBE.scanner.discover, discover)
 
     def test_changed_text_origin_or_path_fact_cannot_count_as_matched_evidence(self):
@@ -212,7 +219,7 @@ class PinnedToolProbeTests(unittest.TestCase):
             root = parent / "source"
             PROBE.unpack(archive, root, tree, self.protocol)
             discover = PROBE.scanner.discover
-            result = PROBE.probe(root, self.case(), self.protocol)
+            result = PROBE.probe(root, self.case(), self.synthetic_protocol())
             self.assertIs(PROBE.scanner.discover, discover)
             self.assertEqual(result["root_instruction_scope"]["files"], ["AGENTS.md"])
             self.assertEqual(result["native_discovery"]["files"], ["AGENTS.md", "pkg/AGENTS.md"])
@@ -231,7 +238,10 @@ class PinnedToolProbeTests(unittest.TestCase):
     def test_frozen_inputs_and_protocol_reject_resource_or_packet_changes(self):
         corpus = COMPARISON.load_corpus(PROBE.BASE / "context" / "corpus.json")
         packet = json.loads((PROBE.BASE / "pilot" / "review-packet.json").read_text(encoding="utf-8"))
-        case, tree = PROBE.inputs(corpus, packet, self.protocol, PROBE.BASE / "context")
+        # Validate the originally registered tool identity independently of
+        # today's product source. Changed-source rejection is tested below.
+        with patch.object(PROBE, "_tool_fingerprint", return_value=self.protocol["tool_source_sha256"]):
+            case, tree = PROBE.inputs(corpus, packet, self.protocol, PROBE.BASE / "context")
         self.assertEqual(case["id"], "vercel--next.js")
         self.assertEqual(len(tree["tree"]), 50749)
         for value in (True, 0, -1, "100"):
@@ -239,8 +249,9 @@ class PinnedToolProbeTests(unittest.TestCase):
                 PROBE.inputs(corpus, packet, {**self.protocol, "maximum_archive_bytes": value}, PROBE.BASE / "context")
         changed = copy.deepcopy(packet)
         changed["cases"][0]["files"]["AGENTS.md"] += "changed"
-        with self.assertRaisesRegex(ValueError, "packet"):
-            PROBE.inputs(corpus, changed, self.protocol, PROBE.BASE / "context")
+        with patch.object(PROBE, "_tool_fingerprint", return_value=self.protocol["tool_source_sha256"]):
+            with self.assertRaisesRegex(ValueError, "packet"):
+                PROBE.inputs(corpus, changed, self.protocol, PROBE.BASE / "context")
         with self.assertRaisesRegex(ValueError, "frozen"):
             PROBE.inputs(corpus, packet, {**self.protocol, "tool_source_sha256": "0" * 64}, PROBE.BASE / "context")
 
@@ -307,7 +318,7 @@ class PinnedToolProbeTests(unittest.TestCase):
             PROBE.unpack(archive, root, tree, self.protocol)
             with patch.object(PROBE, "PROBE_SOURCE_SHA256", "0" * 64), patch.object(PROBE.scanner, "analyze") as analyze:
                 with self.assertRaisesRegex(ValueError, "source changed"):
-                    PROBE.probe(root, self.case(), self.protocol)
+                    PROBE.probe(root, self.case(), self.synthetic_protocol())
                 analyze.assert_not_called()
 
     def test_retained_acquisition_failures_are_not_real_case_predictions(self):
@@ -346,7 +357,7 @@ class PinnedToolProbeTests(unittest.TestCase):
                 if getattr(exc, "winerror", None) == 1314:
                     self.skipTest("host does not permit symlink creation")
                 raise
-            result = PROBE.probe(alias, self.case(), self.protocol)
+            result = PROBE.probe(alias, self.case(), self.synthetic_protocol())
             self.assertEqual(result["root_instruction_scope"]["files"], ["AGENTS.md"])
             self.assertFalse(result["comparison_ready"])
 

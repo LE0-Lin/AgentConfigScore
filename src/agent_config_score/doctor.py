@@ -62,8 +62,11 @@ def _check_config(root: Path) -> tuple[list[DoctorCheck], object | None]:
         return checks, None
 
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
         policy = load_policy(root)
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except UnicodeError:
+        checks.append(DoctorCheck("config", "error", f"{CONFIG_NAME} must be saved as UTF-8."))
+        return checks, None
     except (OSError, json.JSONDecodeError, ConfigError) as exc:
         checks.append(DoctorCheck("config", "error", f"Invalid {CONFIG_NAME}: {exc}"))
         return checks, None
@@ -117,6 +120,8 @@ def _check_workflow(root: Path) -> DoctorCheck:
 
     try:
         text = path.read_text(encoding="utf-8")
+    except UnicodeError:
+        return DoctorCheck("workflow", "error", "AgentConfigScore workflow must be saved as UTF-8.")
     except OSError as exc:
         return DoctorCheck("workflow", "error", f"Could not read AgentConfigScore workflow: {exc}")
 
@@ -142,7 +147,11 @@ def diagnose(root: Path) -> DoctorReport:
 
     checks, _policy = _check_config(root)
 
-    files = discover(root)
+    try:
+        files = discover(root)
+    except OSError as exc:
+        checks.append(DoctorCheck("instructions", "error", f"Could not discover instruction files: {exc}"))
+        files = None
     if files:
         checks.append(DoctorCheck(
             "instructions",
@@ -151,7 +160,7 @@ def diagnose(root: Path) -> DoctorReport:
             + ", ".join(path.relative_to(root).as_posix() for path in files[:5])
             + (" ..." if len(files) > 5 else ""),
         ))
-    else:
+    elif files is not None:
         checks.append(DoctorCheck(
             "instructions",
             "warning",

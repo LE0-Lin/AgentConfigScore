@@ -40,9 +40,26 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
     def test_one_verified_artifact_feeds_both_publish_jobs(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         artifact_name = "python-package-distributions-${{ needs.build.outputs.version }}"
-        self.assertEqual(workflow.count(artifact_name), 2)
+        self.assertEqual(workflow.count(artifact_name), 3)
         self.assertIn("if-no-files-found: error", workflow)
         self.assertIn("Validate built wheel", workflow)
+
+    def test_publish_waits_for_source_tests_and_cross_platform_acceptance(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("python -m unittest discover -s tests -v", workflow)
+        self.assertIn("os: [ubuntu-latest, windows-latest, macos-latest]", workflow)
+        self.assertIn("scripts/verify_installed_package.py", workflow)
+        self.assertIn("needs: [build, acceptance]", workflow)
+        self.assertIn("needs: [build, acceptance, github-release]", workflow)
+        self.assertIn("pip install --no-deps", workflow)
+
+    def test_ci_uses_the_same_installed_acceptance_on_all_platforms(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        package = workflow.split("  package:", 1)[1].split("  score_history:", 1)[0]
+        self.assertIn("os: [ubuntu-latest, windows-latest, macos-latest]", package)
+        self.assertIn("scripts/verify_installed_package.py", package)
+        self.assertIn("Scripts/python.exe", package)
+        self.assertIn("--expected-version", package)
 
     def test_privileged_third_party_publish_action_is_commit_pinned(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

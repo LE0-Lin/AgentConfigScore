@@ -474,7 +474,7 @@ def _main_scan(argv: list[str]) -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def _run(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args == ["--version"] or args == ["-V"]:
         print(f"AgentConfigScore {__version__}")
@@ -495,6 +495,20 @@ def main(argv: list[str] | None = None) -> int:
     if args and args[0] == "diff":
         return _main_diff(args[1:])
     return _main_scan(args)
+
+
+def main(argv: list[str] | None = None) -> int:
+    # Expected filesystem/encoding failures are operational errors, not lint
+    # successes. Keep stdout free of a success report when artifact writes fail.
+    # Do not catch arbitrary exceptions: programming errors must stay visible.
+    try:
+        return _run(argv)
+    except UnicodeError:
+        print("error: encoding failure; use UTF-8 files and a supported terminal", file=sys.stderr)
+        return 2
+    except OSError as exc:
+        print(f"error: filesystem operation failed: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

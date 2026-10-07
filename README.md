@@ -48,6 +48,10 @@ See the complete [visual tour](https://github.com/LE0-Lin/AgentConfigScore/blob/
 
 ## Get running
 
+New here? The [user guide](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/user-guide.md) covers setup, pass/fail behavior,
+exit codes and troubleshooting. The [documentation index](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/README.md)
+separates everyday usage from research and benchmark material.
+
 ```bash
 python -m pip install agent-config-score
 agent-config-score init
@@ -602,7 +606,16 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] copy-ready Cursor, Copilot, Gemini, and Claude Code templates
 - [x] adversarial score-contract audit and documented blind spots
 - [x] removal and exact directive-polarity regression checks
+- [x] installed-wheel end-to-end acceptance on Linux, Windows and macOS in CI
+- [x] source and installed-package gates before publication
+- [x] user guide, exit-code reference and troubleshooting
+- [ ] next package cut after version/changelog review
+- [ ] optional Simplified and Traditional Chinese documentation and README language switch
 - [ ] optional semantic contradiction plugin
+
+See [release readiness and the localization sequence](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/release-readiness.md).
+Semantic extensions are optional; they are not a prerequisite for the core
+deterministic CI checker.
 
 ## Development
 

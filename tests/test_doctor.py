@@ -60,6 +60,18 @@ def _init_git_repository(root: Path, branch: str) -> None:
 
 
 class DoctorTests(unittest.TestCase):
+    def test_unicode_repository_path_resolves_to_the_real_local_baseline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "repo with spaces \u4ed3\u5eab"
+            root.mkdir()
+            _write_ready_repository(root)
+            _init_git_repository(root, "main")
+            report = diagnose(root)
+            checks = {check.name: check for check in report.checks}
+            self.assertTrue(report.ok)
+            self.assertEqual(checks["baseline"].status, "pass", checks["baseline"].message)
+            self.assertEqual(checks["git"].status, "pass")
+
     def test_ready_repository_has_no_errors(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

@@ -66,6 +66,13 @@ this same case. Declare development reuse if findings later influence tuning.
 
 ## Explicit download or offline replay
 
+The retained protocol freezes **all product source**, not just scoring rules.
+Later CLI/packaging fixes on `main` intentionally invalidate its tool fingerprint.
+Replay the original protocol from the recorded compatible checkout
+`1d7acc812e1a6e568317d6fe00bf366ef2a81338`; do not rewrite the retained fingerprint
+to make newer code appear to be the registered tool. Synthetic unit fixtures
+test current helper behavior separately and are not actual public-case runs.
+
 From the project checkout, with `src` on `PYTHONPATH`:
 
 ```bash
