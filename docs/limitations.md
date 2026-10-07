@@ -1,5 +1,7 @@
 # What the score does—and does not—mean
 
+English | [简体中文](zh-CN/limitations.md) | [繁體中文](zh-TW/limitations.md)
+
 AgentConfigScore is a deterministic linter and regression gate for persistent
 coding-agent instructions. Its score measures detected, rule-defined risks. It
 does not measure whether an AI agent is intelligent, whether a prompt will solve

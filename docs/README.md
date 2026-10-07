@@ -1,5 +1,7 @@
 # Documentation
 
+[English](user-guide.md) | [简体中文](zh-CN/user-guide.md) | [繁體中文](zh-TW/user-guide.md)
+
 Start with the [user guide](user-guide.md): install, initialize, check a change,
 read the result, and troubleshoot a failing gate.
 
