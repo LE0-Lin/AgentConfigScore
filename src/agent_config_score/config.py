@@ -188,6 +188,8 @@ def load_policy(root: Path) -> Policy:
 
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
+    except UnicodeError as exc:
+        raise ConfigError(f"{CONFIG_NAME} must be saved as UTF-8") from exc
     except OSError as exc:
         raise ConfigError(f"could not read {CONFIG_NAME}: {exc}") from exc
     except json.JSONDecodeError as exc:

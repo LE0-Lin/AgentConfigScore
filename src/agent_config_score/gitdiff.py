@@ -22,6 +22,11 @@ def _run_git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
             check=False,
             capture_output=True,
             text=True,
+            # Git for Windows emits UTF-8 paths even when Python's locale
+            # encoding is a legacy code page. Locale decoding can silently
+            # turn a valid Unicode repository root into a nonexistent path.
+            encoding="utf-8",
+            errors="strict",
         )
     except FileNotFoundError as exc:
         raise GitError("git executable not found on PATH") from exc

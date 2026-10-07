@@ -4,6 +4,8 @@
 
 ### Added
 
+- An offline installed-package acceptance journey covering both console aliases and the module entrypoint, setup, reports, pass/fail regression behavior, baseline-policy bypass protection and operational failures. CI exercises the wheel on Linux, Windows and macOS; manual publication now waits for the full source suite and all installed acceptance jobs.
+- `python -m agent_config_score` as a PATH-independent alternative to the console commands, plus a user guide, exit-code/troubleshooting reference, documentation index and a staged optional Simplified/Traditional Chinese documentation plan. Translations are not shipped yet.
 - A research-only pinned-source tool probe with canonical Git-tree reconstruction, complete blob/membership checks, bounded archive expansion and gzip trailer validation, internal-link handling, and offline replay. Native discovery and root-scoped inspection remain separate; acquisition failures cannot become clean predictions or comparative accuracy. No scanner rules, runtime dependencies, reference labels, or package version were changed.
 - One explicitly authorized, fresh-context single-case AI pilot with the original packet/response, actual integrity validation, unknown model/cost metadata, and an unresolved reference label. The proposed scratch-worktree cleanup concern is unverified; no scanner miss, correctness score, human feedback, or head-to-head superiority is claimed. A research-only `validate` command checks retained packet/response integrity without lint or reference labels.
 - A bounded, pinned context extension for all five prospective cases: 27 source documents, full Git-tree audit archives, symlink-aware content origins, both source-relative and root-relative path facts, and explicit omissions. Context exports remain unreviewed preparation material and cannot be scored as fake filesystem checkouts; no scanner rule changes, human labels, or actual model results are claimed.
@@ -25,6 +27,8 @@
 
 ### Fixed
 
+- Decode Git output as UTF-8 so Windows repositories with Chinese/non-ASCII paths resolve their real root and local baseline instead of a mojibake path; covered by a real Git regression and installed acceptance.
+- Return safe UTF-8 configuration/initialization diagnostics and structured doctor errors for undecodable integration files; filesystem/report-write failures return an operational error instead of an uncaught traceback or a successful JSON scan. Initialization preflight still preserves conflicting files.
 - Detect the unchanged known bulk environment-upload challenge without needing literal credentials; preserve generic, non-sensitive finding messages and synchronize rule inspection, suppressions, and SARIF/config schema metadata.
 - Detect the original known `harmful-prose` challenge without rewriting its input or labels; synchronize rule inspection, suppressions, and SARIF/config schema metadata for the new rule.
 - Recognize a narrowly labeled prohibition covering a closed command block or a contiguous list, without exempting unlabeled code, unclosed fences, active later instructions, exceptions, or literal credentials.

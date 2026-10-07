@@ -64,7 +64,11 @@ jobs:
           PY
 
   package:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -78,23 +82,28 @@ jobs:
           python -m build
           test "$(find dist -maxdepth 1 -type f -name '*.whl' | wc -l)" -eq 1
           test "$(find dist -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" -eq 1
-      - name: Install wheel in an isolated environment
+      - name: Verify installed wheel end to end
         shell: bash
         run: |
           set -euo pipefail
           wheel="$(find "$GITHUB_WORKSPACE/dist" -maxdepth 1 -type f -name '*.whl' -print -quit)"
           expected="$(python - <<'PY'
+          import sys
           import tomllib
           with open('pyproject.toml', 'rb') as handle:
-              print(tomllib.load(handle)['project']['version'])
+              sys.stdout.write(tomllib.load(handle)['project']['version'])
           PY
           )"
           python -m venv "$RUNNER_TEMP/agent-config-score-wheel-test"
-          "$RUNNER_TEMP/agent-config-score-wheel-test/bin/python" -m pip install "$wheel"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            wheel_python="$RUNNER_TEMP/agent-config-score-wheel-test/Scripts/python.exe"
+          else
+            wheel_python="$RUNNER_TEMP/agent-config-score-wheel-test/bin/python"
+          fi
+          "$wheel_python" -m pip install --no-deps "$wheel"
           cd "$RUNNER_TEMP"
-          actual="$("$RUNNER_TEMP/agent-config-score-wheel-test/bin/agent-config-score" --version)"
-          test "$actual" = "AgentConfigScore $expected"
-          "$RUNNER_TEMP/agent-config-score-wheel-test/bin/agent-config-score" --help >/dev/null
+          python "$GITHUB_WORKSPACE/scripts/verify_installed_package.py" \
+            --python "$wheel_python" --expected-version "$expected"
 
   score_history:
     if: github.event_name == 'pull_request'

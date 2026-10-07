@@ -77,6 +77,8 @@ def initialize_repository(
 
         try:
             current = path.read_text(encoding="utf-8")
+        except UnicodeError as exc:
+            raise InitError(f"{path.relative_to(root)} must be saved as UTF-8") from exc
         except OSError as exc:
             raise InitError(f"could not read {path.relative_to(root)}: {exc}") from exc
 
