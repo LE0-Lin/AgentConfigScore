@@ -328,6 +328,9 @@ def retained_report(report: scanner.Report) -> dict:
 
 
 def probe(root: Path, case: dict, protocol: dict) -> dict:
+    # analyze() canonicalizes its root. Controlled discovery must use that same
+    # identity (macOS /var aliases and Windows short/long names may differ).
+    root = root.resolve()
     before = verify_case(root, case)
     if (_tool_fingerprint() != protocol["tool_source_sha256"]
             or hashlib.sha256(Path(__file__).read_text(encoding="utf-8").encode()).hexdigest() != PROBE_SOURCE_SHA256):

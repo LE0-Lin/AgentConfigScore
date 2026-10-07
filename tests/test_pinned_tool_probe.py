@@ -334,6 +334,22 @@ class PinnedToolProbeTests(unittest.TestCase):
             self.assertEqual(PROBE.scanner.discover(parent), [])
             self.assertEqual([path.name for path in PROBE.scanner.discover(root)], ["AGENTS.md"])
 
+    def test_scoped_scan_uses_canonical_root_when_caller_supplies_an_alias(self):
+        with tempfile.TemporaryDirectory() as d:
+            parent = Path(d)
+            archive, tree = self.fixture(parent, {"AGENTS.md": b"Use tests.\n"})
+            actual, alias = parent / "source", parent / "alias"
+            PROBE.unpack(archive, actual, tree, self.protocol)
+            try:
+                alias.symlink_to(actual, target_is_directory=True)
+            except OSError as exc:
+                if getattr(exc, "winerror", None) == 1314:
+                    self.skipTest("host does not permit symlink creation")
+                raise
+            result = PROBE.probe(alias, self.case(), self.protocol)
+            self.assertEqual(result["root_instruction_scope"]["files"], ["AGENTS.md"])
+            self.assertFalse(result["comparison_ready"])
+
 
 if __name__ == "__main__":
     unittest.main()
