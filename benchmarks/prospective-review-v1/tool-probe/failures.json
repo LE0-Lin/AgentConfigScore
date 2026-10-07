@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "status": "retained_pre_scan_failures",
+  "selected_case_id": "vercel--next.js",
+  "source_revision": "ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+  "note": "These attempts produced no completed tool scan. Order and observed failures are retained retrospectively; exact per-attempt timestamps/cost are unavailable. Failures are not clean cases and do not contribute correctness counts.",
+  "attempts": [
+    {"order": 1, "stage": "commit_tree_correspondence", "outcome": "stopped_before_download", "reason": "retained recursive-tree response SHA was a queried commit alias, not the canonical Git tree object", "completed_scans": 0},
+    {"order": 2, "stage": "archive_download", "outcome": "interrupted_transfer", "retained_partial_bytes": 8388608, "completed_scans": 0},
+    {"order": 3, "stage": "archive_download", "outcome": "initial_transport_budget_exceeded", "retained_partial_bytes": 22020096, "completed_scans": 0},
+    {"order": 4, "stage": "curl_legacy_archive_download", "outcome": "180_second_timeout", "retained_partial_bytes": 29358918, "completed_scans": 0},
+    {"order": 5, "stage": "curl_legacy_archive_download", "outcome": "abrupt_connection_close", "retained_partial_bytes": 45083503, "completed_scans": 0},
+    {"order": 6, "stage": "offline_partial_archive_verification", "outcome": "truncated_gzip_EOF", "completed_scans": 0},
+    {"order": 7, "stage": "pinned_bare_Git_fetch", "outcome": "abrupt_connection_close_and_invalid_incomplete_pack", "completed_scans": 0}
+  ],
+  "human_reference_status": "unreviewed",
+  "correctness_metrics": null
+}

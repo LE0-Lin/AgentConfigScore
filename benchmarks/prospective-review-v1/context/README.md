@@ -99,6 +99,11 @@ instruction scope, independently collected human reference labels, and actual
 fresh model responses. An exploratory AI-only read can test the review process
 but cannot replace those gates or demonstrate usefulness or accuracy.
 
+The later [pinned-source tool probe](../tool-probe/README.md) implements actual
+source-object verification and separately records native/root instruction scopes.
+It does not turn this capture into a checkout or waive matching/human-label
+requirements. Interrupted transfers are failures, not clean scanner decisions.
+
 ## Reproduce collection explicitly
 
 ```bash
