@@ -68,6 +68,24 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
             workflow,
         )
 
+    def test_current_package_has_versioned_release_notes_and_changelog(self):
+        source = (ROOT / "src" / "agent_config_score" / "__init__.py").read_text(encoding="utf-8")
+        version = re.search(r'^__version__ = "([^"]+)"$', source, re.MULTILINE).group(1)
+        notes = ROOT / "docs" / "releases" / f"v{version}.md"
+        self.assertTrue(notes.is_file())
+        content = notes.read_text(encoding="utf-8")
+        self.assertIn(f"agent-config-score=={version}", content)
+        self.assertIn(f"AgentConfigScore {version}", content)
+        self.assertIn("Beta", content)
+        self.assertIn(f"## v{version}\n", (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"))
+
+    def test_release_prefers_reviewed_notes_with_a_generated_fallback(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn('notes="docs/releases/$TAG.md"', workflow)
+        self.assertIn('note_args=(--notes-file "$notes")', workflow)
+        self.assertIn("note_args=(--generate-notes)", workflow)
+        self.assertEqual(workflow.count('"${note_args[@]}"'), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

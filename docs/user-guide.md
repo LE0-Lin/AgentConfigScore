@@ -16,10 +16,10 @@ agent-config-score --version
 agent-config-score --help
 ```
 
-`acs` is a shorter alias. Development source also supports
-`python -m agent_config_score` with the same product commands; this module
-entrypoint is not present in the already published v0.22.0. It will be included
-in the next package release. Check [releases](https://github.com/LE0-Lin/AgentConfigScore/releases)
+`acs` is a shorter alias. Version 0.23.0 and later also support
+`python -m agent_config_score` with the same product commands, without relying
+on the console script's PATH setup. Older versions do not provide this module
+entrypoint. Check [releases](https://github.com/LE0-Lin/AgentConfigScore/releases)
 before assuming a change on `main` is available on PyPI or the rolling `v0` ref.
 
 ## 2. Initialize in your repository
@@ -140,7 +140,7 @@ Nothing is uploaded. Review and sanitize the draft yourself before sharing.
 
 | Symptom | What to check |
 |---|---|
-| Command is not found | Install into the active Python environment; confirm its Scripts/bin directory is on PATH. The next package also provides `python -m agent_config_score`. |
+| Command is not found | Install into the active Python environment; confirm its Scripts/bin directory is on PATH. In v0.23.0+, use `python -m agent_config_score` as a PATH-independent alternative. |
 | Configuration / workflow encoding error | Save the file as UTF-8; do not copy a UTF-16 file into the integration. |
 | Cannot write HTML, SARIF or Markdown | Choose a writable file path, not an existing directory; inspect parent-directory permissions. |
 | `diff` cannot detect a baseline | Check `doctor`, then pass an available default-branch ref explicitly. |
