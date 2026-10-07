@@ -1,5 +1,7 @@
 # AgentConfigScore
 
+English | [简体中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.zh-CN.md) | [繁體中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.zh-TW.md)
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score.svg" alt="AgentConfigScore A 100" />
 </p>
@@ -610,12 +612,16 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] source and installed-package gates before publication
 - [x] user guide, exit-code reference and troubleshooting
 - [x] versioned English core package with release notes and compatibility guidance
-- [ ] optional Simplified and Traditional Chinese documentation and README language switch
+- [x] optional Simplified and Traditional Chinese core documentation and README language switch
 - [ ] optional semantic contradiction plugin
 
 See [release readiness and the localization sequence](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/release-readiness.md).
 Semantic extensions are optional; they are not a prerequisite for the core
 deterministic CI checker.
+
+The localized core overview, user guide and limitations are available separately;
+advanced references and research documents remain English. See the
+[translation scope and maintenance note](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/translations.md).
 
 ## Development
 

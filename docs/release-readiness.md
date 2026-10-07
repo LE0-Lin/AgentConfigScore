@@ -54,18 +54,18 @@ The release workflow is manual. Running tests or merging a readiness PR does
 not create a tag or publish to PyPI. This document is a gate definition, not an
 assertion that all future release steps have already been performed.
 
-## Next milestone: optional Chinese documentation
+## Optional Chinese documentation
 
-After the core package is cut, add a lightweight language switch in each README:
+After the v0.23.0 core package was cut, a documentation update adds a language switch in each README:
 English (default), 简体中文 and 繁體中文. The approach follows
 [Transformers' multilingual README](https://github.com/huggingface/transformers/blob/main/README.md)
 without adding a documentation framework or runtime translation dependency.
 
-Planned files:
+Initial core documentation:
 
 - `README.zh-CN.md` and `README.zh-TW.md`, with reciprocal language links.
-- `docs/zh-CN/` and `docs/zh-TW/` versions of the user guide, limitations and
-  configuration / suppression guidance first; advanced reference pages follow.
+- `docs/zh-CN/` and `docs/zh-TW/` versions of the user guide and limitations,
+  including the core policy / exception explanations; advanced references remain English.
 - A translation maintenance note recording the English source revision and
   explicitly identifying untranslated pages instead of linking empty placeholders.
 
@@ -81,6 +81,8 @@ Rules for the translation stage:
 - Do not add a CLI `--language` option until terminal-output localization is
   explicitly in scope and independently tested. Documentation is the first stage.
 
-The translated files and language selector are planned, **not shipped yet**.
+The repository's core translated pages and selector are included in the
+documentation update, not retroactively in the immutable v0.23.0 distributions
+or tag. See [translation scope and source revision](translations.md).
 Real-user feedback and independent evaluation remain separate ongoing work;
 they are not replaced by localization or release acceptance.

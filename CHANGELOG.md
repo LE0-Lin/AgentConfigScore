@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-No changes yet.
+### Added
+
+- Optional Simplified/Traditional Chinese repository overviews, core user guides and limitation summaries, with reciprocal language links and an explicit source-revision/coverage note. Advanced references remain English; CLI messages, JSON fields, rule semantics and the published v0.23.0 distributions are unchanged.
 
 ## v0.23.0
 
