@@ -278,6 +278,11 @@ now preserves referenced documents and symlink-aware path facts. These remain
 unreviewed preparations. A [single-case exploratory AI pilot](benchmarks/prospective-review-v1/pilot/README.md)
 retains one actual fresh-context response, but equivalent tool evidence and
 human reference labels are still missing; no accuracy or superiority is claimed.
+A [pinned-source tool probe](benchmarks/prospective-review-v1/tool-probe/README.md)
+can verify actual source objects and separate native discovery from root-only
+inspection. Failed acquisitions stay failures, not clean predictions; the probe
+does not unlock comparative accuracy scoring. Full source acquisition has not
+completed in the retained attempt, so no real-case tool prediction is claimed.
 
 ## Share a real-world case safely
 

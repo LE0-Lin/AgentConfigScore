@@ -24,6 +24,12 @@ Export preserves this allowlisted evidence and changes the packet fingerprint.
 Scoring refuses these bundles until an equivalent tool checkout and matched
 instruction scope can be provided; directory metadata is not actual file content.
 
+The separate [pinned-source tool probe](../benchmarks/prospective-review-v1/tool-probe/README.md)
+verifies real source archive bytes against Git objects and distinguishes native
+discovery from a research-only root scope. Local archive replay requires no
+network. Failed acquisition is not a prediction. Its scopes/path evidence remain
+different from the bounded AI packet, so it does not bypass the scoring gates.
+
 ## Run the local baseline
 
 From a repository checkout with the package installed:

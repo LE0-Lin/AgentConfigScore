@@ -35,6 +35,10 @@ and omissions. Export is supported; tool-checkout parity remains a scoring gate.
 A separate [one-case fresh-context pilot](prospective-review-v1/pilot/README.md)
 retains an actual AI response and its integrity validation. It has no human
 reference labels, matched tool/hybrid result, or correctness metrics.
+A separate [pinned-source tool probe](prospective-review-v1/tool-probe/README.md)
+implements full tracked-source verification and explicitly different native/root
+instruction scopes. Acquisition failures are retained without inventing clean
+tool results. Candidate/context correctness scoring remains gated.
 
 ## Adversarial mutation Benchmark v1
 
