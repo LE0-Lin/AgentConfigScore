@@ -69,6 +69,14 @@ class PackageAcceptanceTests(unittest.TestCase):
                 self.assertEqual(acceptance.main(["--python", sys.executable, "--expected-version", __version__]), 1)
             self.assertTrue(all("PASS" not in str(call) for call in printed.call_args_list))
 
+    def test_main_preserves_the_virtualenv_interpreter_path(self):
+        python = Path("wheel-env") / "bin" / "python"
+        with patch.object(acceptance, "verify", return_value=[]) as verify:
+            with patch("pathlib.Path.resolve", side_effect=AssertionError("Would leave the venv")):
+                with patch("builtins.print"):
+                    self.assertEqual(acceptance.main(["--python", str(python), "--expected-version", __version__]), 0)
+        verify.assert_called_once_with(python.absolute(), __version__)
+
 
 if __name__ == "__main__":
     unittest.main()

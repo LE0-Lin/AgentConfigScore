@@ -166,7 +166,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--expected-version", required=True)
     args = parser.parse_args(argv)
     try:
-        checks = verify(args.python.resolve(), args.expected_version)
+        # On POSIX a venv's bin/python is normally a symlink to the system
+        # interpreter. Resolving it discards the venv and tests the wrong Python.
+        checks = verify(args.python.absolute(), args.expected_version)
     except (AcceptanceError, ValueError, KeyError, OSError) as exc:
         print(f"FAIL installed-package acceptance: {exc}", file=sys.stderr)
         return 1
