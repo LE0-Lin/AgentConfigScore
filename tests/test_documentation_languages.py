@@ -8,7 +8,7 @@ from agent_config_score.initializer import CONFIG_CONTENT
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCALES = ("zh-CN", "zh-TW")
+SCRIPT_VARIANTS = ("simplified", "traditional")
 
 
 def blocks(text, language):
@@ -21,26 +21,26 @@ class DocumentationLanguageTests(unittest.TestCase):
         self.assertIn('readme = "README.md"', project)
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("English |", readme)
-        for locale in LOCALES:
-            self.assertIn(f"README.{locale}.md", readme)
-            page = (ROOT / f"README.{locale}.md").read_text(encoding="utf-8")
+        for variant in SCRIPT_VARIANTS:
+            self.assertIn(f"README.{variant}.md", readme)
+            page = (ROOT / f"README.{variant}.md").read_text(encoding="utf-8")
             self.assertIn("[English](README.md)", page)
-            self.assertIn(f"docs/{locale}/user-guide.md", page)
-            self.assertIn(f"docs/{locale}/limitations.md", page)
+            self.assertIn(f"docs/{variant}/user-guide.md", page)
+            self.assertIn(f"docs/{variant}/limitations.md", page)
 
     def test_localized_guides_preserve_every_english_executable_example(self):
         source = (ROOT / "docs" / "user-guide.md").read_text(encoding="utf-8")
         expected = blocks(source, "bash")
         self.assertGreater(len(expected), 5)
-        for locale in LOCALES:
-            with self.subTest(locale=locale):
-                page = (ROOT / "docs" / locale / "user-guide.md").read_text(encoding="utf-8")
+        for variant in SCRIPT_VARIANTS:
+            with self.subTest(variant=variant):
+                page = (ROOT / "docs" / variant / "user-guide.md").read_text(encoding="utf-8")
                 self.assertEqual(blocks(page, "bash"), expected)
                 for code in ("--max-drop", "--fail-on-new-errors", "--json", "--sarif", "--force"):
                     self.assertIn(code, page)
 
     def test_overviews_use_the_same_commands_config_and_workflow(self):
-        pages = [(ROOT / f"README.{locale}.md").read_text(encoding="utf-8") for locale in LOCALES]
+        pages = [(ROOT / f"README.{variant}.md").read_text(encoding="utf-8") for variant in SCRIPT_VARIANTS]
         for language in ("bash", "json", "yaml"):
             with self.subTest(language=language):
                 self.assertEqual(blocks(pages[0], language), blocks(pages[1], language))
@@ -52,10 +52,13 @@ class DocumentationLanguageTests(unittest.TestCase):
         self.assertIn("LE0-Lin/AgentConfigScore@v0.23.0", workflow)
 
     def test_localized_links_target_real_files_inside_the_repository(self):
-        paths = [ROOT / f"README.{locale}.md" for locale in LOCALES]
-        paths += [ROOT / "docs" / locale / name for locale in LOCALES
+        paths = [ROOT / f"README.{variant}.md" for variant in SCRIPT_VARIANTS]
+        paths += [ROOT / "docs" / variant / name for variant in SCRIPT_VARIANTS
                   for name in ("user-guide.md", "limitations.md")]
-        paths += [ROOT / "docs" / "translations.md"]
+        paths += [ROOT / "README.md"]
+        paths += [ROOT / "docs" / name for name in
+                  ("README.md", "user-guide.md", "limitations.md", "translations.md",
+                   "release-readiness.md")]
         for path in paths:
             text = path.read_text(encoding="utf-8")
             for destination in re.findall(r"!?\[[^\]\n]+\]\(([^)\n]+)\)", text):
@@ -68,8 +71,8 @@ class DocumentationLanguageTests(unittest.TestCase):
                     self.assertTrue(target.is_file(), target)
 
     def test_core_limits_keep_stable_rule_ids_and_source_scope_visible(self):
-        for locale in LOCALES:
-            page = (ROOT / "docs" / locale / "limitations.md").read_text(encoding="utf-8")
+        for variant in SCRIPT_VARIANTS:
+            page = (ROOT / "docs" / variant / "limitations.md").read_text(encoding="utf-8")
             for code in ("rm-rf", "prompt-injection-override", "false-success-report",
                          "broad-environment-upload", "no-config", "empty-instructions",
                          "instruction-file-removed", "directive-polarity-flip"):

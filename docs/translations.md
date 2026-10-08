@@ -1,6 +1,6 @@
 # Optional documentation languages
 
-[English](../README.md) | [简体中文](../README.zh-CN.md) | [繁體中文](../README.zh-TW.md)
+[English](../README.md) | [简体中文](../README.simplified.md) | [繁體中文](../README.traditional.md)
 
 English is the default repository entrypoint and package README. Choosing a
 different document language does not change CLI output, rule grammar, scores,
@@ -12,15 +12,17 @@ providing Chinese documentation.
 
 | English source | 简体中文 | 繁體中文 | Scope |
 |---|---|---|---|
-| [README](../README.md) | [Overview](../README.zh-CN.md) | [Overview](../README.zh-TW.md) | Localized core overview, not the entire long English reference |
-| [User guide](user-guide.md) | [Guide](zh-CN/user-guide.md) | [Guide](zh-TW/user-guide.md) | Core user journey, all executable examples, exit codes and troubleshooting |
-| [Limitations](limitations.md) | [Limits](zh-CN/limitations.md) | [Limits](zh-TW/limitations.md) | Core score contract, rule limits and unestablished accuracy; historic table/manual links stay in English |
+| [README](../README.md) | [Overview](../README.simplified.md) | [Overview](../README.traditional.md) | Localized core overview, not the entire long English reference |
+| [User guide](user-guide.md) | [Guide](simplified/user-guide.md) | [Guide](traditional/user-guide.md) | Core user journey, all executable examples, exit codes and troubleshooting |
+| [Limitations](limitations.md) | [Limits](simplified/limitations.md) | [Limits](traditional/limitations.md) | Core score contract, rule limits and unestablished accuracy; historic table/manual links stay in English |
 
 Advanced Action inputs/outputs, precise rule grammars, score-history integrations,
 release notes, contribution instructions and research protocols remain English.
 Localized pages identify those links as English instead of creating empty pages.
 The two Chinese variants are maintained with Simplified and Traditional regional
 wording rather than changing the program's machine-readable identifiers.
+Documentation paths use `simplified` and `traditional` to describe the script
+variants rather than a region.
 
 ## Source baseline and maintenance
 

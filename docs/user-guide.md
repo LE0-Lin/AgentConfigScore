@@ -1,6 +1,6 @@
 # User guide
 
-English | [简体中文](zh-CN/user-guide.md) | [繁體中文](zh-TW/user-guide.md)
+English | [简体中文](simplified/user-guide.md) | [繁體中文](traditional/user-guide.md)
 
 AgentConfigScore is a local, deterministic linter and pull-request regression
 gate for coding-agent instructions. It does not call an AI service or execute

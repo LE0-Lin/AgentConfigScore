@@ -1,6 +1,6 @@
 # AgentConfigScore
 
-English | [简体中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.zh-CN.md) | [繁體中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.zh-TW.md)
+English | [简体中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.simplified.md) | [繁體中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.traditional.md)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score.svg" alt="AgentConfigScore A 100" />

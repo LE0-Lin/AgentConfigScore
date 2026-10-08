@@ -6,6 +6,10 @@
 
 - Optional Simplified/Traditional Chinese repository overviews, core user guides and limitation summaries, with reciprocal language links and an explicit source-revision/coverage note. Advanced references remain English; CLI messages, JSON fields, rule semantics and the published v0.23.0 distributions are unchanged.
 
+### Changed
+
+- Name Chinese documentation paths by script (`simplified` and `traditional`) rather than region, updating all language selectors and internal links. Runtime behavior and published v0.23.0 artifacts are unchanged.
+
 ## v0.23.0
 
 The English core workflow is packaged as a local deterministic linter and CI

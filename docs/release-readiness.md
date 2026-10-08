@@ -63,8 +63,8 @@ without adding a documentation framework or runtime translation dependency.
 
 Initial core documentation:
 
-- `README.zh-CN.md` and `README.zh-TW.md`, with reciprocal language links.
-- `docs/zh-CN/` and `docs/zh-TW/` versions of the user guide and limitations,
+- `README.simplified.md` and `README.traditional.md`, with reciprocal language links.
+- `docs/simplified/` and `docs/traditional/` versions of the user guide and limitations,
   including the core policy / exception explanations; advanced references remain English.
 - A translation maintenance note recording the English source revision and
   explicitly identifying untranslated pages instead of linking empty placeholders.
