@@ -1,6 +1,6 @@
 # 分數意義與限制
 
-[English](../limitations.md) | [简体中文](../zh-CN/limitations.md) | 繁體中文 · [使用指南](user-guide.md)
+[English](../limitations.md) | [简体中文](../simplified/limitations.md) | 繁體中文 · [使用指南](user-guide.md)
 
 AgentConfigScore 的分數衡量已偵測到、由規則定義的風險，不衡量模型智力、任務成功率或指令整體品質。**A 100 表示沒有命中生效的確定性規則，不是語意品質或安全認證。**
 

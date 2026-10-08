@@ -1,6 +1,6 @@
 # 使用指南
 
-[English](../user-guide.md) | [简体中文](../zh-CN/user-guide.md) | 繁體中文 · [專案首頁](../../README.zh-TW.md)
+[English](../user-guide.md) | [简体中文](../simplified/user-guide.md) | 繁體中文 · [專案首頁](../../README.traditional.md)
 
 AgentConfigScore 是在本機執行、結果確定的開發助手指令檢查工具與 PR 回歸檢查。它不呼叫 AI 服務，也不執行指令檔內的命令。100 分不代表指令實用、始終安全或優於 AI 審查。
 

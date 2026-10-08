@@ -1,6 +1,6 @@
 # AgentConfigScore
 
-[English](README.md) | [简体中文](README.zh-CN.md) | 繁體中文
+[English](README.md) | [简体中文](README.simplified.md) | 繁體中文
 
 為 AI 程式開發助手的指令檔提供本機檢查與 PR 回歸檢查。
 
@@ -26,8 +26,8 @@ agent-config-score diff
 
 `acs` 是較短的命令別名。v0.23.0+ 也能使用 `python -m agent_config_score`，不必依賴終端機 PATH 找到主命令。
 
-- [繁體中文使用指南](docs/zh-TW/user-guide.md)：安裝、基準、報告、結束代碼與疑難排解。
-- [分數意義與限制](docs/zh-TW/limitations.md)：先了解能偵測哪些問題，以及可能遺漏什麼。
+- [繁體中文使用指南](docs/traditional/user-guide.md)：安裝、基準、報告、結束代碼與疑難排解。
+- [分數意義與限制](docs/traditional/limitations.md)：先了解能偵測哪些問題，以及可能遺漏什麼。
 - [完整英文文件索引](docs/README.md)：進階介面與研究資料。
 
 ## 為什麼使用回歸檢查
@@ -105,7 +105,7 @@ jobs:
 
 執行時沒有第三方相依套件；本機掃描不呼叫 AI API，也不執行指令檔內的命令。安裝套件需存取選定的套件索引；GitHub Actions 是獨立的 CI 環境，報告存取權限由你的工作流程決定。
 
-跨平台測試、持續維護的規則案例與安裝驗收，證明程式符合指定的工程預期，**不代表它比直接詢問 AI 更準確，也不代表已經具備真實使用者價值**。獨立對照評測尚未完成，已知的語意漏報仍保留。請見[限制說明](docs/zh-TW/limitations.md)與[評測資料（英文）](benchmarks/README.md)。
+跨平台測試、持續維護的規則案例與安裝驗收，證明程式符合指定的工程預期，**不代表它比直接詢問 AI 更準確，也不代表已經具備真實使用者價值**。獨立對照評測尚未完成，已知的語意漏報仍保留。請見[限制說明](docs/traditional/limitations.md)與[評測資料（英文）](benchmarks/README.md)。
 
 本頁是核心入門的中文概覽，不是完整英文 README 的逐行翻譯。使用指南與限制說明已提供中文；進階 Action 參數、規則語法細節、貢獻和研究文件目前仍為英文。[翻譯範圍與維護說明](docs/translations.md)。命令、終端機訊息和 JSON 協定維持原樣，English 仍為預設入口。
 
