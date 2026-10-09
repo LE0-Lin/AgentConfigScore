@@ -328,7 +328,10 @@ class PinnedToolProbeTests(unittest.TestCase):
         self.assertEqual(len(failures["attempts"]), 7)
         self.assertTrue(all(row["completed_scans"] == 0 for row in failures["attempts"]))
         self.assertIsNone(failures["correctness_metrics"])
-        self.assertFalse((directory / "report.json").exists())
+        # A later successful replay may coexist with these unchanged failed
+        # attempts; failures themselves must never acquire scan predictions.
+        self.assertNotIn("native_discovery", failures)
+        self.assertNotIn("root_instruction_scope", failures)
         before = json.loads((PROBE.BASE / "tool-probe-protocol.transport-initial.json").read_text(encoding="utf-8"))
         after = {**self.protocol}
         for key in ("maximum_download_seconds", "transport_amendment"):

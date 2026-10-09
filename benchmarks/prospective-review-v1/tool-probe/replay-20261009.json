@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "status": "one_completed_real_snapshot_probe_unscored",
+  "compatible_checkout": "1d7acc812e1a6e568317d6fe00bf366ef2a81338",
+  "report": "report.json",
+  "report_normalized_json_sha256": "19d4adeedb8e5b5d2baf9436d881f54f035bbd3f31479aeb23f9400b0d418104",
+  "replayed_protocol": "replay-protocol.json",
+  "protocol_normalized_json_sha256": "f074e2c32187f2d9c44329cf07d7ff6ebbeb0220f11a665dd16c163c0d0cb0ff",
+  "prior_failures": "failures.json",
+  "prior_failures_normalized_json_sha256": "32e6a4401acb6d8967e1b6d06c9527ec0d8de0dd0d39c0668ec59c726713c30b",
+  "fingerprint_format": "SHA-256 of UTF-8 JSON with sorted keys, compact separators and ensure_ascii=false; not a signature or independent execution authentication.",
+  "attempts": [
+    {
+      "order": 8,
+      "stage": "python_archive_download",
+      "outcome": "interrupted_transfer",
+      "exception_class": "IncompleteRead",
+      "retained_partial_bytes": 38797312,
+      "partial_file_created_at_utc": "2026-10-09T02:18:01.7910937Z",
+      "partial_file_last_written_at_utc": "2026-10-09T02:19:22.1980844Z",
+      "timestamp_meaning": "Observed filesystem timestamps, not measured start/end latency.",
+      "completed_scans": 0
+    },
+    {
+      "order": 9,
+      "stage": "curl_archive_download",
+      "outcome": "completed_transfer",
+      "started_at_utc": "2026-10-09T02:21:19.7875126Z",
+      "finished_at_utc": "2026-10-09T02:22:53.8671216Z",
+      "elapsed_seconds": 94.073369,
+      "curl_exit_code": 0,
+      "archive_bytes": 51988413,
+      "archive_sha256": "2d5323129612f58c16523d29e09032518207ee2743467c466e526fc5a26650b5",
+      "source_url": "https://codeload.github.com/vercel/next.js/tar.gz/ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+      "connect_timeout_seconds": 30,
+      "maximum_download_seconds": 600,
+      "maximum_archive_bytes": 100663296,
+      "timestamp_meaning": "Parent PowerShell UTC observations and Stopwatch duration for the transfer, not model latency or an end-to-end benchmark.",
+      "completed_scans": 0
+    },
+    {
+      "order": 10,
+      "stage": "windows_offline_snapshot_probe",
+      "outcome": "stopped_at_supplied_path_fact_verification_before_scan",
+      "exception_class": "ValueError",
+      "diagnosed_reason": "AGENTS.md line 44 references README.md. The retained case-sensitive Git tree has no such path, but Windows resolves it to the tracked lowercase readme.md symlink. Both source-relative and root-relative absence facts disagree with this filesystem.",
+      "changed_case_or_protocol": false,
+      "completed_scans": 0
+    },
+    {
+      "order": 11,
+      "stage": "linux_offline_snapshot_probe",
+      "environment": "Existing Ubuntu WSL distribution; Python 3.12.3; new native Linux temporary directory, not the Windows-mounted filesystem.",
+      "outcome": "completed_native_and_root_scopes",
+      "completed_at_utc": "2026-10-09T02:28:36.947869+00:00",
+      "report": "report.json",
+      "completed_scans": 1,
+      "reported_instruction_scopes": 2,
+      "changed_case_or_protocol": false
+    }
+  ],
+  "method_disclosure": "Transport and host-environment repair after failed attempts; all failures retained. The same frozen tool source, helper, archive, protocol, selected repository, pinned revision, membership checks and supplied evidence were used. No scanner rule or path fact was changed, no placeholder was created and no downloaded command was run. This is exploratory workflow repair, not an externally preregistered accuracy study.",
+  "package_boundary": "The registered code reports package version 0.22.0. These observations are not a scan with the published 0.23.0 code; main and its published artifacts remain unchanged.",
+  "comparison_ready": false,
+  "human_reference_status": "unreviewed",
+  "correctness_metrics": null
+}
