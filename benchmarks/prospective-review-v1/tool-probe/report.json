@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "status": "actual_tool_probe_unscored",
+  "completed_at_utc": "2026-10-09T02:28:36.947869+00:00",
+  "selected_case_id": "vercel--next.js",
+  "repository": "vercel/next.js",
+  "source_revision": "ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+  "packet_sha256": "12a6dadbf07760b8c13b2f17456bf8117e8ce6176ace82e444cfc1be48939b2e",
+  "context_corpus_sha256": "2f6fbbc6d77c43e688ea0d6020cf8a74232faf6ce2eaeee140eb27015dfb8b7d",
+  "protocol_sha256": "f074e2c32187f2d9c44329cf07d7ff6ebbeb0220f11a665dd16c163c0d0cb0ff",
+  "tool_source_sha256": "a2b94f00be4961054f3a7e72b2b648428eea7133d02f4885c7241612e302b159",
+  "probe_source_sha256": "cd0a347f162c4dc9460a1c5b445d504f1fa1ae5bc77908959374fb92497bda85",
+  "package_version": "0.22.0",
+  "python_version": "3.12.3",
+  "host_platform": "Linux",
+  "archive": {
+    "input_kind": "local_archive_replay",
+    "archive_sha256": "2d5323129612f58c16523d29e09032518207ee2743467c466e526fc5a26650b5",
+    "archive_bytes": 51988413,
+    "transport_provenance": "not_authenticated_by_replay; pinned Git objects are verified independently"
+  },
+  "snapshot": {
+    "status": "verified_tracked_source_snapshot",
+    "retained_tree_response_sha": "ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+    "tree_snapshot_sha256": "082ca7018fc61d3a5df1d3be93d4f1ad0d572547eb91529afc886e9373662714",
+    "tree_entries": 50749,
+    "regular_files": 33876,
+    "directories": 16831,
+    "symlinks": 42,
+    "verified_blob_bytes": 158608765,
+    "symlink_materialization": "original relative targets with host-native separators",
+    "git_metadata": "not_created",
+    "executable_permissions": "not_preserved",
+    "generated_ignored_untracked_files": "not_supplied",
+    "canonical_tree_object_sha": "fb2da1887f2c58ad1da0cf30ae92e6e0219ed709"
+  },
+  "input_verification": {
+    "supplied_files_verified": 11,
+    "physical_path_facts_checked": 420,
+    "unknown_path_facts_not_asserted": 36
+  },
+  "native_discovery": {
+    "files": [
+      ".github/AGENTS.md",
+      "AGENTS.md",
+      "apps/bundle-analyzer/AGENTS.md",
+      "evals/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components-nudge/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components-nudge/CLAUDE.md",
+      "evals/next-upgrade/evals/future-cache-components-same-version/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components-same-version/CLAUDE.md",
+      "evals/next-upgrade/evals/future-cache-components/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components/CLAUDE.md",
+      "evals/next-upgrade/evals/latest-cross-major/AGENTS.md",
+      "evals/next-upgrade/evals/latest-cross-major/CLAUDE.md",
+      "evals/next-upgrade/evals/latest-nudge/AGENTS.md",
+      "evals/next-upgrade/evals/latest-nudge/CLAUDE.md",
+      "evals/next-upgrade/evals/latest-same-major/AGENTS.md",
+      "evals/next-upgrade/evals/latest-same-major/CLAUDE.md",
+      "evals/next-upgrade/evals/security-cross-major/AGENTS.md",
+      "evals/next-upgrade/evals/security-cross-major/CLAUDE.md",
+      "evals/next-upgrade/evals/security-duplicate/AGENTS.md",
+      "evals/next-upgrade/evals/security-duplicate/CLAUDE.md",
+      "evals/next-upgrade/evals/security-nudge-original-task/AGENTS.md",
+      "evals/next-upgrade/evals/security-nudge-original-task/CLAUDE.md",
+      "evals/next-upgrade/evals/security-same-major/AGENTS.md",
+      "evals/next-upgrade/evals/security-same-major/CLAUDE.md",
+      "packages/next/AGENTS.md",
+      "test/AGENTS.md",
+      "turbopack/AGENTS.md"
+    ],
+    "score": 76,
+    "grade": "C",
+    "estimated_tokens": 8911,
+    "duplicate_ratio": 0.0267,
+    "findings": [
+      {
+        "severity": "warning",
+        "code": "context-large",
+        "message": "Persistent instruction context is large",
+        "file": "AGENTS.md",
+        "line": null,
+        "penalty": 6
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 30,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 49,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 272,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 275,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 285,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 292,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 298,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 332,
+        "penalty": 4
+      }
+    ],
+    "suppressed_findings": [],
+    "review_needed": true,
+    "score_meaning": "lint heuristic, not correctness"
+  },
+  "root_instruction_scope": {
+    "files": [
+      "AGENTS.md"
+    ],
+    "score": 76,
+    "grade": "C",
+    "estimated_tokens": 7156,
+    "duplicate_ratio": 0.0,
+    "findings": [
+      {
+        "severity": "warning",
+        "code": "context-large",
+        "message": "Persistent instruction context is large",
+        "file": "AGENTS.md",
+        "line": null,
+        "penalty": 6
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 30,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 49,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 272,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 275,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 285,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 292,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 298,
+        "penalty": 4
+      },
+      {
+        "severity": "warning",
+        "code": "dead-path",
+        "message": "Referenced repository path does not exist",
+        "file": "AGENTS.md",
+        "line": 332,
+        "penalty": 4
+      }
+    ],
+    "suppressed_findings": [],
+    "review_needed": true,
+    "score_meaning": "lint heuristic, not correctness"
+  },
+  "comparison_ready": false,
+  "correctness_metrics": null,
+  "human_reference_status": "unreviewed",
+  "ai_status": "separate_existing_pilot_not_imported",
+  "hybrid_status": "not_run",
+  "remaining_parity_gaps": [
+    "Native discovery may include instruction text not supplied to the AI packet.",
+    "The root-scoped run controls discovery, but path checks use the full physical snapshot/index; the AI received bounded path facts only.",
+    "Referenced documents are physically present; the scanner does not semantically review their text unless discovery selects them.",
+    "No independent human reference annotation or matched comparative model batch exists."
+  ]
+}

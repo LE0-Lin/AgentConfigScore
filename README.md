@@ -282,13 +282,15 @@ are now collected separately, with registered sampling, retained exclusions, and
 license notices. Their [bounded context extension](benchmarks/prospective-review-v1/context/README.md)
 now preserves referenced documents and symlink-aware path facts. These remain
 unreviewed preparations. A [single-case exploratory AI pilot](benchmarks/prospective-review-v1/pilot/README.md)
-retains one actual fresh-context response, but equivalent tool evidence and
+retains one actual fresh-context response, but matched tool evidence and
 human reference labels are still missing; no accuracy or superiority is claimed.
 A [pinned-source tool probe](benchmarks/prospective-review-v1/tool-probe/README.md)
-can verify actual source objects and separate native discovery from root-only
-inspection. Failed acquisitions stay failures, not clean predictions; the probe
-does not unlock comparative accuracy scoring. Full source acquisition has not
-completed in the retained attempt, so no real-case tool prediction is claimed.
+now retains one completed Linux replay with verified actual source objects and
+separate native/root instruction scopes, using the frozen 0.22.0 tool code.
+Its findings are unscored observations, not verified defects. Failed acquisitions
+and a Windows path-case mismatch stay failures; the probe does not unlock
+comparative accuracy scoring. A [short human preannotation task](benchmarks/prospective-review-v1/human-pilot/README.md)
+is prepared separately; agreement to review is not a completed annotation.
 
 ## Share a real-world case safely
 

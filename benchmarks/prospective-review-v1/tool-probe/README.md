@@ -1,10 +1,40 @@
 # One pinned tool-side probe
 
-**Current evidence: no completed real-snapshot scanner run.** Source archive
-transfers and a read-only bare Git fetch repeatedly disconnected or timed out.
-Offline fixture tests validate the workflow, not this real case's predictions.
-[failures.json](failures.json) retains seven failed stages; none is a clean result.
-No `report.json`, model comparison, or correctness score has been fabricated.
+**Current evidence: one completed real-snapshot scanner probe, unscored.**
+[report.json](report.json) retains the actual Linux replay on 2026-10-09 using
+the unchanged [frozen protocol](replay-protocol.json) and compatible checkout
+`1d7acc812e1a6e568317d6fe00bf366ef2a81338` (package version **0.22.0**, not the
+published 0.23.0). [replay-20261009.json](replay-20261009.json) binds the report
+and records transport/environment repair. The original seven stages in
+[failures.json](failures.json) remain unchanged; new failures are also retained.
+No model comparison, reference label or correctness score is supplied.
+
+## Retained observation, not confirmed defects
+
+The 51,988,413-byte archive matched all 50,749 tracked entries: 33,876 regular
+files, 16,831 directories and 42 internal symlinks, with 158,608,765 verified
+blob bytes. The run checked all 11 supplied text files and 420 physical path
+facts; 36 unknown facts were not asserted. Source commands were never executed.
+
+| Instruction scope | Files | Active findings | Lint score |
+|---|---:|---:|---:|
+| Native discovery | 27 | 9 | C 76 |
+| Research-only root `AGENTS.md` | 1 | 9 | C 76 |
+
+Both scopes retained eight `dead-path` signals and one `context-large` warning.
+These counts are **not eight verified broken paths** or a confirmed project bug.
+The root instruction's earlier AI concern and these rule signals can flag the
+same case for different reasons; that is not finding-level agreement or recall.
+The larger filesystem index and absent independent reference labels still
+prevent a matched correctness comparison.
+
+The latest Python transfer ended with `IncompleteRead`. A separately bounded
+curl transfer completed, then the Windows replay stopped before scanning:
+the captured absence fact for `README.md` conflicted with Windows resolving it
+to the tracked lowercase `readme.md` symlink. Replaying that same archive in a
+new native Linux directory satisfied the unchanged evidence checks. Neither
+the path facts, source names nor scanner rules were loosened to obtain a result.
+Host-dependent behavior matters; this is not an OS-invariant defect judgment.
 
 This research workflow checks the filesystem/scope part of evaluation. It does
 not adjudicate the previous AI answer, compute correctness metrics, or tune any
@@ -41,6 +71,8 @@ ignored/generated/untracked files are not invented. Unsupported entries, unsafe
 or unresolved links, case collisions, tampering, and resource limits fail closed.
 Windows link separators are adapted without changing the verified Git blob.
 No downloaded command, hook, dependency installer, or project test is run.
+Use a case-sensitive filesystem when reproducing this retained Linux case.
+An incompatible host must remain a failed preparation, not a clean prediction.
 
 ## Two scopes, not a matched accuracy comparison
 

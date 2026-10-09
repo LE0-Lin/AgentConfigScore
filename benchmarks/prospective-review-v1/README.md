@@ -11,6 +11,13 @@ complete pinned Git trees, symlink origins, and source-relative/root-relative
 path facts. It retains all five cases and all missing-context limitations.
 Equivalent tool-checkout evidence, human labels, and a comparative model batch remain outstanding.
 
+The later [tool probe](tool-probe/README.md) now retains one actual Linux replay
+with a complete verified Next.js snapshot and unscored findings; its larger
+instruction/path evidence is not a matched comparison. A
+[short human preannotation page](human-pilot/review.md) is prepared for a different
+retained case, with no tool/model conclusion shown. No human answer or reference
+label is inferred from agreement to review it.
+
 The [registered protocol](protocol.json) was written before downloading the
 instruction contents or inspecting predictions. It names twelve repositories;
 five met the collection conditions and seven were excluded. This is a small

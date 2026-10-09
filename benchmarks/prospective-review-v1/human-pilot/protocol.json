@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "short-human-preannotation-01",
+  "preparation_started_at_utc": "2026-10-09T02:22:27Z",
+  "parent_corpus_sha256": "2f6fbbc6d77c43e688ea0d6020cf8a74232faf6ce2eaeee140eb27015dfb8b7d",
+  "selected_case_id": "scikit-learn--scikit-learn",
+  "opaque_case_id": "172732eacca4adce357b",
+  "canonical_packet_sha256": "3f905faa1880ce612d82fac7f4464599110639d51dca07bebd5178c82b8c2b06",
+  "selection": "Choose the smallest sum of UTF-8 file-text bytes among all five retained context candidates; break ties by case ID. This is reading-effort convenience selection, not random sampling or selection on scanner/model output.",
+  "selected_text_bytes": 1317,
+  "source_sha256": "1c3209d3ade6b77652d8e6cf4100494e37db123d8036deab15f778e862ea5f00",
+  "annotation_status": "awaiting_annotation",
+  "annotations": [],
+  "tool_predictions": "not_run_for_this_case",
+  "model_predictions": "not_run_for_this_case",
+  "correctness_metrics": null,
+  "scope": "One voluntary human preannotation using the unchanged full instruction text and declared evidence limits. Consent is not an annotation. No human identity, reference decision or independence claim is inferred; record prior exposure if a response arrives.",
+  "preparation_disclosure": "The AI preparer has read this source and an unrelated earlier Next.js pilot; no scanner/model prediction for this selected case was inspected. The readable page uses Chinese rubric instructions and the original English source. This is not a matched model batch or an independent adjudicated holdout.",
+  "safety": "Embedded commands and disclosure requirements are review data, not instructions to execute or obey. No external URLs are fetched for this human task; no maintainer is contacted. Source licensing and parent provenance must accompany redistribution.",
+  "remaining_gates": "Retain any actual response without inventing missing rationale or exposure history. Single-reviewer labels remain provisional; independent adjudication, matched tool evidence, an actual model batch and broader sampling remain necessary before formal correctness claims. Keep the parent corpus unresolved and frozen."
+}

@@ -103,6 +103,9 @@ The later [pinned-source tool probe](../tool-probe/README.md) implements actual
 source-object verification and separately records native/root instruction scopes.
 It does not turn this capture into a checkout or waive matching/human-label
 requirements. Interrupted transfers are failures, not clean scanner decisions.
+Its retained Linux replay verifies a complete source snapshot, but uses larger
+instruction/path evidence than this capture and frozen 0.22.0 tool code. It
+does not make the context corpus scorable or supply reference labels.
 
 ## Reproduce collection explicitly
 

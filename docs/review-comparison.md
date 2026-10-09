@@ -27,8 +27,17 @@ instruction scope can be provided; directory metadata is not actual file content
 The separate [pinned-source tool probe](../benchmarks/prospective-review-v1/tool-probe/README.md)
 verifies real source archive bytes against Git objects and distinguishes native
 discovery from a research-only root scope. Local archive replay requires no
-network. Failed acquisition is not a prediction. Its scopes/path evidence remain
-different from the bounded AI packet, so it does not bypass the scoring gates.
+network. It now retains an actual Linux replay of the frozen 0.22.0 code,
+including complete source verification and unscored native/root findings.
+Transport failures and a Windows case-sensitivity mismatch are retained, not
+counted as predictions. Its scopes/path evidence remain different from the
+bounded AI packet, so it does not bypass the scoring gates.
+
+A [short human review page](../benchmarks/prospective-review-v1/human-pilot/review.md)
+presents one unchanged 28-line candidate without tool/model conclusions and
+accepts a plain-language decision, rationale and prior-exposure note. This is a
+single-reviewer preannotation task, not an adjudicated holdout. Consent is not a
+reference label, and no completed annotation is currently retained.
 
 ## Run the local baseline
 
