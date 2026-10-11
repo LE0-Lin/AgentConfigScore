@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "updated_date": "2026-10-11",
+  "annotation_status": "deferred_no_human_annotation",
+  "reason": "The volunteer reviewer is unavailable. Do not require an answer or substitute an AI answer for human annotation.",
+  "preparation_protocol": "protocol.json",
+  "preparation_protocol_status_is_historical": true,
+  "annotations": [],
+  "human_reference_status": "unreviewed",
+  "comparison_ready": false,
+  "correctness_metrics": null
+}

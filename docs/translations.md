@@ -31,6 +31,12 @@ The first localized core pages use English source revision
 links are a subsequent documentation update; they are not inside the immutable
 v0.23.0 PyPI distributions or v0.23.0 tag.
 
+On 2026-10-11, both limitation summaries were reviewed together with the English
+path-reference changes built on source revision
+`38bc911273b449e4a23287540767c9ca70108c65`: conditional references, repository
+roles, path-index/discovery separation, symlink and host-case limits. This is an
+unreleased synchronized source update, not a change to the original v0.23.0 tag.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

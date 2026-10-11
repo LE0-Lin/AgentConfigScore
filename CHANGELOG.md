@@ -6,11 +6,18 @@
 
 - Optional Simplified/Traditional Chinese repository overviews, core user guides and limitation summaries, with reciprocal language links and an explicit source-revision/coverage note. Advanced references remain English; CLI messages, JSON fields, rule semantics and the published v0.23.0 distributions are unchanged.
 - An actual unscored Next.js source probe replayed on Linux with the frozen 0.22.0 code, complete Git-object/source verification and separate native/root scopes. Earlier failures, the interrupted new transfer and Windows path-case mismatch remain recorded; no correctness metrics, human labels or 0.23.0-case validation are implied.
-- A readable 28-line human preannotation page with unchanged source bytes, license/provenance links, input limitations and a plain-language answer format. Consent and preparation are not completed annotations; the parent corpus remains unresolved and product rules are unchanged.
+- A readable 28-line human preannotation page with unchanged source bytes, license/provenance links, input limitations and a plain-language answer format. Consent and preparation are not completed annotations; the parent corpus remains unresolved and the page itself does not change product rules.
+- A separate offline current-code path development check with complete pinned-source verification, explicit contamination disclosure and retained unscored findings. The eight path false-positive signals are gone while the context-size warning remains; this is not human feedback, independent accuracy or validation of the published v0.23.0 wheel.
 
 ### Changed
 
 - Name Chinese documentation paths by script (`simplified` and `traditional`) rather than region, updating all language selectors and internal links. Runtime behavior and published v0.23.0 artifacts are unchanged.
+- Defer the volunteer human annotation without inventing a replacement label. Disclose Next.js as development-reused after its findings informed path fixes; preserve original collection metadata, protocols, AI response and frozen report as historical artifacts, not current holdout evidence.
+
+### Fixed
+
+- Avoid `dead-path` false positives for narrowly typed repository/remote slugs and immediate closed `(if exists)` prose references, without exempting other local paths, actual Markdown links or dangerous commands.
+- Keep real package-relative source paths beneath `build`/`dist`/`target`/`.next` in the existence index while preserving instruction-discovery exclusions. Prune dependency/admin trees before indexing and do not follow directory symlinks or index external/broken link entries. English, Simplified and Traditional limitation notes stay aligned.
 
 ## v0.23.0
 

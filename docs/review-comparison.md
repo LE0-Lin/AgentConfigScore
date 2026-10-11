@@ -37,7 +37,14 @@ A [short human review page](../benchmarks/prospective-review-v1/human-pilot/revi
 presents one unchanged 28-line candidate without tool/model conclusions and
 accepts a plain-language decision, rationale and prior-exposure note. This is a
 single-reviewer preannotation task, not an adjudicated holdout. Consent is not a
-reference label, and no completed annotation is currently retained.
+reference label, and no completed annotation is currently retained. Human review
+is now deferred; product maintenance can continue without fabricating labels.
+
+The Next.js probe subsequently informed three path false-positive fixes. Its
+[development-reuse record](../benchmarks/prospective-review-v1/development-reuse.json)
+supersedes collection-time non-development status for that case, not the frozen
+artifacts themselves. Current-code replays are development checks, not validation
+on untouched inputs. A future independent study requires fresh cases.
 
 ## Run the local baseline
 

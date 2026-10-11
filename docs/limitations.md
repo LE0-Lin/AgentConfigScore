@@ -81,7 +81,32 @@ URL-encoded spaces and angle-bracket destinations are supported. Remote links,
 anchor-only links, fenced examples, absolute paths, and paths escaping the
 repository are skipped. Reference-style links and nested parentheses in link
 destinations are not currently parsed. This is a limited link check, not a full
-Markdown validator. Plain prose path heuristics retain their existing behavior.
+Markdown validator.
+
+## Plain prose path references
+
+File-like prose references are heuristic, not a complete natural-language path
+resolver. An immediate, closed `(if exists)` or `(if it exists)` condition makes
+only that prose reference optional; Markdown link destinations remain checked.
+An explanatory suffix after `-` or `:` inside that condition is supported.
+Unclosed conditions, distant optionality words and unrelated paths on the same
+line do not receive this exemption.
+
+Two-component slugs such as `owner/tool.js` are excluded only in narrow,
+same-line repository roles: followed by `repository`/`remote` and punctuation,
+or after `merge target is`, `fork of`, `re-pushed to a branch in`, or
+`CI trusts branches inside`. A repeated same-slug `fork of ... and not ... itself`
+form is also recognized. Merely mentioning GitHub or a repository does not
+exempt local paths. Other paraphrases and languages may still be misclassified.
+
+Package-relative suffix lookup includes existing paths under `build`, `dist`,
+`target` and `.next`; instruction discovery still skips those trees. Dependency
+and administration trees remain excluded from the suffix index, directory
+symlinks are not traversed, and external/broken symlink entries are excluded.
+Existence does not establish that a file is authoritative, generated correctly,
+or intended by an ambiguous reference. Generated/untracked files not present in
+the checkout can still be reported missing; filesystem case behavior remains
+host-dependent. These exemptions do not disable command or credential checks.
 
 ## Red-team audit
 

@@ -16,7 +16,11 @@ with a complete verified Next.js snapshot and unscored findings; its larger
 instruction/path evidence is not a matched comparison. A
 [short human preannotation page](human-pilot/review.md) is prepared for a different
 retained case, with no tool/model conclusion shown. No human answer or reference
-label is inferred from agreement to review it.
+label is inferred from agreement to review it. Human review is now deferred,
+with no AI replacement label. A later [development-reuse record](development-reuse.json)
+marks the Next.js case as exposed and used to fix three path false-positive
+mechanisms. Frozen collection-time `used_for_rule_development: false` metadata
+is historical, not a current holdout claim; use fresh inputs for a future study.
 
 The [registered protocol](protocol.json) was written before downloading the
 instruction contents or inspecting predictions. It names twelve repositories;

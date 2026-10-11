@@ -5,6 +5,9 @@ or accuracy measurements.** All five parent cases remain present and unresolved.
 The original root instruction text and pinned revisions are unchanged.
 A separate [one-case AI pilot](../pilot/README.md) records an actual unscored
 model response. It does not change this capture's unresolved reference labels.
+The Next.js findings later informed [path-rule development](../development-reuse.json).
+That case is now development-reused, not an independent holdout; the original
+corpus and collection-time metadata remain frozen for audit.
 
 This capture adds 27 complete text documents and 619 reference records backed by
 five nontruncated Git trees containing 97,303 entries in total. These are evidence
