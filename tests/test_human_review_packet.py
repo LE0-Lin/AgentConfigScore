@@ -55,6 +55,15 @@ class HumanReviewPreparationTests(unittest.TestCase):
         self.assertIn("同意审阅不算已完成标注", page)
         self.assertIn("不要运行其中的命令", page)
 
+    def test_current_status_is_deferred_without_invented_annotations(self):
+        status = json.loads((self.base / "human-pilot" / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["annotation_status"], "deferred_no_human_annotation")
+        self.assertEqual(status["annotations"], [])
+        self.assertEqual(status["human_reference_status"], "unreviewed")
+        self.assertFalse(status["comparison_ready"])
+        self.assertIsNone(status["correctness_metrics"])
+        self.assertEqual(self.protocol["annotation_status"], "awaiting_annotation")
+
 
 if __name__ == "__main__":
     unittest.main()

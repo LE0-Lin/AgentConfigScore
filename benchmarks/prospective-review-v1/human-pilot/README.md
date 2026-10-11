@@ -1,8 +1,11 @@
 # One short human preannotation task
 
-**Status: prepared, awaiting an actual annotation.** The user agreed to read one
-short sample; no decision, rationale, reviewer history or correctness result is
-supplied by that agreement. No second human or model has been invented.
+**Current status: deferred, no human annotation.** The volunteer reviewer is
+unavailable; no answer is required to continue product maintenance. The separate
+[current status](status.json) preserves this update without rewriting the
+preparation protocol's historical `awaiting_annotation` state. No decision,
+rationale, reviewer history or correctness result is supplied by prior agreement
+to review. An AI answer is not substituted; no second human or model is invented.
 
 [Read the review page](review.md). It presents the full 28-line source, the
 review-needed rubric, missing-context boundaries and a three-part plain-language
@@ -31,7 +34,9 @@ an existing input for readability; it is not a new independent case.
 Tests bind the displayed source bytes to that corpus, its canonical one-case
 packet and the recorded selection. They test preparation integrity, not human
 review completion or whether an eventual answer is correct. The parent corpus,
-existing Next.js pilot, frozen tool protocol and product rules are unchanged.
+existing Next.js pilot and frozen tool protocol remain unchanged. Next.js has
+subsequently been reused for [path-rule development](../development-reuse.json);
+this readable scikit-learn packet is not that development case.
 
 ## Evidence not yet supplied
 

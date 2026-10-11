@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-11",
+  "status": "development_reuse_not_independent_holdout",
+  "selected_case_id": "vercel--next.js",
+  "repository": "vercel/next.js",
+  "source_revision": "ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+  "base_product_revision": "38bc911273b449e4a23287540767c9ca70108c65",
+  "frozen_context_corpus_sha256": "2f6fbbc6d77c43e688ea0d6020cf8a74232faf6ce2eaeee140eb27015dfb8b7d",
+  "frozen_tool_report_sha256": "19d4adeedb8e5b5d2baf9436d881f54f035bbd3f31479aeb23f9400b0d418104",
+  "frozen_protocol_sha256": "f074e2c32187f2d9c44329cf07d7ff6ebbeb0220f11a665dd16c163c0d0cb0ff",
+  "author": "AI coding assistant; development analysis, not independent human annotation",
+  "influenced_rule": "dead-path",
+  "mechanisms": [
+    {
+      "instruction_lines": [30],
+      "observation": "The instruction uses a package-relative src/build/index.ts reference. packages/next/src/build/index.ts is present in the complete pinned Git tree, but the filesystem suffix index excluded every build directory.",
+      "change": "Separate instruction-discovery exclusions from path-index exclusions; retain existing build/dist/target/.next names for existence lookup without reading their contents or expanding instruction discovery. Prune dependencies/admin trees and do not follow directory symlinks."
+    },
+    {
+      "instruction_lines": [49],
+      "observation": "turbopack/crates/README.md is absent, but its immediate closed '(if exists)' condition does not assert existence.",
+      "change": "Skip only the marked plain-prose path candidate; actual Markdown link destinations and other required paths remain checked."
+    },
+    {
+      "instruction_lines": [272, 275, 285, 292, 298, 332],
+      "observation": "vercel/next.js denotes a GitHub repository or remote in explicit repository/PR/branch contexts, not a local JavaScript file.",
+      "change": "Recognize narrow same-line repository-role grammar for two-component slugs; unrelated local paths and command/credential checks remain independent."
+    }
+  ],
+  "unchanged_artifacts": "Original corpora, labels, protocols, model response, failures and frozen tool report remain unchanged. Their used_for_rule_development=false fields describe collection time only; this overlay supersedes that status for the Next.js case after reuse.",
+  "future_evaluation_boundary": "Do not use this exposed case as independent held-out evidence for these fixes. Fresh inputs, matched scope and independent adjudication are still required for a formal accuracy comparison.",
+  "annotations": [],
+  "human_reference_status": "unreviewed",
+  "comparison_ready": false,
+  "correctness_metrics": null,
+  "maintainer_contact": "none",
+  "new_model_runs": "none"
+}

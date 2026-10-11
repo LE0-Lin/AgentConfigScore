@@ -9,6 +9,16 @@ and records transport/environment repair. The original seven stages in
 [failures.json](failures.json) remain unchanged; new failures are also retained.
 No model comparison, reference label or correctness score is supplied.
 
+**Subsequent development reuse (2026-10-11):** these findings informed path-rule
+fixes after the frozen replay. The [reuse record](../development-reuse.json)
+discloses three false-positive mechanisms at eight instruction lines: a real
+package-relative source path beneath `build`, an explicitly conditional path,
+and repository slugs mistaken for local files. This is AI-authored maintenance
+analysis, not an independent human reference label. The original corpus,
+protocol and report remain frozen. A [separate development check](development/README.md)
+uses current code; neither run establishes real-world accuracy. Do not use this
+case as a future independent holdout for the resulting fixes.
+
 ## Retained observation, not confirmed defects
 
 The 51,988,413-byte archive matched all 50,749 tracked entries: 33,876 regular
@@ -36,9 +46,10 @@ new native Linux directory satisfied the unchanged evidence checks. Neither
 the path facts, source names nor scanner rules were loosened to obtain a result.
 Host-dependent behavior matters; this is not an OS-invariant defect judgment.
 
-This research workflow checks the filesystem/scope part of evaluation. It does
+The original research workflow checks the filesystem/scope part of evaluation. It does
 not adjudicate the previous AI answer, compute correctness metrics, or tune any
-scanner rule. Only the previously selected Next.js case is in scope; the five
+scanner rule. Later tuning is disclosed above rather than retroactively changing
+that replay. Only the previously selected Next.js case is in scope; the five
 parent cases and the original AI packet/response remain unchanged.
 
 ## Source integrity before findings

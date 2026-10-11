@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "status": "development_check_not_independent_evaluation",
+  "completed_at_utc": "2026-10-11T08:16:34.833879+00:00",
+  "selected_case_id": "vercel--next.js",
+  "repository": "vercel/next.js",
+  "source_revision": "ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+  "development_change_base_revision": "38bc911273b449e4a23287540767c9ca70108c65",
+  "product_state": "current source checkout, identified by tool fingerprint; package version alone does not identify rule state",
+  "package_version": "0.23.0",
+  "python_version": "3.12.3",
+  "host_platform": "Linux",
+  "tool_source_sha256": "8ebdd46fb756d03335e106ffd1ae4a5a334f0e4c07a05c8ae2397dd00fb99be1",
+  "development_script_sha256": "8a546f2d098b354bc430fa7d579efca0ce82ca76339359db2a526cd7cae8f0ca",
+  "frozen_protocol_sha256": "f074e2c32187f2d9c44329cf07d7ff6ebbeb0220f11a665dd16c163c0d0cb0ff",
+  "development_policy_sha256": "c8d9c5a3978379ccd544ce20ebf3cd9e50050ee05edad8db5067e10d534a6676",
+  "policy_derivation": "Same source, scopes and safety limits as frozen protocol; only tool_source_sha256 replaced for current rules in memory. No frozen artifact was rewritten.",
+  "development_reuse_sha256": "6fb025cb9c6c15faf8437f393a2763bfe7bd733c58dcf9edec2aa829f9929a9a",
+  "context_corpus_sha256": "2f6fbbc6d77c43e688ea0d6020cf8a74232faf6ce2eaeee140eb27015dfb8b7d",
+  "packet_sha256": "12a6dadbf07760b8c13b2f17456bf8117e8ce6176ace82e444cfc1be48939b2e",
+  "archive": {
+    "input_kind": "local_archive_replay",
+    "archive_sha256": "2d5323129612f58c16523d29e09032518207ee2743467c466e526fc5a26650b5",
+    "archive_bytes": 51988413,
+    "transport_provenance": "not_authenticated_by_replay; pinned Git objects are verified independently"
+  },
+  "snapshot": {
+    "status": "verified_tracked_source_snapshot",
+    "retained_tree_response_sha": "ba80ee48fc319735151c3ad6d9bb9a8180c9f09e",
+    "tree_snapshot_sha256": "082ca7018fc61d3a5df1d3be93d4f1ad0d572547eb91529afc886e9373662714",
+    "tree_entries": 50749,
+    "regular_files": 33876,
+    "directories": 16831,
+    "symlinks": 42,
+    "verified_blob_bytes": 158608765,
+    "symlink_materialization": "original relative targets with host-native separators",
+    "git_metadata": "not_created",
+    "executable_permissions": "not_preserved",
+    "generated_ignored_untracked_files": "not_supplied",
+    "canonical_tree_object_sha": "fb2da1887f2c58ad1da0cf30ae92e6e0219ed709"
+  },
+  "used_for_rule_development": true,
+  "input_verification": {
+    "supplied_files_verified": 11,
+    "physical_path_facts_checked": 420,
+    "unknown_path_facts_not_asserted": 36
+  },
+  "native_discovery": {
+    "files": [
+      ".github/AGENTS.md",
+      "AGENTS.md",
+      "apps/bundle-analyzer/AGENTS.md",
+      "evals/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components-nudge/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components-nudge/CLAUDE.md",
+      "evals/next-upgrade/evals/future-cache-components-same-version/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components-same-version/CLAUDE.md",
+      "evals/next-upgrade/evals/future-cache-components/AGENTS.md",
+      "evals/next-upgrade/evals/future-cache-components/CLAUDE.md",
+      "evals/next-upgrade/evals/latest-cross-major/AGENTS.md",
+      "evals/next-upgrade/evals/latest-cross-major/CLAUDE.md",
+      "evals/next-upgrade/evals/latest-nudge/AGENTS.md",
+      "evals/next-upgrade/evals/latest-nudge/CLAUDE.md",
+      "evals/next-upgrade/evals/latest-same-major/AGENTS.md",
+      "evals/next-upgrade/evals/latest-same-major/CLAUDE.md",
+      "evals/next-upgrade/evals/security-cross-major/AGENTS.md",
+      "evals/next-upgrade/evals/security-cross-major/CLAUDE.md",
+      "evals/next-upgrade/evals/security-duplicate/AGENTS.md",
+      "evals/next-upgrade/evals/security-duplicate/CLAUDE.md",
+      "evals/next-upgrade/evals/security-nudge-original-task/AGENTS.md",
+      "evals/next-upgrade/evals/security-nudge-original-task/CLAUDE.md",
+      "evals/next-upgrade/evals/security-same-major/AGENTS.md",
+      "evals/next-upgrade/evals/security-same-major/CLAUDE.md",
+      "packages/next/AGENTS.md",
+      "test/AGENTS.md",
+      "turbopack/AGENTS.md"
+    ],
+    "score": 94,
+    "grade": "A",
+    "estimated_tokens": 8911,
+    "duplicate_ratio": 0.0267,
+    "findings": [
+      {
+        "severity": "warning",
+        "code": "context-large",
+        "message": "Persistent instruction context is large",
+        "file": "AGENTS.md",
+        "line": null,
+        "penalty": 6
+      }
+    ],
+    "suppressed_findings": [],
+    "review_needed": true,
+    "score_meaning": "lint heuristic, not correctness"
+  },
+  "root_instruction_scope": {
+    "files": [
+      "AGENTS.md"
+    ],
+    "score": 94,
+    "grade": "A",
+    "estimated_tokens": 7156,
+    "duplicate_ratio": 0.0,
+    "findings": [
+      {
+        "severity": "warning",
+        "code": "context-large",
+        "message": "Persistent instruction context is large",
+        "file": "AGENTS.md",
+        "line": null,
+        "penalty": 6
+      }
+    ],
+    "suppressed_findings": [],
+    "review_needed": true,
+    "score_meaning": "lint heuristic, not correctness"
+  },
+  "comparison_ready": false,
+  "correctness_metrics": null,
+  "human_reference_status": "unreviewed",
+  "ai_status": "separate_existing_pilot_not_imported",
+  "hybrid_status": "not_run",
+  "remaining_parity_gaps": [
+    "Native discovery may include instruction text not supplied to the AI packet.",
+    "The root-scoped run controls discovery, but path checks use the full physical snapshot/index; the AI received bounded path facts only.",
+    "Referenced documents are physically present; the scanner does not semantically review their text unless discovery selects them.",
+    "No independent human reference annotation or matched comparative model batch exists."
+  ]
+}

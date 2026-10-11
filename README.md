@@ -290,7 +290,10 @@ separate native/root instruction scopes, using the frozen 0.22.0 tool code.
 Its findings are unscored observations, not verified defects. Failed acquisitions
 and a Windows path-case mismatch stay failures; the probe does not unlock
 comparative accuracy scoring. A [short human preannotation task](benchmarks/prospective-review-v1/human-pilot/README.md)
-is prepared separately; agreement to review is not a completed annotation.
+is retained separately but human review is deferred; no AI answer replaces a
+human annotation. Next.js findings now inform [path-rule development](benchmarks/prospective-review-v1/development-reuse.json),
+so that case is not an independent holdout. Original research artifacts remain
+unchanged; development checks do not establish comparative accuracy.
 
 ## Share a real-world case safely
 

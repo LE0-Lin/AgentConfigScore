@@ -9,6 +9,7 @@ import hashlib
 import html
 import ipaddress
 import json
+import os
 import re
 import shlex
 from urllib.parse import unquote, urlsplit
@@ -27,6 +28,9 @@ SKIP_DIRS = {
     ".git", "node_modules", ".venv", "venv", "dist", "build", ".next",
     "target", "vendor", ".idea", ".vscode", "__pycache__",
 }
+# Instruction discovery skips generated trees. Path existence is a different
+# question: real source code can also live in directories named build/dist.
+PATH_INDEX_SKIP_DIRS = SKIP_DIRS - {"build", "dist", "target", ".next"}
 
 PATH_CANDIDATE = re.compile(
     r"`([^`\n]{1,160})`|\b((?:src|app|apps|packages|lib|libs|test|tests|docs|scripts|config|configs)/[A-Za-z0-9_./@+\-]+)"
@@ -712,6 +716,38 @@ def _local_markdown_links(text: str, context: _InstructionContext):
         yield candidate, _line(text, match.start())
 
 
+def _non_required_path_reference(text: str, match: re.Match, value: str) -> bool:
+    """Recognize narrow, same-line contexts; never exempt an entire line."""
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    if line_end == -1:
+        line_end = len(text)
+    before = text[max(line_start, match.start() - 256):match.start()]
+    after = text[match.end():line_end]
+    # An immediate, closed existence condition does not assert the file exists.
+    # Do not infer optionality from distant words, an unclosed phrase or a link.
+    if re.match(r"^[ \t]*\([ \t]*if[ \t]+(?:it[ \t]+)?exists[ \t]*"
+                r"(?:\)|[-:][^()\r\n]{1,120}\))", after, re.I):
+        return True
+    # A two-component GitHub slug may look like a source path (owner/tool.js).
+    # Require a repository/remote role, not merely 'GitHub' somewhere nearby.
+    slug = r"[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+"
+    if not re.fullmatch(slug, value):
+        return False
+    if re.match(r"^[ \t]+(?:repository|remote)(?:[ \t]+itself)?"
+                r"[ \t]*(?:[.,;:!?)]|$)", after, re.I):
+        return True
+    if re.search(r"\b(?:merge target is|fork of|re-pushed to a branch in|"
+                 r"CI trusts branches inside)[ \t]*$", before, re.I):
+        return True
+    # 'a fork of `owner/repo.js` and not `owner/repo.js` itself' refers to
+    # the same slug twice. An unrelated local file in that sentence still counts.
+    repeated = re.search(r"\bfork of[ \t]+`?(" + slug + r")`?[ \t]+and not[ \t]*$",
+                         before, re.I)
+    return bool(repeated and repeated.group(1) == value
+                and re.match(r"^[ \t]+itself[ \t]*(?:[.,;:!?)]|$)", after, re.I))
+
+
 def _candidate_paths(text: str, context: _InstructionContext):
     link_spans = [match.span() for match in MARKDOWN_LINK.finditer(text)]
     for m in PATH_CANDIDATE.finditer(text):
@@ -731,6 +767,8 @@ def _candidate_paths(text: str, context: _InstructionContext):
         if "://" in value or "|" in value or any(c in value for c in "*<>{}"):
             continue
         if not _looks_like_repository_path(value):
+            continue
+        if _non_required_path_reference(text, m, value):
             continue
         yield value.replace("\\", "/"), _line(text, m.start())
 
@@ -784,12 +822,34 @@ def _candidate_exists(
 
 
 def _repository_path_index(root: Path) -> set[str]:
+    root = root.resolve()
     paths: set[str] = set()
-    for path in root.rglob("*"):
-        rel_path = path.relative_to(root)
-        if any(part in SKIP_DIRS for part in rel_path.parts):
-            continue
-        paths.add(rel_path.as_posix())
+    # Prune dependency/admin trees before descent, and never follow directory
+    # symlinks. This indexes names only; it does not read generated source files.
+    for directory, dirs, files in os.walk(root, followlinks=False):
+        descend = []
+        for name in dirs:
+            if name in PATH_INDEX_SKIP_DIRS:
+                continue
+            path = Path(directory) / name
+            rel = path.relative_to(root).as_posix()
+            target = _repo_candidate(root, root, rel)
+            if target is None or not target.exists():
+                continue
+            paths.add(rel)
+            # Resolved aliases include Windows junctions on versions where
+            # is_symlink() alone would not stop traversal or directory loops.
+            if target == path and not path.is_symlink():
+                descend.append(name)
+        dirs[:] = descend
+        for name in files:
+            path = Path(directory) / name
+            rel = path.relative_to(root).as_posix()
+            if path.is_symlink():
+                target = _repo_candidate(root, root, rel)
+                if target is None or not target.exists():
+                    continue
+            paths.add(rel)
     return paths
 
 
