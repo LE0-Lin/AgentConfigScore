@@ -14,6 +14,11 @@ The tool and development script have recorded source fingerprints. Package
 version `0.23.0` alone does not identify this **unreleased** rule state; this is
 not a scan with the immutable published v0.23.0 wheel.
 
+This retained run was completed on **2026-10-11** and identifies that day's
+development source, not every subsequent `main` revision. Later path/operational
+fixes do not retroactively update this report. Reproduction with newer code must
+use a new output path and remain explicitly development-only.
+
 | Scope | Files | Frozen findings | Development findings |
 |---|---:|---:|---:|
 | Native discovery | 27 | 8 `dead-path`, 1 `context-large` | 1 `context-large` |

@@ -82,6 +82,7 @@ class DoctorTests(unittest.TestCase):
             self.assertEqual(statuses["config"], "pass")
             self.assertEqual(statuses["schema"], "pass")
             self.assertEqual(statuses["instructions"], "pass")
+            self.assertEqual(statuses["repository-paths"], "pass")
             self.assertEqual(statuses["workflow"], "pass")
             self.assertEqual(statuses["git"], "warning")
             self.assertNotIn("baseline", statuses)

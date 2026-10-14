@@ -37,6 +37,13 @@ path-reference changes built on source revision
 roles, path-index/discovery separation, symlink and host-case limits. This is an
 unreleased synchronized source update, not a change to the original v0.23.0 tag.
 
+On 2026-10-14, both guides and limitation summaries were reviewed together with
+the English explicit-relative-path and index-I/O changes built on source revision
+`ef733582a47233c96cdc76b0017b9880f415e5da`. The existing root/AGENTS scope
+interpretations remain, arbitrary suffix substitution is disabled for explicit
+relative references, and index read failures stay operational/doctor errors.
+Commands and the published v0.23.0 artifacts remain unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

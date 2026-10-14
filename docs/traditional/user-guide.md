@@ -107,6 +107,7 @@ agent-config-score feedback . --output .agent-config-score/case.md
 |---|---|
 | 找不到命令 | 確認安裝在目前 Python 環境，並檢查 Scripts/bin 的 PATH。v0.23.0+ 可用 `python -m agent_config_score`。 |
 | 設定或工作流程編碼錯誤 | 儲存為 UTF-8，不要以 UTF-16 檔案取代。 |
+| `Unable to read repository path index` | 執行 `doctor`，檢查 `repository-paths` 錯誤並修正目錄存取或 I/O 問題。部分索引不會產生成功報告。 |
 | 報告無法寫入 | 選擇可寫入的檔案路徑，不是既有目錄；檢查父目錄權限。 |
 | 無法偵測基準 | 執行 `doctor`，再指定本機已存在的預設分支參照。 |
 | 禁止範例被判為危險指令 | 對照[支援的禁止語法（英文）](../instruction-context.md)檢查上下文；工具不理解任意語言和改寫。 |

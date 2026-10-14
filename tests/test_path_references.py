@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from agent_config_score.scanner import _repository_path_index, analyze, discover
+from agent_config_score.scanner import _candidate_exists, _repository_path_index, analyze, discover
 
 
 FORMATS = ("AGENTS.md", "CLAUDE.md", "GEMINI.md", ".cursorrules",
@@ -119,6 +119,88 @@ class PathReferenceTests(unittest.TestCase):
     def test_dependency_tree_cannot_satisfy_package_relative_reference(self):
         self.assertEqual(self.dead_lines("Read `src/dependency.py`.\n",
                          existing=("node_modules/client/src/dependency.py",)), [1])
+
+    def test_explicit_relative_path_cannot_use_unrelated_suffix_match(self):
+        self.assertEqual(self.dead_lines("Read `./src/entry.py`.\n",
+                         existing=("packages/client/src/entry.py",)), [1])
+        self.assertEqual(self.dead_lines("Read `./src/entry.py`.\n",
+                         existing=("src/entry.py",)), [])
+
+    def test_backslash_relative_reference_uses_the_same_anchor(self):
+        filename = "packages/client/AGENTS.md"
+        self.assertEqual(self.dead_lines(r"Read `.\src\entry.py`." + "\n", filename=filename,
+                         existing=("packages/other/src/entry.py",)), [1])
+        self.assertEqual(self.dead_lines(r"Read `..\docs\guide.md`." + "\n", filename=filename,
+                         existing=("packages/docs/guide.md",)), [])
+
+    def test_explicit_relative_path_accepts_existing_root_or_instruction_scope(self):
+        for filename in ("packages/client/AGENTS.md", "packages/client/CLAUDE.md",
+                         ".github/copilot-instructions.md", ".cursor/rules/review.mdc"):
+            with self.subTest(filename=filename):
+                self.assertEqual(self.dead_lines("Read `./src/entry.py`.\n", filename=filename,
+                                 existing=("src/entry.py",)), [])
+                local = str(Path(filename).parent / "src" / "entry.py")
+                self.assertEqual(self.dead_lines("Read `./src/entry.py`.\n", filename=filename,
+                                 existing=(local,)), [])
+                self.assertEqual(self.dead_lines("Read `./src/entry.py`.\n", filename=filename,
+                                 existing=("packages/other/src/entry.py",)), [1])
+
+    def test_parent_relative_path_cannot_choose_an_unrelated_suffix(self):
+        filename = "packages/client/instructions/AGENTS.md"
+        self.assertEqual(self.dead_lines("Read `../docs/guide.md`.\n", filename=filename,
+                         existing=("packages/other/docs/guide.md",)), [1])
+        self.assertEqual(self.dead_lines("Read `../docs/guide.md`.\n", filename=filename,
+                         existing=("packages/client/docs/guide.md",)), [])
+        self.assertEqual(self.dead_lines("Read `../docs/guide.md`.\n", filename=filename,
+                         existing=("docs/guide.md",)), [])
+
+    def test_hidden_directory_dot_is_preserved_in_suffix_lookup(self):
+        self.assertEqual(self.dead_lines("Read `.github/guide.md`.\n",
+                         existing=("packages/client/github/guide.md",)), [1])
+        self.assertEqual(self.dead_lines("Read `.github/guide.md`.\n",
+                         existing=("packages/client/.github/guide.md",)), [])
+
+    def test_outside_reference_does_not_become_an_in_repo_suffix_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            with patch.object(Path, "exists", side_effect=AssertionError("outside path probed")):
+                self.assertIsNone(_candidate_exists(root, root / "AGENTS.md", "../src/entry.py",
+                                                    {"src/entry.py"}))
+
+    def test_path_index_read_failure_is_not_a_partial_success(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            blocked = root / "src"
+            blocked.mkdir()
+            original = os.scandir
+
+            def inaccessible(path):
+                if Path(path) == blocked:
+                    raise PermissionError(13, "sensitive-error-detail", str(blocked))
+                return original(path)
+
+            with patch("agent_config_score.scanner.os.scandir", side_effect=inaccessible):
+                with self.assertRaises(OSError) as caught:
+                    _repository_path_index(root)
+            self.assertNotIn("sensitive-error-detail", str(caught.exception))
+
+    def test_unreadable_dependency_tree_remains_pruned(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / "AGENTS.md").write_text("Run tests.\n", encoding="utf-8")
+            blocked = root / "node_modules"
+            blocked.mkdir()
+            original = os.scandir
+
+            def inaccessible(path):
+                if Path(path) == blocked:
+                    raise PermissionError(13, "excluded dependency tree")
+                return original(path)
+
+            with patch("agent_config_score.scanner.os.scandir", side_effect=inaccessible):
+                index = _repository_path_index(root)
+            self.assertIn("AGENTS.md", index)
+            self.assertNotIn("node_modules", index)
 
     def test_dependency_tree_is_pruned_before_descent(self):
         with tempfile.TemporaryDirectory() as directory:

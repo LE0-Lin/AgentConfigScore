@@ -793,7 +793,10 @@ def _candidate_exists(
     candidate: str,
     repository_paths: set[str] | None = None,
 ) -> bool | None:
-    # Repository-root relative paths remain the primary interpretation. For a
+    candidate = candidate.replace("\\", "/")
+    explicit_relative = candidate.startswith(("./", "../"))
+    # Prose can describe commands run from the repository root rather than
+    # from the instruction directory. Preserve that root interpretation. For a
     # nested AGENTS-family file, also accept a path relative to that file's
     # directory, which is the root of its instruction scope.
     bases = [root]
@@ -805,6 +808,10 @@ def _candidate_exists(
         while current != root:
             bases.append(current)
             current = current.parent
+    elif explicit_relative and source.parent != root:
+        # Explicit relative notation may also be document-relative in other
+        # formats. Only these concrete bases count, not an arbitrary suffix.
+        bases.append(source.parent)
 
     checked = False
     for base in bases:
@@ -814,11 +821,21 @@ def _candidate_exists(
         checked = True
         if target.exists():
             return True
-    if repository_paths is not None:
-        normalized = candidate.lstrip("./")
+    if not checked:
+        return None
+    if not explicit_relative and repository_paths is not None:
+        # lstrip('./') removes characters, not a path prefix: it previously
+        # erased the significant dot in .github and dots in parent traversals.
+        normalized = PurePosixPath(candidate).as_posix()
         if any(path == normalized or path.endswith("/" + normalized) for path in repository_paths):
             return True
-    return False if checked else None
+    return False
+
+
+def _path_index_error(exc: OSError) -> None:
+    # A partial index is not evidence that a referenced path is missing. Keep
+    # source-controlled path names and raw filesystem messages out of the CLI.
+    raise OSError(exc.errno, "Unable to read repository path index") from exc
 
 
 def _repository_path_index(root: Path) -> set[str]:
@@ -826,7 +843,7 @@ def _repository_path_index(root: Path) -> set[str]:
     paths: set[str] = set()
     # Prune dependency/admin trees before descent, and never follow directory
     # symlinks. This indexes names only; it does not read generated source files.
-    for directory, dirs, files in os.walk(root, followlinks=False):
+    for directory, dirs, files in os.walk(root, followlinks=False, onerror=_path_index_error):
         descend = []
         for name in dirs:
             if name in PATH_INDEX_SKIP_DIRS:

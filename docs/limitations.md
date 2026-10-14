@@ -85,6 +85,19 @@ Markdown validator.
 
 ## Plain prose path references
 
+Backtick file references starting with `./` or `../` are checked against the
+repository root and applicable instruction-directory bases. Nested AGENTS-family
+files retain their in-repository ancestor interpretations; other formats also
+accept an explicit document-relative reference. These paths cannot pass merely
+because an unrelated package has a matching suffix. Significant leading dots,
+such as `.github`, are preserved. If no interpretation stays inside the repository,
+the reference is skipped rather than probed outside or substituted with an
+indexed path. Actual Markdown links remain strictly document-relative.
+
+Unprefixed prose still uses conservative package-relative suffix matching.
+Neither mode infers the working directory of a described command, follows `cd`
+instructions, or proves which interpretation the author intended.
+
 File-like prose references are heuristic, not a complete natural-language path
 resolver. An immediate, closed `(if exists)` or `(if it exists)` condition makes
 only that prose reference optional; Markdown link destinations remain checked.
@@ -107,6 +120,13 @@ Existence does not establish that a file is authoritative, generated correctly,
 or intended by an ambiguous reference. Generated/untracked files not present in
 the checkout can still be reported missing; filesystem case behavior remains
 host-dependent. These exemptions do not disable command or credential checks.
+
+Directory traversal errors while building the index stop the scan with an
+operational error, not a partial clean report or inferred missing path. CLI scan,
+compare and feedback return exit `2` without a success report; `doctor` exposes
+an error check named `repository-paths` and returns `1`. Dependency/admin trees
+excluded from the index remain pruned. This is a local filesystem check, not a
+Git-tracked-only index or an atomic filesystem snapshot.
 
 ## Red-team audit
 

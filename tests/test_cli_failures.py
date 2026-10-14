@@ -1,6 +1,7 @@
 import contextlib
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -104,6 +105,51 @@ class CliFailureTests(unittest.TestCase):
             self.assertFalse(report.ok)
             check = next(item for item in report.checks if item.name == "instructions")
             self.assertEqual(check.status, "error")
+
+    def test_unreadable_path_index_does_not_emit_a_success_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            source = root / "AGENTS.md"
+            source.write_text("Run tests.\n", encoding="utf-8")
+            blocked = root / "src"
+            blocked.mkdir()
+            original = os.scandir
+
+            def inaccessible(path):
+                if Path(path) == blocked:
+                    raise PermissionError(13, "sensitive-error-detail", str(blocked))
+                return original(path)
+
+            invocations = ([str(root), "--json", "--html", str(root / "report.html")],
+                           ["compare", str(root), str(root), "--json"],
+                           ["feedback", str(root), "--output", str(root / "feedback.md")])
+            for args in invocations:
+                with self.subTest(args=args), patch("agent_config_score.scanner.discover", return_value=[source]), \
+                        patch("agent_config_score.scanner.os.scandir", side_effect=inaccessible):
+                    code, stdout, stderr = self.invoke(args)
+                self.assertEqual(code, 2)
+                self.assertEqual(stdout, "")
+                self.assertIn("Unable to read repository path index", stderr)
+                self.assertNotIn("sensitive-error-detail", stderr)
+                self.assertNotIn("Traceback", stderr)
+            self.assertFalse((root / "report.html").exists())
+            self.assertFalse((root / "feedback.md").exists())
+
+    def test_doctor_marks_unreadable_path_index_as_structured_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            source = root / "AGENTS.md"
+            source.write_text("Run tests.\n", encoding="utf-8")
+            with patch("agent_config_score.doctor._repository_path_index",
+                       side_effect=PermissionError(13, "sensitive-error-detail")):
+                code, stdout, stderr = self.invoke(["doctor", str(root), "--json"])
+            self.assertEqual(code, 1)
+            self.assertEqual(stderr, "")
+            report = json.loads(stdout)
+            self.assertFalse(report["ok"])
+            check = next(item for item in report["checks"] if item["name"] == "repository-paths")
+            self.assertEqual(check["status"], "error")
+            self.assertNotIn("sensitive-error-detail", stdout)
 
     def test_write_permission_failure_has_concise_diagnostic(self):
         with tempfile.TemporaryDirectory() as directory:
