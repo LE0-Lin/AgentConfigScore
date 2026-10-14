@@ -11,6 +11,7 @@ The command is read-only and offline. It checks:
 - whether `.agentconfigscore.json` exists and parses successfully;
 - whether the config uses the canonical AgentConfigScore JSON Schema;
 - whether supported coding-agent instruction files are discoverable;
+- whether the repository path index can be traversed without a filesystem error;
 - whether the directory is inside a Git repository for `diff` workflows;
 - whether `agent-config-score diff` can automatically resolve a safe local baseline;
 - whether the standard GitHub Actions workflow exists and invokes AgentConfigScore correctly;
@@ -19,6 +20,13 @@ The command is read-only and offline. It checks:
 When automatic baseline detection succeeds, doctor reports the selected ref, for example `main` or `origin/main`. If Git works but no safe default-branch baseline can be detected, doctor emits a warning. That warning is non-fatal because you can still pass an explicit baseline such as `agent-config-score diff origin/main`.
 
 Warnings are advisory and keep exit status `0`. Concrete configuration or standard-workflow errors return a non-zero exit status.
+
+The `repository-paths` check reports an error if index traversal fails, for
+example because a source directory cannot be read. Fix the access problem before
+scanning; an incomplete index must not be treated as a clean result or evidence
+that a file is missing. Excluded dependency/admin trees are not traversed by this
+index check. It checks path metadata only, not instruction quality, tracked-file
+membership, or an atomic snapshot; access can change after the check completes.
 
 For scripts and CI:
 

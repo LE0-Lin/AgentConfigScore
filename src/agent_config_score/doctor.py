@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .config import CONFIG_NAME, SCHEMA_URL, ConfigError, load_policy
 from .gitdiff import GitError, detect_base_ref, repository_root
-from .scanner import discover
+from .scanner import _repository_path_index, discover
 
 
 @dataclass(frozen=True)
@@ -165,6 +165,18 @@ def diagnose(root: Path) -> DoctorReport:
             "instructions",
             "warning",
             "No supported coding-agent instruction files were discovered.",
+        ))
+
+    try:
+        _repository_path_index(root)
+    except OSError:
+        checks.append(DoctorCheck(
+            "repository-paths", "error",
+            "Could not build the repository path index; check filesystem access before scanning.",
+        ))
+    else:
+        checks.append(DoctorCheck(
+            "repository-paths", "pass", "Repository path index is readable.",
         ))
 
     try:
