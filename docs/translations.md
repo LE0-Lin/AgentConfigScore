@@ -44,6 +44,12 @@ interpretations remain, arbitrary suffix substitution is disabled for explicit
 relative references, and index read failures stay operational/doctor errors.
 Commands and the published v0.23.0 artifacts remain unchanged.
 
+On 2026-10-15, both guides and limitation summaries were reviewed with the English
+instruction-source containment/readability changes built on source revision
+`7ced98d3c4569bb21dcdbb83b48f948d8abe9a3c`: internal file aliases, pruned directory
+aliases, operational failures, doctor readability checks, legacy `read-error`,
+and explicit non-atomic/non-sandbox boundaries. Published artifacts are unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

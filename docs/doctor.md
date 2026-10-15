@@ -11,6 +11,7 @@ The command is read-only and offline. It checks:
 - whether `.agentconfigscore.json` exists and parses successfully;
 - whether the config uses the canonical AgentConfigScore JSON Schema;
 - whether supported coding-agent instruction files are discoverable;
+- whether selected instruction sources can be safely resolved and read inside the scan root;
 - whether the repository path index can be traversed without a filesystem error;
 - whether the directory is inside a Git repository for `diff` workflows;
 - whether `agent-config-score diff` can automatically resolve a safe local baseline;
@@ -27,6 +28,13 @@ scanning; an incomplete index must not be treated as a clean result or evidence
 that a file is missing. Excluded dependency/admin trees are not traversed by this
 index check. It checks path metadata only, not instruction quality, tracked-file
 membership, or an atomic snapshot; access can change after the check completes.
+
+The `instructions` check also reads each selected instruction source through the
+scanner's regular-file/containment guard, without executing or semantically
+evaluating its text. Invalid source links, unreadable instruction contents and an
+invalid `.agentconfigscoreignore` become error checks rather than a successful
+preflight. Internal file aliases are supported; child directory symlinks/junctions
+are not traversed. See the [filesystem boundary and concurrency limits](limitations.md#instruction-file-filesystem-boundary).
 
 For scripts and CI:
 

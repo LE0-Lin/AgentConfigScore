@@ -16,6 +16,8 @@
 
 ### Fixed
 
+- Validate selected instruction files and `.agentconfigscoreignore` as in-repository regular files before opening contents, and revalidate instruction sources at read time. Internal file aliases keep their discovered scopes/locations; child directory symlinks and Windows junctions are not traversed. Preserve ignore-glob meaning while pruning excluded trees before descent.
+- Fail operationally on unsafe, dangling, cyclic or unreadable selected sources instead of skipping them, exposing raw errors, or scoring incomplete text. Doctor checks actual source readability. Keep legacy `read-error` for report/suppression compatibility, not as a bypass for operational failures; unrelated non-instruction link cycles no longer crash path indexing. This is not an atomic filesystem sandbox.
 - Prevent explicit `./` and `../` prose references from passing through an unrelated package's suffix match while retaining existing repository-root/AGENTS-scope interpretations and accepting explicit document-relative paths in other formats. Preserve significant hidden-directory dots and skip references with no in-repository interpretation before index lookup.
 - Stop scans on directory traversal errors rather than silently using a partial path index. Scan/compare/feedback report operational exit `2` without success output; `doctor` exposes a structured `repository-paths` error. Raw traversal messages are not echoed, and excluded dependency/admin trees remain pruned.
 - Avoid `dead-path` false positives for narrowly typed repository/remote slugs and immediate closed `(if exists)` prose references, without exempting other local paths, actual Markdown links or dangerous commands.
