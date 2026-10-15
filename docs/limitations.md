@@ -10,6 +10,37 @@ a task, or whether an instruction file is generally “good.”
 **An A 100 result means that no active deterministic rule matched. It is not a
 semantic quality certification.**
 
+## Instruction-file filesystem boundary
+
+Selected instruction files and `.agentconfigscoreignore` must resolve to regular
+files inside the resolved scan root. Internal file symlinks remain supported;
+findings, Markdown links and instruction scopes use the discovered alias's
+repository-relative location, not the shared target's directory. An explicitly
+supplied root alias is allowed and defines the resolved boundary.
+
+Discovery does not descend through child directory symlinks or Windows junctions,
+even when their targets are internal. Excluded dependency/build trees and
+subtrees covered by an ignore pattern ending in `/**` are pruned before descent.
+Other ignore patterns retain their filename-matching meaning. A source explicitly
+excluded from discovery is not inspected and has no coverage claim.
+
+Selected external, dangling, cyclic or non-regular file sources fail before their
+contents are opened. Sources are revalidated before reading, and the resolved
+target is opened. Failed discovery, resolution or instruction-content reads are
+operational errors: scan/compare/feedback return `2` without a successful score or
+new success report. `doctor` checks source readability and reports an `instructions`
+error with exit `1`. Raw target paths and filesystem error details are not echoed
+in these source diagnostics. Legacy `read-error` remains in the catalog for old
+report/suppression compatibility, but cannot suppress a current operational failure.
+
+This is **not a filesystem sandbox or an atomic snapshot**. A concurrent process
+can still replace parents or targets between validation and open. Hard-link
+identity and mount boundaries are not certified. Other explicitly chosen inputs,
+configuration/workflow readers and report destinations are separate interfaces;
+this guard does not claim to constrain every filesystem operation in the tool.
+Non-instruction link cycles are excluded from the path index, not judged safe or
+semantically correct. Keep repositories stable while scanning.
+
 ## Command interpretation
 
 The `rm-rf`, `git-clean-force`, and `docker-system-prune` rules tokenize bounded

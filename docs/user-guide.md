@@ -146,6 +146,7 @@ Nothing is uploaded. Review and sanitize the draft yourself before sharing.
 | Configuration / workflow encoding error | Save the file as UTF-8; do not copy a UTF-16 file into the integration. |
 | Cannot write HTML, SARIF or Markdown | Choose a writable file path, not an existing directory; inspect parent-directory permissions. |
 | `Unable to read repository path index` | Run `doctor` and check its `repository-paths` error. Fix directory access or I/O failures; no success report is emitted from a partial index. |
+| Scanner source resolution/read error | Inspect selected instruction and ignore-file links locally. They must point to in-repository regular files; fix dangling links, cycles or permissions. `doctor` reports an `instructions` error. Do not treat an incomplete scan as a passing score. |
 | `diff` cannot detect a baseline | Check `doctor`, then pass an available default-branch ref explicitly. |
 | A prohibited command was flagged | Compare its exact context with the [supported prohibition grammar](instruction-context.md); arbitrary languages and paraphrases are not understood. |
 | Historic GitHub run is red | Open the run for the current commit. Fixing a later commit does not erase an earlier failed run. |

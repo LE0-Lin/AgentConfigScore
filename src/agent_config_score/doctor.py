@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .config import CONFIG_NAME, SCHEMA_URL, ConfigError, load_policy
 from .gitdiff import GitError, detect_base_ref, repository_root
-from .scanner import _repository_path_index, discover
+from .scanner import _read_scanner_source, _repository_path_index, discover
 
 
 @dataclass(frozen=True)
@@ -149,8 +149,10 @@ def diagnose(root: Path) -> DoctorReport:
 
     try:
         files = discover(root)
+        for path in files:
+            _read_scanner_source(root, path)
     except OSError as exc:
-        checks.append(DoctorCheck("instructions", "error", f"Could not discover instruction files: {exc}"))
+        checks.append(DoctorCheck("instructions", "error", f"Could not safely read instruction files: {exc}"))
         files = None
     if files:
         checks.append(DoctorCheck(

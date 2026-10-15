@@ -5,6 +5,7 @@ from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from fnmatch import fnmatch
 from pathlib import Path, PurePosixPath, PureWindowsPath
+import errno
 import hashlib
 import html
 import ipaddress
@@ -12,6 +13,7 @@ import json
 import os
 import re
 import shlex
+import stat
 from urllib.parse import unquote, urlsplit
 
 from .config import Suppression
@@ -421,12 +423,47 @@ def _finding(code: str, file: str, line: int | None = None, message: str | None 
     )
 
 
+def _scanner_source_target(root: Path, path: Path) -> Path:
+    """Validate selected file sources without exposing target/error details."""
+    try:
+        boundary = root.resolve(strict=True)
+        target = path.resolve(strict=True)
+    except RuntimeError as exc:  # pathlib symlink loops on Python 3.10-3.12
+        raise OSError(errno.ELOOP, "Unable to safely resolve scanner source") from exc
+    except OSError as exc:
+        raise OSError(exc.errno, "Unable to safely resolve scanner source") from exc
+    if not target.is_relative_to(boundary):
+        raise OSError(errno.EPERM, "Scanner source must remain inside the repository")
+    try:
+        regular = stat.S_ISREG(target.stat().st_mode)
+    except OSError as exc:
+        raise OSError(exc.errno, "Unable to inspect scanner source") from exc
+    if not regular:
+        raise OSError(errno.EINVAL, "Scanner source must be a regular file")
+    return target
+
+
+def _read_scanner_source(root: Path, path: Path) -> str:
+    # Revalidate at read time and open the resolved in-repository target, not
+    # an alias that may have changed since discovery. This is not an atomic
+    # filesystem sandbox: concurrent replacement of parents/targets is possible.
+    target = _scanner_source_target(root, path)
+    try:
+        return target.read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        raise OSError(exc.errno, "Unable to read scanner source") from exc
+
+
 def _ignore_patterns(root: Path) -> list[str]:
     p = root / ".agentconfigscoreignore"
-    if not p.exists():
+    try:
+        p.lstat()  # A dangling link is not the same as an absent ignore file.
+    except FileNotFoundError:
         return []
+    except OSError as exc:
+        raise OSError(exc.errno, "Unable to inspect scanner ignore file") from exc
     return [
-        line.strip() for line in p.read_text(encoding="utf-8", errors="replace").splitlines()
+        line.strip() for line in _read_scanner_source(root, p).splitlines()
         if line.strip() and not line.lstrip().startswith("#")
     ]
 
@@ -454,26 +491,52 @@ def discover(root: Path) -> list[Path]:
     # callers should still be able to make discovered files relative to the
     # absolute root they supplied.
     root = root.absolute()
+    boundary = root.resolve()
     patterns = _ignore_patterns(root)
     found: dict[str, Path] = {}
-    for path in root.rglob("*"):
-        rel_path = path.relative_to(root)
-        rel = rel_path.as_posix()
-        if any(part in SKIP_DIRS for part in rel_path.parts) or _ignored(rel, patterns):
-            continue
-        if not path.is_file():
-            continue
-        if path.name.casefold() in TARGET_NAMES_CASEFOLD:
+
+    def select(path: Path) -> None:
+        rel = path.relative_to(root).as_posix()
+        if _ignored(rel, patterns):
+            return
+        if (path.name.casefold() in TARGET_NAMES_CASEFOLD
+                or (rel.startswith((".cursor/rules/", ".claude/", ".github/instructions/"))
+                    and path.suffix.lower() in {".md", ".mdc"})):
             key = rel.casefold()
             current = found.get(key)
             if current is None or _prefer_canonical_name(path, current):
                 found[key] = path
-        elif rel.startswith((".cursor/rules/", ".claude/", ".github/instructions/")) and path.suffix.lower() in {".md", ".mdc"}:
-            key = rel.casefold()
-            current = found.get(key)
-            if current is None or _prefer_canonical_name(path, current):
-                found[key] = path
-    return sorted(found.values(), key=lambda p: p.relative_to(root).as_posix())
+
+    for directory, dirs, names in os.walk(root, followlinks=False, onerror=_discovery_error):
+        descend = []
+        for name in dirs:
+            path = Path(directory) / name
+            rel = path.relative_to(root).as_posix()
+            # Only /** patterns prove every descendant is excluded. A literal
+            # directory-name match alone must not change existing glob meaning.
+            if name in SKIP_DIRS or any(
+                pattern.endswith("/**") and fnmatch(rel, pattern[:-3]) for pattern in patterns
+            ):
+                continue
+            if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
+                select(path)  # A link named AGENTS.md must not silently vanish.
+                continue
+            target = _repo_candidate(boundary, boundary, rel)
+            if target != boundary / rel:
+                select(path)
+                continue
+            descend.append(name)
+        dirs[:] = descend
+        for name in names:
+            select(Path(directory) / name)
+    selected = sorted(found.values(), key=lambda p: p.relative_to(root).as_posix())
+    for path in selected:
+        _scanner_source_target(boundary, path)
+    return selected
+
+
+def _discovery_error(exc: OSError) -> None:
+    raise OSError(exc.errno, "Unable to discover instruction files") from exc
 
 
 def estimate_tokens(text: str) -> int:
@@ -779,7 +842,14 @@ def _repo_candidate(root: Path, base: Path, candidate: str) -> Path | None:
     windows_candidate = PureWindowsPath(candidate)
     if Path(candidate).is_absolute() or windows_candidate.is_absolute() or windows_candidate.drive:
         return None
-    target = (base / candidate).resolve(strict=False)
+    try:
+        target = (base / candidate).resolve(strict=False)
+    except RuntimeError:  # pathlib symlink loops on Python 3.10-3.12
+        return None
+    except OSError as exc:
+        if exc.errno == errno.ELOOP or getattr(exc, "winerror", None) == 1921:
+            return None
+        raise OSError(exc.errno, "Unable to resolve repository path") from exc
     try:
         target.relative_to(root)
     except ValueError:
@@ -923,11 +993,7 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
 
     for path in files:
         rel = path.relative_to(root).as_posix()
-        try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError as exc:
-            findings.append(_finding("read-error", rel, message=str(exc)))
-            continue
+        text = _read_scanner_source(root, path)
         texts[path] = text
         context = _instruction_context(text)
         if not text.strip():

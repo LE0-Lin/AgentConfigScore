@@ -51,7 +51,7 @@ RULES = (
     Rule("github-token", "error", "secret", 25, "Possible GitHub token", "Flags strings shaped like common GitHub personal, OAuth, user, server, or refresh tokens."),
     Rule("aws-access-key", "error", "secret", 25, "Possible AWS access key", "Flags strings shaped like AWS access key IDs."),
     Rule("private-key", "error", "secret", 30, "Private key material detected", "Flags PEM/OpenSSH private-key headers in persistent agent instructions."),
-    Rule("read-error", "warning", "other", 2, "Instruction file could not be read", "Reports a supported instruction file that could not be read during analysis."),
+    Rule("read-error", "warning", "other", 2, "Instruction file could not be read", "Legacy finding retained for historical report and suppression compatibility. Current scans fail operationally when a selected instruction file cannot be safely read, rather than scoring an incomplete analysis."),
     Rule("context-too-large", "warning", "size", 12, "Persistent instruction context is very large", "Reports an instruction file estimated above 8,000 tokens."),
     Rule("context-large", "warning", "size", 6, "Persistent instruction context is large", "Reports an instruction file estimated above 5,000 tokens."),
     Rule("dead-path", "warning", "dead", 4, "Referenced repository path does not exist", "Flags repository-like paths referenced by agent instructions when the target path is absent."),

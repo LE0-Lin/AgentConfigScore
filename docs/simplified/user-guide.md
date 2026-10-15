@@ -108,6 +108,7 @@ agent-config-score feedback . --output .agent-config-score/case.md
 | 找不到命令 | 确认装入当前 Python 环境，并检查 Scripts/bin 的 PATH。v0.23.0+ 可用 `python -m agent_config_score`。 |
 | 配置或工作流编码错误 | 保存为 UTF-8，不要用 UTF-16 文件替代。 |
 | `Unable to read repository path index` | 运行 `doctor`，核对 `repository-paths` 错误并修复目录访问或 I/O 问题。部分索引不会生成成功报告。 |
+| 扫描源解析或读取错误 | 在本地核对已选择的指令文件和忽略文件链接，目标必须是仓库内的普通文件；修复失效、循环链接或权限问题。`doctor` 给出 `instructions` 错误，不要把不完整扫描当成通过。 |
 | 报告不可写 | 选择可写的文件路径，不是已有目录；检查父目录权限。 |
 | 无法检测基线 | 运行 `doctor`，然后指定本地已有的默认分支引用。 |
 | 禁止示例被报为危险指令 | 对照[支持的禁止语法（英文）](../instruction-context.md)检查具体上下文；工具不理解任意语言和改写。 |
