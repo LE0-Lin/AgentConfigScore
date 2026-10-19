@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from . import __version__
 from .rules import get_rule
 from .scanner import Finding, Report
 
@@ -58,6 +57,14 @@ def sarif_report(report: Report) -> dict:
     rule_indexes = {code: index for index, code in enumerate(rule_codes)}
     rules = [_rule(rules_by_code[code]) for code in rule_codes]
     results = [_result(finding, rule_indexes[finding.code]) for finding in report.findings]
+    driver = {
+        "name": "AgentConfigScore",
+        "informationUri": "https://github.com/LE0-Lin/AgentConfigScore",
+        "rules": rules,
+    }
+    if report.tool is not None:
+        driver["semanticVersion"] = report.tool.version
+        driver["properties"] = {"toolIdentity": report.tool.to_dict()}
 
     return {
         "$schema": SARIF_SCHEMA,
@@ -65,12 +72,7 @@ def sarif_report(report: Report) -> dict:
         "runs": [
             {
                 "tool": {
-                    "driver": {
-                        "name": "AgentConfigScore",
-                        "semanticVersion": __version__,
-                        "informationUri": "https://github.com/LE0-Lin/AgentConfigScore",
-                        "rules": rules,
-                    }
+                    "driver": driver
                 },
                 "results": results,
                 "properties": {

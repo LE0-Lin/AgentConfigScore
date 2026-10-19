@@ -4,6 +4,7 @@
 
 ### Added
 
+- Capture the declared tool version and a best-effort, LF-normalized SHA-256 of the explicit runtime Python-source manifest in new scan JSON, HTML, SARIF, history snapshots and privacy-minimized feedback; compare/diff retains both identities. Unknown source never becomes a partial digest or blocks linting; legacy reports are not relabelled. This identifies installed source, not executing bytecode, private inputs, accuracy or reproducibility by itself. Frozen research evidence and published v0.23.0 artifacts remain unchanged.
 - Optional Simplified/Traditional Chinese repository overviews, core user guides and limitation summaries, with reciprocal language links and an explicit source-revision/coverage note. Advanced references remain English; CLI messages, JSON fields, rule semantics and the published v0.23.0 distributions are unchanged.
 - An actual unscored Next.js source probe replayed on Linux with the frozen 0.22.0 code, complete Git-object/source verification and separate native/root scopes. Earlier failures, the interrupted new transfer and Windows path-case mismatch remain recorded; no correctness metrics, human labels or 0.23.0-case validation are implied.
 - A readable 28-line human preannotation page with unchanged source bytes, license/provenance links, input limitations and a plain-language answer format. Consent and preparation are not completed annotations; the parent corpus remains unresolved and the page itself does not change product rules.

@@ -304,8 +304,17 @@ class InstructionFilesystemTests(unittest.TestCase):
     def test_instruction_fifo_is_rejected_without_opening_it(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
-            os.mkfifo(root / "AGENTS.md")
-            with patch.object(Path, "read_text", side_effect=AssertionError("FIFO opened")):
+            fifo = root / "AGENTS.md"
+            os.mkfifo(fifo)
+            original = Path.read_text
+
+            def protected(path, *args, **kwargs):
+                if path == fifo:
+                    raise AssertionError("FIFO opened")
+                return original(path, *args, **kwargs)
+
+            # Guard the instruction FIFO, not legitimate tool-source reads.
+            with patch.object(Path, "read_text", new=protected):
                 with self.assertRaises(OSError):
                     analyze(root)
 

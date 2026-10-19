@@ -10,6 +10,12 @@ a task, or whether an instruction file is generally “good.”
 **An A 100 result means that no active deterministic rule matched. It is not a
 semantic quality certification.**
 
+Unreleased source builds include [tool source identity](report-identity.md) to
+distinguish implementations that declare the same version. A matching digest is
+not an accuracy result or a reproducibility guarantee: repository inputs, policy,
+runtime and filesystem behavior are outside that fingerprint. Missing source is
+explicitly unknown, and historic reports are not relabelled.
+
 ## Instruction-file filesystem boundary
 
 Selected instruction files and `.agentconfigscoreignore` must resolve to regular

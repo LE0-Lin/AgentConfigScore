@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections import Counter
 
-from . import __version__
 from .scanner import Report
 
 
@@ -18,6 +17,8 @@ def feedback_markdown(report: Report) -> str:
     suppressed = Counter(
         item.finding.code for item in report.suppressed_findings
     )
+    version = report.tool.version if report.tool is not None else "unknown"
+    source = (report.tool.source_sha256 if report.tool is not None else None) or "unavailable"
 
     lines = [
         "# AgentConfigScore real-world case",
@@ -27,7 +28,8 @@ def feedback_markdown(report: Report) -> str:
         "",
         "## Generated result",
         "",
-        f"- AgentConfigScore version: `{__version__}`",
+        f"- AgentConfigScore version: `{version}`",
+        f"- Tool source SHA-256: `{source}`",
         f"- Score: **{report.grade} {report.score}/100**",
         f"- Supported instruction files scanned: **{len(report.files)}**",
         f"- Active findings: **{len(report.findings)}**",

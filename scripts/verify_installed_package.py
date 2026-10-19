@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -102,19 +103,30 @@ def verify(python: Path, expected_version: str) -> list[str]:
                                "--badge", str(badge), "--sarif", str(sarif)], repo))
         require(scan["score"] == 100 and scan["findings"] == [], "Clean fixture is not clean")
         require(scan["files"] == ["AGENTS.md"], "Unexpected discovery scope")
+        identity = scan["tool"]
+        require(identity["version"] == expected_version, "Scan tool version mismatch")
+        source_digest = identity["source_fingerprint"]["sha256"]
+        require(isinstance(source_digest, str) and re.fullmatch(r"[0-9a-f]{64}", source_digest) is not None,
+                "Installed wheel has no complete tool source fingerprint")
         require("AgentConfigScore" in html.read_text(encoding="utf-8"), "Missing HTML report")
         require("<svg" in badge.read_text(encoding="utf-8"), "Missing SVG badge")
         sarif_data = json.loads(sarif.read_text(encoding="utf-8"))
         require(sarif_data["version"] == "2.1.0" and sarif_data["runs"][0]["results"] == [],
                 "Invalid clean SARIF output")
+        require(sarif_data["runs"][0]["tool"]["driver"]["properties"]["toolIdentity"] == identity,
+                "SARIF lost scan-time identity")
+        require(source_digest in html.read_text(encoding="utf-8"), "HTML lost scan-time identity")
         rule = json.loads(run([*cli, "rules", "curl-pipe-shell", "--json"], repo))
         require(rule["code"] == "curl-pipe-shell" and rule["severity"] == "error", "Invalid rule inspection")
         require(json.loads(run([*cli, "history", "--json"], repo))["history"] == [], "Unexpected history")
         feedback = artifacts / "feedback.md"
         run([*cli, "feedback", "--output", str(feedback)], repo)
         require(repo.name not in feedback.read_text(encoding="utf-8"), "Feedback leaked fixture repository name")
+        require(source_digest in feedback.read_text(encoding="utf-8"), "Feedback lost tool source identity")
         unchanged = json.loads(run([*cli, "diff", "--json"], repo))
         require(unchanged["delta"] == 0 and unchanged["new_findings"] == [], "Unchanged diff did not pass")
+        require(unchanged["base"]["tool"] == identity and unchanged["head"]["tool"] == identity,
+                "Diff lost scan identities")
         checks.append("clean scan, HTML/SVG/SARIF, rules, history, feedback, and unchanged diff")
 
         base, head = workspace / "base", workspace / "head"
