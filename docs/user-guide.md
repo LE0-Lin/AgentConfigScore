@@ -130,6 +130,13 @@ messages; inspect them before sharing. Do not overwrite your source or policy
 files by choosing their paths as report destinations. Multiple output writes
 are not a transaction: an earlier artifact may remain if a later write fails.
 
+Unreleased source builds also retain the declared tool version and a best-effort
+tool-source SHA-256 in JSON, HTML, SARIF and new history snapshots. Compare/diff
+JSON retains both scan identities. This distinguishes local implementations with
+the same version, not accuracy or reproducibility by itself. Missing source makes
+the digest unavailable, not the scan invalid. See [report identity](report-identity.md)
+for coverage, compatibility and environment/input limits; released v0.23.0 is unchanged.
+
 For a privacy-minimized draft instead:
 
 ```bash

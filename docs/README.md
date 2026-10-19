@@ -13,6 +13,7 @@ read the result, and troubleshoot a failing gate.
 - [Repository doctor](doctor.md)
 - [Optional PR comments](pr-comments.md)
 - [Score-history workflow](score-history.md) and [local history command](score-history-cli.md)
+- [Report tool identity and source fingerprints](report-identity.md) (unreleased)
 - [Policy and suppression schema](../schema/agentconfigscore.schema.json)
 
 ## Understanding findings

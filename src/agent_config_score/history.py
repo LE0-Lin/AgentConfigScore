@@ -12,7 +12,9 @@ HISTORY_FILE = HISTORY_DIR / "index.json"
 def create_snapshot(report: Any, *, commit: str | None = None) -> dict[str, Any]:
     """Create a stable read-only score history snapshot."""
     findings = getattr(report, "findings", [])
+    tool = getattr(report, "tool", None)
     return {
+        "tool": tool.to_dict() if tool is not None else None,
         "commit": commit,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "score": report.score,
