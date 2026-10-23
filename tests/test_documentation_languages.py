@@ -58,7 +58,7 @@ class DocumentationLanguageTests(unittest.TestCase):
         paths += [ROOT / "README.md"]
         paths += [ROOT / "docs" / name for name in
                   ("README.md", "user-guide.md", "limitations.md", "translations.md",
-                   "release-readiness.md")]
+                   "release-readiness.md", "maintainer-workflow.md", "best-practices.md")]
         for path in paths:
             text = path.read_text(encoding="utf-8")
             for destination in re.findall(r"!?\[[^\]\n]+\]\(([^)\n]+)\)", text):

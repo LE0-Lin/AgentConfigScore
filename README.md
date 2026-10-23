@@ -362,6 +362,11 @@ It updates one bot-owned comment per PR and links to the detailed report.
 See the [integration guide](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/pr-comments.md)
 for fork behavior and permissions.
 
+Unreleased source builds add `init --pr-comment` for opt-in setup and `--explain`
+for rule-specific next steps. See the [maintainer workflow](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/maintainer-workflow.md)
+and [unscored best-practice checklist](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/best-practices.md).
+Published v0.23.0 artifacts are unchanged; the default generated workflow keeps read-only GitHub permissions.
+
 Without a policy file, the Action preserves its conservative compatibility defaults: `max_drop = 0` and `fail_on_new_errors = true`.
 
 ## Keep score history

@@ -8,6 +8,8 @@ read the result, and troubleshoot a failing gate.
 ## Using the tool
 
 - [User guide and exit codes](user-guide.md)
+- [Maintainer setup, actionable next steps and PR results](maintainer-workflow.md) (new setup/explanations unreleased)
+- [Unscored instruction-file best-practice checklist](best-practices.md)
 - [Visual tour](visual-tour.md)
 - [Instruction templates](../examples/README.md)
 - [Opt-in deletion safeguard review and completion](guardrail-suggestions.md) (unreleased)

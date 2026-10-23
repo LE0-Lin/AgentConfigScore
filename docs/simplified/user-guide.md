@@ -116,6 +116,16 @@ agent-config-score guardrails . --file AGENTS.md --template-language simplified 
 
 明确标注的示例章节不算有效策略；如果该章节延续到文件末尾，就不能自动追加。少数明确要求跳过删除确认的句式会产生只含行号与类型的 `review_signals`，即使其他位置已识别到保护，也不能自动追加。请先手动处理这些策略；这不是通用的矛盾检测器。
 
+## 可选：面向维护者的具体建议（尚未发布）
+
+```bash
+agent-config-score . --explain
+agent-config-score diff --explain --markdown .agent-config-score/regression.md
+agent-config-score init --pr-comment --dry-run
+```
+
+`--explain` 在文本／Markdown 中为扫描的有效发现、回归比较的新增发现补充静态处理建议，不改变 JSON、评分或退出策略；不执行命令、不修复文件。[最佳实践清单（英文）](../best-practices.md)也不计分。`init --pr-comment` 显式选择生成同仓库 PR 评论工作流，并提示 `pull-requests: write` 权限；默认 `init` 生成的工作流仍只申请 GitHub 只读权限。先预览、审核，只提交一份工作流；已有冲突须主动审核，不能自动覆盖。Fork PR 保留任务摘要，不发评论。生成的 Action 引用仍为 `v0`，新解释需要包含本次改动的 Action 构建。已发布的 v0.23.0 不含这两个参数。详见[维护者流程（英文）](../maintainer-workflow.md)。
+
 ## 常见问题
 
 | 现象 | 检查方法 |

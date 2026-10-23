@@ -1,5 +1,15 @@
 # Post results as one pull request comment
 
+Unreleased source builds can generate the same recipe with
+`agent-config-score init --pr-comment --dry-run`, then
+`agent-config-score init --pr-comment` after review. The published v0.23.0 CLI
+does not have this flag. It generates `.github/workflows/agent-config-score.yml`;
+choose **one** setup method rather than installing both workflows. Existing
+files are not silently overwritten, and default `init` generates a workflow with
+read-only GitHub permissions.
+See the [maintainer workflow](maintainer-workflow.md) for revision and permission
+details, and for optional rule-specific next steps in detailed summaries.
+
 Copy [`examples/pr-comment.yml`](../examples/pr-comment.yml) to
 `.github/workflows/agent-config-regression.yml`. Each pull request receives one
 AgentConfigScore comment; subsequent runs update it with the score change,
