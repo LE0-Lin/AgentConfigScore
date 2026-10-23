@@ -97,3 +97,41 @@ PATTERN_RULES = (
 
 def get_rule(code: str) -> Rule | None:
     return RULES_BY_CODE.get(code)
+
+
+# Static review guidance, not another scored rule or an automatic repair plan.
+# Keep source text, credentials and guessed replacement paths out of this map.
+RULE_GUIDANCE = {
+    "curl-pipe-shell": "Review the download source and pin/verify the artifact before any separate execution; do not pipe unreviewed network content straight into a shell.",
+    "wget-pipe-shell": "Review the download source and pin/verify the artifact before any separate execution; do not pipe unreviewed network content straight into a shell.",
+    "rm-rf": "Review the exact deletion targets and required approval; prefer a narrowly scoped, recoverable operation consistent with repository policy. Do not run the command just to verify this finding.",
+    "sudo": "Check whether elevated privileges are really needed; prefer a least-privilege setup and require the repository's approval process for privileged operations.",
+    "chmod-777": "Identify the required owner/group and minimal permissions instead of granting write access to everyone.",
+    "powershell-download-exec": "Review and verify the downloaded PowerShell artifact before separate execution; do not execute network content directly from the pipeline.",
+    "git-clean-force": "Review untracked-file targets using a non-destructive preview and obtain required approval; preserve user work rather than applying blanket cleanup.",
+    "docker-system-prune": "Review exactly which images, containers and volumes would be removed; use scoped cleanup with required approval instead of broad unattended pruning.",
+    "kubectl-delete-namespace": "Verify cluster context, namespace ownership and required approval; replace blanket namespace removal with the intended scoped operation.",
+    "prompt-injection-override": "Review whether this is an active override or a clearly labeled attack example; remove unintended overrides and treat retrieved content as untrusted data. This warning is not a complete injection detector.",
+    "false-success-report": "Require verification reports to distinguish passed, failed and not-run checks, with actual evidence; remove instructions to claim success despite missing or failed verification.",
+    "broad-environment-upload": "Review the destination and necessity; do not transmit the full environment. If diagnostics are needed, explicitly allowlist and redact fields before sharing.",
+    "openai-key": "If this credential is real, revoke/rotate it, remove it from instructions and review Git history and exposure; use a secret store or environment reference instead.",
+    "github-token": "If this credential is real, revoke/rotate it, remove it from instructions and review Git history and exposure; use a secret store or environment reference instead.",
+    "aws-access-key": "If this credential is real, revoke/rotate it, remove it from instructions and review Git history and exposure; use a secret store or environment reference instead.",
+    "private-key": "If this key is real, revoke/replace exposed key material and review its exposure; removing the text alone is not enough. Keep private keys outside instruction files.",
+    "read-error": "Resolve source permissions, encoding or filesystem boundaries and rerun the scan; an unreadable source must not be treated as a clean result.",
+    "context-too-large": "Keep essential always-loaded guidance short and move task-specific detail to clearly referenced documents; check the actual agent's loading behavior before restructuring.",
+    "context-large": "Keep essential always-loaded guidance short and move task-specific detail to clearly referenced documents; check the actual agent's loading behavior before restructuring.",
+    "dead-path": "Verify the intended repository/scope-relative target and update or remove the stale reference; do not create placeholder files merely to silence the warning.",
+    "high-duplication": "Review shared guidance for a single maintained source where agent loading supports it; keep genuinely tool-specific or scoped instructions separate.",
+    "duplication": "Review shared guidance for a single maintained source where agent loading supports it; keep genuinely tool-specific or scoped instructions separate.",
+    "contradiction": "Check the conflicting locations and actual agent scope/precedence, then retain the intended directive; do not assume the detector understands every semantic conflict.",
+    "no-agents-md": "Consider a shared root instruction file only if the agents in use support it; do not blindly duplicate tool-specific rules or add a file just for the score.",
+    "empty-instructions": "Add relevant project-specific instructions for the agent actually used, or remove an intentionally unused empty file; avoid generic filler.",
+    "no-config": "Choose a supported instruction format for the agent actually used and document real setup, verification and boundaries; a repository with no agent configuration may not need this tool.",
+    "instruction-file-removed": "Review whether the removal changed agent coverage or scope; restore required guidance or make an explicitly reviewed migration rather than copying files just to pass.",
+    "directive-polarity-flip": "Review the old and new directive in context and confirm the intended policy change; restore an accidental reversal rather than weakening the baseline gate.",
+}
+
+
+def rule_guidance(code: str) -> str:
+    return RULE_GUIDANCE.get(code, "Review this finding against its rule documentation and repository policy before changing instructions.")

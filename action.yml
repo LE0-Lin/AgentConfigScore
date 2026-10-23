@@ -111,6 +111,7 @@ runs:
         args=(
           compare "$base_dir" "$GITHUB_WORKSPACE"
           --markdown "$summary"
+          --explain
           --json
         )
 

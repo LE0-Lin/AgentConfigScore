@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 from .config import Suppression
+from .rules import rule_guidance
 from .scanner import (
     Finding,
     Report,
@@ -152,7 +153,7 @@ def compare(
     )
 
 
-def markdown_report(report: RegressionReport) -> str:
+def markdown_report(report: RegressionReport, *, explain: bool = False) -> str:
     sign = "+" if report.delta > 0 else ""
     status = "✅ No regression" if report.delta >= 0 and not report.new_errors else "⚠️ Regression detected"
     lines = [
@@ -170,6 +171,10 @@ def markdown_report(report: RegressionReport) -> str:
         for finding in report.new_findings:
             location = finding.file + (f":{finding.line}" if finding.line else "")
             lines.append(f"- **{finding.severity.upper()}** `{finding.code}` — {finding.message} (`{location}`)")
+            if explain:
+                lines.append(f"  - Next step: {rule_guidance(finding.code)}")
+        if explain:
+            lines.extend(["", "Next steps are review guidance, not automatic fixes or a safety guarantee."])
 
     if report.resolved_findings:
         lines.extend(["", "### Resolved findings", ""])

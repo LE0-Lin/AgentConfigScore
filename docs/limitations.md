@@ -197,6 +197,13 @@ The bare CLI's score-only compatibility default is unchanged.
 
 ## Known blind spots
 
+Unreleased `--explain` output and the [maintainer checklist](best-practices.md)
+give static review guidance, not new detection coverage or an automatic fix.
+They do not execute referenced commands, infer replacement paths, change score
+arithmetic or certify safety. Optional `init --pr-comment` generates a workflow
+with explicit write permissions; it posts nothing itself and keeps the default
+generated workflow's GitHub permissions read-only. See the [maintainer workflow](maintainer-workflow.md).
+
 The optional, unreleased [guardrail completion command](guardrail-suggestions.md)
 does not add keyword-based quality points. It checks only narrow deletion-policy
 phrases in one selected file, offers a preview and requires content-bound

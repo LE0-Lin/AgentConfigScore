@@ -77,6 +77,14 @@ example sections and HTML layouts, and unscored approval-bypass review signals
 that block automatic append without claiming general conflict detection.
 Executable examples, scoring defaults and published artifacts remain unchanged.
 
+Also on 2026-10-23, both core guides/limitations were reviewed for the maintainer
+workflow built on `ffbf7f13a627634b4ca9b72e9c58f58e84027317`: opt-in explanatory
+text/Markdown, unchanged scores/JSON, static non-scored guidance, explicit PR
+comment write permissions, no-overwrite defaults and fork/revision boundaries.
+New detailed maintainer/checklist references remain English and are linked from
+both variants. Executable guide examples remain identical; published artifacts
+and frozen research evidence are unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

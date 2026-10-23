@@ -13,7 +13,7 @@ from .history import load_history, summarize_history
 from .guardrails import GuardrailError, TEMPLATES, review_guardrails
 from .initializer import InitError, initialize_repository
 from .regression import compare, markdown_report
-from .rules import RULES, get_rule
+from .rules import RULES, get_rule, rule_guidance
 from .sarif import sarif_report
 from .scanner import analyze, badge_svg, html_report
 
@@ -82,7 +82,7 @@ def _print_suppressed(report) -> None:
             print(f"             paths: {', '.join(suppression.paths)}")
 
 
-def print_report(report) -> None:
+def print_report(report, *, explain: bool = False) -> None:
     grade = _c(report.grade, GRADE_COLORS[report.grade])
     print(f"\n{BOLD if _supports_color() else ''}AgentConfigScore{RESET if _supports_color() else ''}  {grade}  {report.score}/100")
     print(
@@ -99,10 +99,14 @@ def print_report(report) -> None:
             prefix = _c(f"{icon} {f.severity.upper():7}", COLORS.get(f.severity, ""))
             print(f"{prefix} {f.code:20} {f.message}")
             print(f"           {loc}")
+            if explain:
+                print(f"           Next step: {rule_guidance(f.code)}")
+        if explain:
+            print("\nNext steps are review guidance, not automatic fixes or a safety guarantee.")
     _print_suppressed(report)
 
 
-def print_regression(report) -> None:
+def print_regression(report, *, explain: bool = False) -> None:
     sign = "+" if report.delta > 0 else ""
     print(
         f"\n{BOLD if _supports_color() else ''}AgentConfigScore regression{RESET if _supports_color() else ''}  "
@@ -118,12 +122,16 @@ def print_regression(report) -> None:
         prefix = _c(f"+ {finding.severity.upper():7}", COLORS.get(finding.severity, ""))
         print(f"{prefix} {finding.code:20} {finding.message}")
         print(f"           {location}")
+        if explain:
+            print(f"           Next step: {rule_guidance(finding.code)}")
     for finding in report.resolved_findings:
         location = finding.file + (f":{finding.line}" if finding.line else "")
         print(f"- RESOLVED {finding.code:20} {finding.message}")
         print(f"           {location}")
     if not report.new_findings and not report.resolved_findings:
         print("OK No active agent-config changes detected")
+    if explain and report.new_findings:
+        print("\nNext steps are review guidance, not automatic fixes or a safety guarantee.")
     _print_suppressed(report.head)
 
 
@@ -131,6 +139,7 @@ def build_scan_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="agent-config-score", description="Score and audit coding-agent instruction files.")
     p.add_argument("path", nargs="?", default=".", help="Repository path (default: current directory)")
     p.add_argument("--json", action="store_true", help="Print JSON instead of text")
+    p.add_argument("--explain", action="store_true", help="Include rule-specific next steps in text output; JSON is unchanged")
     p.add_argument("--html", metavar="FILE", help="Write a self-contained HTML report")
     p.add_argument("--badge", metavar="FILE", help="Write an SVG score badge")
     p.add_argument("--sarif", metavar="FILE", help="Write a SARIF 2.1.0 report for GitHub code scanning")
@@ -144,7 +153,9 @@ def build_init_parser() -> argparse.ArgumentParser:
         description="Initialize AgentConfigScore policy and CI files without overwriting existing files by default.",
     )
     p.add_argument("path", nargs="?", default=".", help="Repository directory (default: current directory)")
-    p.add_argument("--no-workflow", action="store_true", help="Create only .agentconfigscore.json")
+    workflow = p.add_mutually_exclusive_group()
+    workflow.add_argument("--no-workflow", action="store_true", help="Create only .agentconfigscore.json")
+    workflow.add_argument("--pr-comment", action="store_true", help="Opt into a generated same-repository PR comment workflow with pull-requests: write; forks use the job summary only")
     p.add_argument("--force", action="store_true", help="Overwrite conflicting generated files")
     p.add_argument("--dry-run", action="store_true", help="Show the initialization plan without writing files")
     return p
@@ -183,6 +194,7 @@ def build_feedback_parser() -> argparse.ArgumentParser:
 
 def _add_regression_options(p: argparse.ArgumentParser) -> None:
     p.add_argument("--json", action="store_true", help="Print JSON instead of text")
+    p.add_argument("--explain", action="store_true", help="Include rule-specific next steps for new findings in text/Markdown; JSON is unchanged")
     p.add_argument("--markdown", metavar="FILE", help="Write a Markdown regression summary")
     p.add_argument("--max-drop", type=int, default=None, metavar="N", help="Override the repository policy score-drop budget")
     p.add_argument(
@@ -231,12 +243,12 @@ def _finish_regression(report, args) -> int:
     if args.markdown:
         out = Path(args.markdown)
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(markdown_report(report), encoding="utf-8")
+        out.write_text(markdown_report(report, explain=args.explain), encoding="utf-8")
 
     if args.json:
         print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
     else:
-        print_regression(report)
+        print_regression(report, explain=args.explain)
         if args.markdown:
             print(f"\nMarkdown report: {Path(args.markdown).resolve()}")
 
@@ -253,6 +265,7 @@ def _main_init(argv: list[str]) -> int:
         changes = initialize_repository(
             Path(args.path),
             include_workflow=not args.no_workflow,
+            pr_comment=args.pr_comment,
             force=args.force,
             dry_run=args.dry_run,
         )
@@ -260,6 +273,8 @@ def _main_init(argv: list[str]) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
+    if args.pr_comment:
+        print("PR comment workflow selected: pull-requests: write is included; fork PR comments are skipped. Review before committing.")
     for change in changes:
         if change.action == "unchanged":
             label = "unchanged"
@@ -292,6 +307,7 @@ def _main_rules(argv: list[str]) -> int:
             print(f"Penalty:  {rule.penalty}")
             print(f"Summary:  {rule.summary}")
             print(f"\n{rule.description}")
+            print(f"\nNext step: {rule_guidance(rule.code)}")
         return 0
 
     if args.json:
@@ -503,7 +519,7 @@ def _main_scan(argv: list[str]) -> int:
     if args.json:
         print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
     else:
-        print_report(report)
+        print_report(report, explain=args.explain)
         if args.html:
             print(f"\nHTML report: {Path(args.html).resolve()}")
         if args.badge:

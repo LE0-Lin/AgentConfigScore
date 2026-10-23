@@ -174,6 +174,26 @@ policies manually; this is not a general contradiction detector.
 See [guardrail suggestions](guardrail-suggestions.md) for grammar, scope, privacy
 and non-atomic/partial-write limits. Existing scoring and CI defaults are unchanged.
 
+## Optional: actionable maintainer results (unreleased)
+
+```bash
+agent-config-score . --explain
+agent-config-score diff --explain --markdown .agent-config-score/regression.md
+agent-config-score init --pr-comment --dry-run
+```
+
+`--explain` adds static next steps to active scan/new regression findings in
+text/Markdown, not JSON, scores or exit policy. It does not execute commands or
+repair files. The [best-practice checklist](best-practices.md) is also unscored.
+`init --pr-comment` opts into a generated same-repository PR comment workflow and
+discloses `pull-requests: write`; the default generated workflow keeps read-only
+GitHub permissions. Preview,
+review and commit only one workflow. Existing conflicts require deliberate
+review, not an automatic overwrite. Fork PRs use job summaries without comments.
+The generated Action ref remains `v0`; new explanations require an Action build
+containing this change. Neither flag exists in published v0.23.0.
+See the [maintainer workflow](maintainer-workflow.md) for setup and limits.
+
 ## Common setup problems
 
 | Symptom | What to check |
