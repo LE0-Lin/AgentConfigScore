@@ -648,9 +648,67 @@ def _active_prose_lines(context: _InstructionContext):
         yield number, body
 
 
-def _deletion_guardrail_evidence(text: str) -> list[dict]:
-    """Recognize only bounded local constraints; never infer global safety."""
+def _guardrail_policy_context(text: str) -> tuple[list[tuple[int, str]], bool]:
+    """Bounded prose candidates for the opt-in review, not scored danger rules.
+
+    Do not interpret HTML layouts at all. Explicit example headings exclude
+    their section through the next equal/shallower heading. This intentionally
+    declines ambiguous input rather than claiming to parse arbitrary Markdown.
+    """
+    if re.search(r"</?[A-Za-z]", text):
+        return [], False
     context = _instruction_context(text)
+    frontmatter = text.lstrip("\ufeff").startswith(("---\n", "---\r\n"))
+    in_comment = False
+    example_level = None
+    candidates = []
+    for number, row in enumerate(context.lines, 1):
+        raw = text[row.start:row.end].rstrip("\r\n").lstrip("\ufeff")
+        if frontmatter:
+            if number > 1 and raw.strip() in {"---", "..."}:
+                frontmatter = False
+            continue
+        if row.kind in {"code", "fence"}:
+            continue
+        if in_comment or "<!--" in raw:
+            in_comment = raw.rfind("<!--") > raw.rfind("-->") if "-->" in raw else True
+            continue
+        if row.kind == "heading":
+            atx = re.match(r"^ {0,3}(#{1,6})(?:\s|$)(.*)", raw)
+            if atx:
+                level = len(atx.group(1))
+                title = re.sub(r"\s+#+\s*$", "", atx.group(2)).strip()
+            elif number < len(context.lines):
+                following = context.lines[number]
+                underline = text[following.start:following.end].strip()
+                if not re.fullmatch(r"=+|-+", underline):
+                    continue
+                level = 1 if underline.startswith("=") else 2
+                title = raw.strip()
+            else:
+                continue
+            if example_level is not None and level <= example_level:
+                example_level = None
+            title = re.sub(r"\*\*|__|`", "", title)
+            if example_level is None and re.fullmatch(r"(?:Examples?|Samples?|示例|範例|范例|例子)[:：]?", title, re.I):
+                example_level = level
+            continue
+        if example_level is not None:
+            continue
+        if row.kind not in {"prose", "list"} or raw.startswith(("    ", "\t")) or raw.lstrip().startswith(">"):
+            continue
+        start = row.body_start if row.body_start is not None else row.start
+        body = text[start:row.end].strip().lstrip("\ufeff")
+        if body.startswith(("`", '"', "'", "“", "‘")):
+            continue
+        body = re.sub(r"\*\*|__|`", "", body)
+        if len(body) <= 512:
+            candidates.append((number, body))
+    return candidates, example_level is not None
+
+
+def _deletion_guardrail_assessment(text: str) -> tuple[list[dict], list[dict], bool]:
+    """Recognize finite constraints and opposing directives, not global safety."""
     english_approval = re.compile(
         r"(?:Before (?:deleting|removing) (?:existing |any |user )?files"
         r"(?:, overwriting user changes, or discarding uncommitted work)?, "
@@ -674,30 +732,23 @@ def _deletion_guardrail_evidence(text: str) -> list[dict]:
         r"(?:(?:Never|Do not|Must not) (?:use|run|execute)\s+|(?:禁止|不得|切勿)(?:执行|執行|使用)\s*)"
         + command_list + r"(?: under any circumstances)?[。. ]?", re.I,
     )
-    frontmatter = text.lstrip("\ufeff").startswith("---\n") or text.lstrip("\ufeff").startswith("---\r\n")
-    in_comment = False
+    files = r"(?:existing |any |user )?files"
+    confirmation = r"(?:user )?confirmation"
+    english_bypass = re.compile(
+        r"(?:Before (?:deleting|removing) " + files + r", (?:do not|never) ask for " + confirmation
+        + r"|(?:Do not|Never) ask for " + confirmation + r" before (?:deleting|removing) " + files
+        + r"|(?:Always )?(?:delete|remove) " + files
+        + r" without (?:asking for " + confirmation + r"|(?:explicit )?user approval|user confirmation))\.?", re.I,
+    )
+    chinese_bypass = re.compile(
+        r"(?:删除|刪除)(?:现有文件|既有檔案|文件|檔案)?(?:前|之前)[，,]?"
+        r"(?:不要|不得|无需|無需)(?:征求|徵求|取得|获得|獲得)"
+        r"(?:用户|使用者)(?:的)?(?:明确|明確)?(?:确认|確認|授权|授權)[。.]?"
+    )
     evidence = []
-    for number, row in enumerate(context.lines, 1):
-        raw = text[row.start:row.end].rstrip("\r\n").lstrip("\ufeff")
-        if frontmatter:
-            if number > 1 and raw.strip() in {"---", "..."}:
-                frontmatter = False
-            continue
-        if row.kind in {"code", "fence"}:
-            continue
-        if in_comment or "<!--" in raw:
-            # Never borrow an apparent instruction from a multiline comment.
-            in_comment = raw.rfind("<!--") > raw.rfind("-->") if "-->" in raw else True
-            continue
-        if row.kind not in {"prose", "list"} or raw.startswith(("    ", "\t")) or raw.lstrip().startswith(">"):
-            continue
-        start = row.body_start if row.body_start is not None else row.start
-        body = text[start:row.end].strip().lstrip("\ufeff")
-        if body.startswith(("`", '"', "'", "“", "‘")):
-            continue
-        body = re.sub(r"\*\*|__|`", "", body)
-        if len(body) > 512:
-            continue
+    signals = []
+    candidates, open_example = _guardrail_policy_context(text)
+    for number, body in candidates:
         kind = None
         if english_approval.fullmatch(body) or chinese_approval.fullmatch(body):
             kind = "approval_before_deletion"
@@ -707,7 +758,13 @@ def _deletion_guardrail_evidence(text: str) -> list[dict]:
             kind = "specific_command_ban"
         if kind is not None:
             evidence.append({"line": number, "kind": kind})
-    return evidence
+        if english_bypass.fullmatch(body) or chinese_bypass.fullmatch(body):
+            signals.append({"line": number, "kind": "approval_bypass_directive"})
+    return evidence, signals, open_example
+
+
+def _deletion_guardrail_evidence(text: str) -> list[dict]:
+    return _deletion_guardrail_assessment(text)[0]
 
 
 def _false_success_lines(context: _InstructionContext):

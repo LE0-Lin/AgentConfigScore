@@ -205,6 +205,11 @@ safety; recognized wording is neither complete coverage nor enforcement. Externa
 permissions, inheritance and arbitrary language semantics are outside this check.
 Initial previews are read-only; append is explicitly requested, not an atomic
 transaction, and may fail partially. Existing scoring and CI gates are unchanged.
+Explicit example headings exclude their section; an open example section at EOF
+requires manual merging. HTML-like tags disable policy interpretation for the
+whole selected file. Narrow approval-bypass directives also require manual
+resolution even alongside recognized protection; they are unscored review
+signals, not complete conflict detection or evidence of actual agent behavior.
 
 The scanner intentionally does not claim to understand arbitrary prose. These
 inputs can still receive A 100 when they avoid every known deterministic rule:

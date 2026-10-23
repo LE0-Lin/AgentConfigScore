@@ -11,7 +11,7 @@ import re
 import stat
 
 from .provenance import ToolIdentity, capture_tool_identity
-from .scanner import _deletion_guardrail_evidence, _instruction_context, _scanner_source_target, discover
+from .scanner import _deletion_guardrail_assessment, _instruction_context, _scanner_source_target, discover
 
 
 class GuardrailError(ValueError):
@@ -49,6 +49,7 @@ class GuardrailReview:
     manual_review_reasons: tuple[str, ...]
     tool: ToolIdentity
     applied: bool = False
+    review_signals: tuple[dict, ...] = ()
 
     def to_dict(self) -> dict:
         return {
@@ -57,6 +58,7 @@ class GuardrailReview:
             "scope": "selected_file_only", "evidence": list(self.evidence),
             "proposed_append": self.proposed_append, "confirmation_token": self.confirmation_token,
             "manual_review_reasons": list(self.manual_review_reasons), "applied": self.applied,
+            "review_signals": list(self.review_signals),
         }
 
 
@@ -162,12 +164,19 @@ def review_guardrails(root: Path, *, file: str = "AGENTS.md", template_language:
     try:
         original, info = _read_source(root, path, target)
         text = original.decode("utf-8-sig").replace("\r\n", "\n").replace("\r", "\n")
-        evidence = tuple(_deletion_guardrail_evidence(text))
+        found, signals, open_example = _deletion_guardrail_assessment(text)
+        evidence, signals = tuple(found), tuple(signals)
         tool = capture_tool_identity()
-        if evidence:
+        if evidence and not signals:
             return GuardrailReview(rel, "recognized", evidence, "", None, (), tool)
         reasons = _manual_reasons(path, target, text, info)
-        block = TEMPLATES[template_language]
+        if open_example:
+            reasons += ("example_section_at_end",)
+        if signals:
+            reasons += ("opposing_approval_directive",)
+        # An already recognized constraint plus an opposing directive needs
+        # resolution, not another copy of the same general policy.
+        block = "" if evidence else TEMPLATES[template_language]
         addition = _append_bytes(original, block)
         token = None if reasons else _confirmation(root, rel, original, info, addition)
         if apply is not None:
@@ -176,7 +185,8 @@ def review_guardrails(root: Path, *, file: str = "AGENTS.md", template_language:
             if not re.fullmatch(r"[0-9a-f]{64}", apply) or not hmac.compare_digest(token, apply):
                 raise GuardrailError("Confirmation does not match this file and proposal; preview again")
             _apply_append(root, path, original, info, addition)
-        return GuardrailReview(rel, "appended" if apply is not None else "review_needed", (), block, token, reasons, tool, applied=apply is not None)
+        return GuardrailReview(rel, "appended" if apply is not None else "review_needed", evidence, block, token, reasons, tool,
+                               applied=apply is not None, review_signals=signals)
     except UnicodeError as exc:
         raise GuardrailError("Guardrail suggestions require a UTF-8 instruction file") from exc
     except OSError as exc:

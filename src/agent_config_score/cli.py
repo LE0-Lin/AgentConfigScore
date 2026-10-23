@@ -410,6 +410,8 @@ def _main_guardrails(argv: list[str]) -> int:
         print("Advisory only. No score change. Selected file only; not a safety or scope certification.")
         for item in report.evidence:
             print(f"Recognized {item['kind']} at line {item['line']} (bounded grammar only).")
+        for item in report.review_signals:
+            print(f"Review signal: {item['kind']} at line {item['line']} (bounded grammar; resolve policy manually).")
         if report.proposed_append:
             print("Review the full file, inherited policies and tool settings for conflicts before accepting this addition.")
             print("\nProposed append:\n" + report.proposed_append)
@@ -418,7 +420,7 @@ def _main_guardrails(argv: list[str]) -> int:
         elif report.confirmation_token:
             print("No files changed. After review, rerun the same command with --apply " + report.confirmation_token)
         elif report.manual_review_reasons:
-            print("No files changed. Manual merge only: " + ", ".join(report.manual_review_reasons))
+            print("No files changed. Resolve manually; automatic append unavailable: " + ", ".join(report.manual_review_reasons))
         else:
             print("No files changed. Recognizing a constraint does not prove it is complete or enforced.")
     return 0
