@@ -4,6 +4,7 @@ import re
 import unittest
 from urllib.parse import unquote, urlsplit
 
+from agent_config_score import __version__
 from agent_config_score.initializer import CONFIG_CONTENT
 
 
@@ -49,7 +50,7 @@ class DocumentationLanguageTests(unittest.TestCase):
         workflow = blocks(pages[0], "yaml")[0]
         self.assertIn("contents: read", workflow)
         self.assertIn("fetch-depth: 0", workflow)
-        self.assertIn("LE0-Lin/AgentConfigScore@v0.23.0", workflow)
+        self.assertIn(f"LE0-Lin/AgentConfigScore@v{__version__}", workflow)
 
     def test_localized_links_target_real_files_inside_the_repository(self):
         paths = [ROOT / f"README.{variant}.md" for variant in SCRIPT_VARIANTS]

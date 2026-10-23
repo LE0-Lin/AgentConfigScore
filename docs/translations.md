@@ -93,6 +93,16 @@ non-atomic failure limits and disclosure of the unchanged generated Action ref.
 Executable guide examples remain identical; advanced details stay in the English
 maintainer guide. Published artifacts and frozen research evidence are unchanged.
 
+For v0.24.0 on 2026-10-23, built on
+`5e3ef04bfbba538eacfcad0a3830778830124844`, both core guides/limitations were
+reviewed for release availability of report identity, tightened regression
+checks, opt-in guardrails, explanations and scoped workflow setup. Both overview
+Action examples pin `v0.24.0`. This is the first release tag containing these
+repository translations; the English package README links to them, but the wheel
+does not bundle offline documentation or translated terminal messages. Earlier
+sync notes describe their historical state; the v0.23.0 artifacts and frozen
+research records remain unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

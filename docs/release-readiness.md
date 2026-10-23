@@ -81,8 +81,10 @@ Rules for the translation stage:
 - Do not add a CLI `--language` option until terminal-output localization is
   explicitly in scope and independently tested. Documentation is the first stage.
 
-The repository's core translated pages and selector are included in the
-documentation update, not retroactively in the immutable v0.23.0 distributions
-or tag. See [translation scope and source revision](translations.md).
+v0.24.0 is the first release tag to include the repository's core translated
+pages and selector. They remain repository documentation linked by the default
+English package README, not localized CLI output or bundled offline wheel docs.
+The immutable v0.23.0 distributions/tag are unchanged. See
+[translation scope and source revision](translations.md).
 Real-user feedback and independent evaluation remain separate ongoing work;
 they are not replaced by localization or release acceptance.

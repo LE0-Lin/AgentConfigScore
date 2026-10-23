@@ -1,7 +1,7 @@
 # Opt-in deletion safeguard review and completion
 
-This is an **unreleased source feature** after v0.23.0. Existing PyPI packages,
-release tags and rolling Action refs have not been replaced.
+Available in **v0.24.0+**. This command is opt-in and separate from the default
+scan and regression gate; upgrading alone does not modify instruction files.
 
 `guardrails` asks a different question from lint scoring: **does this selected
 file contain a narrowly recognized deletion-related constraint, and would a

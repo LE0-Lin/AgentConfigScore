@@ -1,7 +1,7 @@
 # Regression input consistency and file-removal checks
 
-The tightened behavior below is an **unreleased source change** after v0.23.0.
-Existing PyPI distributions, release tags and Action refs are unchanged.
+The tightened behavior below is available in **v0.24.0+**. Review new removal
+signals when upgrading from v0.23.0; numeric scoring and policy defaults are unchanged.
 
 ## One captured text per selected source
 

@@ -97,12 +97,12 @@ agent-config-score init --force        # intentionally replace conflicting gener
 
 ## Copy-ready templates
 
-Unreleased source builds also provide an optional [deletion-safeguard review and
+v0.24.0+ provides an optional [deletion-safeguard review and
 completion workflow](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/guardrail-suggestions.md):
 preview a selected file with `agent-config-score guardrails . --file AGENTS.md`,
 review the proposed addition, then explicitly confirm it before an append.
 This is unscored advice, not proof of danger or safety; it does not change the
-published v0.23.0 package or default regression gate.
+default regression gate.
 
 Start with a conservative template, then replace generic guidance with your
 repository's real commands, architecture, and ownership boundaries:
@@ -362,10 +362,11 @@ It updates one bot-owned comment per PR and links to the detailed report.
 See the [integration guide](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/pr-comments.md)
 for fork behavior and permissions.
 
-Unreleased source builds add `init --pr-comment` for opt-in setup and `--explain`
+v0.24.0+ adds `init --pr-comment` for opt-in setup and `--explain`
 for rule-specific next steps. See the [maintainer workflow](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/maintainer-workflow.md)
 and [unscored best-practice checklist](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/best-practices.md).
-Published v0.23.0 artifacts are unchanged; the default generated workflow keeps read-only GitHub permissions.
+Use `init --workflow-only` when updating only CI without resetting custom policy.
+Preview and review replacements first; the default generated workflow keeps read-only GitHub permissions.
 
 Without a policy file, the Action preserves its conservative compatibility defaults: `max_drop = 0` and `fail_on_new_errors = true`.
 

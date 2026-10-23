@@ -1,7 +1,7 @@
 # Report tool identity
 
-This is an **unreleased source feature** after v0.23.0. The existing v0.23.0
-PyPI packages, release tag and rolling Action ref have not been replaced.
+Available in **v0.24.0+**. Earlier reports and frozen research artifacts are not
+retroactively relabelled with the new version or source fingerprint.
 
 Package versions alone do not distinguish unreleased checkouts or local patches.
 New scans capture a `tool` object at the start of `analyze()`, with:

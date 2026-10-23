@@ -10,7 +10,7 @@ a task, or whether an instruction file is generally “good.”
 **An A 100 result means that no active deterministic rule matched. It is not a
 semantic quality certification.**
 
-Unreleased source builds include [tool source identity](report-identity.md) to
+v0.24.0+ includes [tool source identity](report-identity.md) to
 distinguish implementations that declare the same version. A matching digest is
 not an accuracy result or a reproducibility guarantee: repository inputs, policy,
 runtime and filesystem behavior are outside that fingerprint. Missing source is
@@ -180,14 +180,14 @@ scanner against empty, misleading, and deliberately weakened instructions.
 | Candidate deletes an instruction file | Could report no regression | `instruction-file-removed` error |
 | Candidate changes `Always X` to `Never X` | Could report no regression | `directive-polarity-flip` error |
 
-Each hardened case has an automated regression test. In unreleased source builds,
+Each hardened case has an automated regression test. In v0.24.0+,
 only one-to-one, nonempty exact decoded-text moves to newly added supported files
 in the same directory are exempt from removal. Existing copies, cross-directory
 moves and whitespace-folded lookalikes are not exemptions. This does not certify
 equivalent agent/format/scope behavior. Baseline-owned suppressions can document
 an intentional exception. See [regression coverage](regression-coverage.md).
 
-Unreleased comparisons also reuse each scan's captured instruction text rather
+v0.24.0+ comparisons also reuse each scan's captured instruction text rather
 than reopening sources and silently skipping second-read failures. Initial read
 failures still stop the check; raw captured text is not retained in public report
 objects or exports. This is not an atomic snapshot or concurrent-change detector.
@@ -197,20 +197,20 @@ The bare CLI's score-only compatibility default is unchanged.
 
 ## Known blind spots
 
-Unreleased `--explain` output and the [maintainer checklist](best-practices.md)
+v0.24.0+ `--explain` output and the [maintainer checklist](best-practices.md)
 give static review guidance, not new detection coverage or an automatic fix.
 They do not execute referenced commands, infer replacement paths, change score
 arithmetic or certify safety. Optional `init --pr-comment` generates a workflow
 with explicit write permissions; it posts nothing itself and keeps the default
 generated workflow's GitHub permissions read-only. See the [maintainer workflow](maintainer-workflow.md).
-Source-only `init --workflow-only` leaves policy outside its read/write scope,
+v0.24.0+ `init --workflow-only` leaves policy outside its read/write scope,
 including under `--force`; it does not validate that policy. Selected linked,
 reparse, shared or non-file initialization targets require manual setup. Exclusive
 creation and opened-file checks reduce accidental writes, not all filesystem
 races; initialization is not an atomic transaction and failed writes may leave
 partial selected targets. Generated `@v0` is not necessarily the local CLI source.
 
-The optional, unreleased [guardrail completion command](guardrail-suggestions.md)
+The optional v0.24.0+ [guardrail completion command](guardrail-suggestions.md)
 does not add keyword-based quality points. It checks only narrow deletion-policy
 phrases in one selected file, offers a preview and requires content-bound
 confirmation to append. Unrecognized text is review-needed, not proof of missing

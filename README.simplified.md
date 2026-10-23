@@ -90,10 +90,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: LE0-Lin/AgentConfigScore@v0.23.0
+      - uses: LE0-Lin/AgentConfigScore@v0.24.0
 ```
 
-固定 `@v0.23.0` 有利于复现；`@v0` 是会随后续版本更新的滚动引用。PR 评论属于[可选集成（英文）](docs/pr-comments.md)，扫描器默认不替你发评论。
+固定 `@v0.24.0` 有利于复现；`@v0` 是会随后续版本更新的滚动引用。PR 评论属于[可选集成（英文）](docs/pr-comments.md)，扫描器默认不替你发评论。
 
 ## 支持的指令文件
 
@@ -109,4 +109,4 @@ jobs:
 
 本页是核心入门的中文概览，不是完整英文 README 的逐行翻译。使用指南和限制说明已提供中文；高级 Action 参数、规则语法细节、贡献及研究文档目前仍为英文。[翻译范围与维护说明](docs/translations.md)。命令、终端消息和 JSON 协议保持原样，English 仍是默认入口。
 
-项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.23.0.md)目前为英文。
+项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.24.0.md)目前为英文。

@@ -90,10 +90,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: LE0-Lin/AgentConfigScore@v0.23.0
+      - uses: LE0-Lin/AgentConfigScore@v0.24.0
 ```
 
-固定使用 `@v0.23.0` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
+固定使用 `@v0.24.0` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
 
 ## 支援的指令檔
 
@@ -109,4 +109,4 @@ jobs:
 
 本頁是核心入門的中文概覽，不是完整英文 README 的逐行翻譯。使用指南與限制說明已提供中文；進階 Action 參數、規則語法細節、貢獻和研究文件目前仍為英文。[翻譯範圍與維護說明](docs/translations.md)。命令、終端機訊息和 JSON 協定維持原樣，English 仍為預設入口。
 
-專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.23.0.md)目前為英文。
+專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.24.0.md)目前為英文。
