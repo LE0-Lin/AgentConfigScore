@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Check simple full/collapsed Markdown reference links and images against document-relative local targets, reporting a used target at its definition line. Respect document-local, first-definition precedence, skip unused definitions and avoid treating supported definitions/link captions as extra prose paths. Code, ambiguous containers/layouts and unsupported Markdown forms retain explicit coverage limits. Stable rule IDs/penalties, runtime dependencies, published v0.24.0 artifacts and frozen research records are unchanged.
+
 ## v0.24.0
 
 A maintainer-focused Beta release: actionable findings, opt-in safeguard review,
