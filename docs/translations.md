@@ -70,6 +70,13 @@ confirmation, three addition-template languages and privacy/non-atomic limits.
 `--template-language` selects proposed text only; it is not CLI localization or
 general Chinese semantic support. The detailed reference remains English.
 
+The next guardrail refinement on 2026-10-23, built on
+`ed68d4714a153fa8a2634fe0972d55705101124d`, was reviewed in both core guides and
+limitation summaries: explicit example-section exclusion, manual-only open
+example sections and HTML layouts, and unscored approval-bypass review signals
+that block automatic append without claiming general conflict detection.
+Executable examples, scoring defaults and published artifacts remain unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

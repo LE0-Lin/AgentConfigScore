@@ -166,6 +166,11 @@ After reviewing the full policy context and addition, rerun the same command
 with `--apply TOKEN` using its exact printed confirmation. Changed input requires
 a new preview; ambiguous markup and aliases require manual merging. English,
 Simplified and Traditional addition templates do not localize CLI messages.
+Explicitly labeled example sections do not count as active policy; if such a
+section remains open at end of file, automatic append is unavailable. A few
+explicit approval-bypass directives produce line-only `review_signals` and
+disable append even when another constraint is recognized. Resolve those
+policies manually; this is not a general contradiction detector.
 See [guardrail suggestions](guardrail-suggestions.md) for grammar, scope, privacy
 and non-atomic/partial-write limits. Existing scoring and CI defaults are unchanged.
 

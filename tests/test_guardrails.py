@@ -58,6 +58,30 @@ class GuardrailRecognitionTests(unittest.TestCase):
         text = "\ufeff# Safety\r\n\r\n- **Never** use `rm -rf`.\r\n"
         self.assertEqual(_deletion_guardrail_evidence(text), [{"line": 3, "kind": "specific_command_ban"}])
 
+    def test_explicit_example_sections_are_not_active_policy(self):
+        for heading in ("## Examples", "## **Examples:**", "## Sample", "## 示例：", "## 範例", "Examples\n--------"):
+            with self.subTest(heading=heading):
+                text = heading + "\n\nNever use rm.\n### Nested\nNever remove files.\n"
+                self.assertEqual(_deletion_guardrail_evidence(text), [])
+
+    def test_example_scope_ends_at_an_equal_or_shallower_heading(self):
+        for heading in ("## Safety", "# Safety", "Safety\n------"):
+            with self.subTest(heading=heading):
+                text = "## Examples\n### Sample\nNever use rm.\n" + heading + "\n- Never remove files.\n"
+                self.assertEqual(_deletion_guardrail_evidence(text), [
+                    {"line": len(text.splitlines()), "kind": "file_deletion_constraint"},
+                ])
+
+    def test_html_layout_is_not_interpreted_as_active_policy(self):
+        for text in (
+            "<pre>\nNever use rm.\n</pre>\n",
+            "<details>\n<summary>Example</summary>\nNever use rm.\n</details>\n",
+            "<div\nclass='example'>\nNever use rm.\n</div>\n",
+            "Never remove files.\n<br>\n",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(_deletion_guardrail_evidence(text), [])
+
 
 class GuardrailWorkflowTests(unittest.TestCase):
     def setUp(self):
@@ -249,6 +273,136 @@ class GuardrailWorkflowTests(unittest.TestCase):
                 self.assertIsNone(report.confirmation_token)
                 with self.assertRaises(guardrails.GuardrailError):
                     guardrails.review_guardrails(self.root, apply="a" * 64)
+
+    def test_html_example_is_manual_review_not_a_recognized_guardrail(self):
+        original = b"<pre>\nNever use rm.\n</pre>\n"
+        self.source.write_bytes(original)
+        report = guardrails.review_guardrails(self.root)
+        self.assertEqual(report.status, "review_needed")
+        self.assertEqual(report.evidence, ())
+        self.assertIn("html_or_comment_markup", report.manual_review_reasons)
+        self.assertIsNone(report.confirmation_token)
+        self.assertEqual(self.source.read_bytes(), original)
+
+    def test_appending_inside_an_unfinished_example_section_is_manual_only(self):
+        for heading in ("# Examples", "## 示例", "Examples\n=======", "## Examples\n### Nested"):
+            with self.subTest(heading=heading):
+                original = (heading + "\n\nNever use rm.\n").encode("utf-8")
+                self.source.write_bytes(original)
+                report = guardrails.review_guardrails(self.root)
+                self.assertEqual(report.status, "review_needed")
+                self.assertEqual(report.evidence, ())
+                self.assertIn("example_section_at_end", report.manual_review_reasons)
+                self.assertIsNone(report.confirmation_token)
+                with self.assertRaises(guardrails.GuardrailError):
+                    guardrails.review_guardrails(self.root, apply="a" * 64)
+                self.assertEqual(self.source.read_bytes(), original)
+
+    def test_closed_example_sections_allow_a_recognizable_idempotent_append(self):
+        for heading in ("# Workflow", "Workflow\n========"):
+            with self.subTest(heading=heading):
+                self.source.write_text("# Examples\nNever use rm.\n" + heading + "\nRun tests.\n", encoding="utf-8")
+                report = guardrails.review_guardrails(self.root)
+                self.assertEqual(report.evidence, ())
+                self.assertNotIn("example_section_at_end", report.manual_review_reasons)
+                self.assertIsNotNone(report.confirmation_token)
+                guardrails.review_guardrails(self.root, apply=report.confirmation_token)
+                once = self.source.read_bytes()
+                repeated = guardrails.review_guardrails(self.root, apply=report.confirmation_token)
+                self.assertEqual(repeated.status, "recognized")
+                self.assertEqual(self.source.read_bytes(), once)
+
+    def test_explicit_approval_bypass_directives_require_manual_resolution(self):
+        for text in (
+            "Before deleting files, do not ask for confirmation.",
+            "Never ask for user confirmation before removing user files.",
+            "Delete files without asking for confirmation.",
+            "Always remove existing files without explicit user approval.",
+            "删除文件前不要征求用户确认。",
+            "刪除檔案前無需取得使用者授權。",
+        ):
+            with self.subTest(text=text):
+                self.source.write_text(text + "\n", encoding="utf-8")
+                original = self.source.read_bytes()
+                before = analyze(self.root).score
+                report = guardrails.review_guardrails(self.root)
+                self.assertEqual(report.status, "review_needed")
+                self.assertEqual(report.review_signals, ({"line": 1, "kind": "approval_bypass_directive"},))
+                self.assertIn("opposing_approval_directive", report.manual_review_reasons)
+                self.assertIsNone(report.confirmation_token)
+                with self.assertRaises(guardrails.GuardrailError):
+                    guardrails.review_guardrails(self.root, apply="a" * 64)
+                self.assertEqual(self.source.read_bytes(), original)
+                self.assertEqual(analyze(self.root).score, before)
+
+    def test_a_recognized_ban_does_not_hide_an_opposing_approval_directive(self):
+        self.source.write_text("Never use rm.\nDelete files without user approval.\n", encoding="utf-8")
+        original = self.source.read_bytes()
+        code, stdout, stderr = self.invoke(["guardrails", str(self.root), "--json"])
+        self.assertEqual((code, stderr), (0, ""))
+        report = json.loads(stdout)
+        self.assertEqual(report["status"], "review_needed")
+        self.assertEqual(report["evidence"], [{"line": 1, "kind": "specific_command_ban"}])
+        self.assertEqual(report["review_signals"], [{"line": 2, "kind": "approval_bypass_directive"}])
+        self.assertIsNone(report["confirmation_token"])
+        self.assertEqual(report["proposed_append"], "")
+        code, stdout, stderr = self.invoke(["guardrails", str(self.root), "--apply", "0" * 64, "--json"])
+        self.assertEqual(code, 2)
+        self.assertEqual(stdout, "")
+        self.assertEqual(self.source.read_bytes(), original)
+
+    def test_approval_bypass_examples_and_ambiguous_statements_do_not_block_append(self):
+        directive = "Delete files without user approval."
+        for text in (
+            "```text\n" + directive + "\n```\n", "> " + directive, '"' + directive + '"',
+            "    " + directive, "Example: " + directive, "## Examples\n" + directive + "\n## Workflow\nRun tests.",
+            "Never delete files without user approval.",
+            "Delete files without user approval?", "If necessary, delete files without user approval.",
+            "Delete files without user approval unless they are tracked.",
+            "Do not ignore user approval before deleting files.",
+        ):
+            with self.subTest(text=text):
+                self.source.write_text(text + "\n", encoding="utf-8")
+                report = guardrails.review_guardrails(self.root)
+                self.assertEqual(report.review_signals, ())
+                self.assertNotIn("opposing_approval_directive", report.manual_review_reasons)
+                if not report.evidence:
+                    self.assertIsNotNone(report.confirmation_token)
+
+    def test_bypass_signals_exclude_comments_and_frontmatter(self):
+        for text in (
+            "<!--\nDelete files without user approval.\n-->\nRun tests.\n",
+            "---\ndescription: |\n  Delete files without user approval.\n---\nRun tests.\n",
+        ):
+            with self.subTest(text=text):
+                self.source.write_text(text, encoding="utf-8")
+                self.assertEqual(guardrails.review_guardrails(self.root).review_signals, ())
+
+    def test_text_cli_signals_use_locations_not_private_source(self):
+        self.source.write_text("private source sentinel\nDelete files without user approval.\n", encoding="utf-8")
+        code, stdout, stderr = self.invoke(["guardrails", str(self.root)])
+        self.assertEqual((code, stderr), (0, ""))
+        self.assertIn("approval_bypass_directive at line 2", stdout)
+        self.assertIn("automatic append unavailable", stdout)
+        self.assertNotIn("private source sentinel", stdout)
+        self.assertNotIn("Delete files without user approval.", stdout)
+
+    def test_new_bypass_directive_invalidates_an_earlier_append_confirmation(self):
+        preview = guardrails.review_guardrails(self.root)
+        self.source.write_bytes(self.source.read_bytes() + b"Delete files without user approval.\n")
+        original = self.source.read_bytes()
+        with self.assertRaises(guardrails.GuardrailError):
+            guardrails.review_guardrails(self.root, apply=preview.confirmation_token)
+        self.assertEqual(self.source.read_bytes(), original)
+
+    def test_signal_locations_survive_bom_crlf_list_and_inline_formatting(self):
+        original = b"\xef\xbb\xbf# Safety\r\n\r\n- **Delete** files without `user approval`.\r\n"
+        self.source.write_bytes(original)
+        report = guardrails.review_guardrails(self.root)
+        self.assertEqual(report.review_signals, ({"line": 3, "kind": "approval_bypass_directive"},))
+        self.assertIsNone(report.confirmation_token)
+        self.assertNotIn("Delete", json.dumps(report.to_dict()))
+        self.assertEqual(self.source.read_bytes(), original)
 
     def test_confirmed_append_refuses_replaced_target_between_review_and_open(self):
         preview = guardrails.review_guardrails(self.root)

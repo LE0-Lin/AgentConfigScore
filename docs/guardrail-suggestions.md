@@ -60,6 +60,9 @@ identities are preview-only.
 Sources with HTML/comment markup, an unclosed fence or detected unclosed
 frontmatter also require manual merging. This intentionally conservative layout
 guard is not a complete Markdown parser. Closed MDC frontmatter is preserved.
+An explicitly labeled example section still open at end of file also disables
+automatic append (`example_section_at_end`): the proposed text must not silently
+become another example. Move/merge it into an appropriate active policy section.
 
 Opening and appending recheck source boundaries, regular-file identity, link
 count and exact contents; no-follow/nonblocking flags are used where available.
@@ -79,9 +82,35 @@ not a general approval-before-deletion policy. These finite patterns do not
 understand arbitrary paraphrases, command aliases/options or other languages.
 
 Fenced/indented code, blockquotes, full-line quotes, headings, detected comments
-and leading YAML frontmatter do not count as recognized active policy. Long or
-ambiguous sentences, exceptions, optional suggestions and reversed statements
-remain unrecognized. This is a heuristic, not a Markdown AST or intent classifier.
+and leading YAML frontmatter do not count as recognized active policy. ATX or
+Setext sections titled `Example`, `Examples`, `Sample`, `Samples`, `示例`, `範例`,
+`范例` or `例子` (optionally with a trailing colon or inline emphasis) are excluded
+through the next equal/shallower heading. Nested headings do not end that scope.
+Other example labels and arbitrary Markdown nesting are not understood. For a
+source containing HTML-like tags (`</?[A-Za-z]`), the command declines **all**
+policy interpretation and requires manual merging, even if plain policy text
+also exists outside the markup. It does not attempt an HTML-layout parser.
+Long or ambiguous sentences, exceptions, optional suggestions and reversed
+statements do not count as recognized constraints. This is a heuristic, not a
+Markdown AST or intent classifier.
+
+The same eligible prose is checked for a few complete approval-bypass directives,
+such as `Before deleting files, do not ask for confirmation`, `Delete files
+without user approval`, `删除文件前不要征求用户确认` and
+`刪除檔案前無需取得使用者授權`. These yield line/kind-only
+`review_signals` (`approval_bypass_directive`) and manual-review reason
+`opposing_approval_directive`. They are review signals, **not** a general
+contradiction detector or a new scored finding. Questions, conditional clauses,
+exceptions and occurrences in the excluded contexts above are not matched by
+these finite patterns. No inference is made about policy precedence, authority or actual
+agent behavior. Unsupported paraphrases can be missed.
+
+When a bypass signal exists, status is `review_needed`, no confirmation is
+issued, and `--apply` fails with exit `2` without writing. This holds even if a
+recognized constraint occurs elsewhere in the same file; that evidence remains
+visible but does not hide the signal. If a constraint already exists, no duplicate
+block is proposed: resolve the policies manually first. Without a recognized
+constraint, a proposed block may still be shown as a manual-merge reference.
 
 Only the **selected file** is reviewed. Ancestor instructions, other files,
 agent-specific precedence/globs and external permission/sandbox settings are not
@@ -92,9 +121,12 @@ instructions. Do not blindly append generic policies to every file.
 ## Output, privacy and compatibility
 
 `--json` uses `schema_version: 1`, check ID `deletion-safeguards`, scope
-`selected_file_only`, evidence, proposed text, confirmation, manual-review reasons,
-captured tool identity and an `applied` flag. Statuses are `recognized`,
-`review_needed` or `appended`. None is a score or security certification.
+`selected_file_only`, evidence, additive `review_signals`, proposed text,
+confirmation, manual-review reasons, captured tool identity and an `applied` flag.
+Statuses are `recognized`,
+`review_needed` or `appended`. Review-needed can mean unrecognized wording,
+ambiguous layout, or an explicit opposing directive, not just a missing policy.
+None is a score or security certification.
 Exit `0` means review/append completed, not that the repository is safe; invalid
 inputs, stale confirmation and expected operational failures use exit `2`.
 
