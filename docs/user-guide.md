@@ -194,6 +194,20 @@ The generated Action ref remains `v0`; new explanations require an Action build
 containing this change. Neither flag exists in published v0.23.0.
 See the [maintainer workflow](maintainer-workflow.md) for setup and limits.
 
+To update only CI without reading/resetting custom policy (source builds only):
+
+```bash
+agent-config-score init --workflow-only --pr-comment --force --dry-run
+agent-config-score init --workflow-only --pr-comment --force
+```
+
+Compare the recipe with existing workflow customizations before the second
+command: `--force` replaces that workflow, not a YAML merge. The policy file is
+out of scope even if missing or invalid; run `doctor` separately. Selected linked,
+reparse or shared files need manual setup. Initialization prints the generated
+Action ref, which may differ from the installed CLI; it does not update remote
+refs. Writes are preflighted, not an atomic filesystem transaction.
+
 ## Common setup problems
 
 | Symptom | What to check |

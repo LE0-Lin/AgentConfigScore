@@ -10,6 +10,12 @@ read-only GitHub permissions.
 See the [maintainer workflow](maintainer-workflow.md) for revision and permission
 details, and for optional rule-specific next steps in detailed summaries.
 
+To upgrade only CI while retaining an existing custom policy, source builds
+support `init --workflow-only --pr-comment --force --dry-run`, followed by the
+same command without `--dry-run` after reviewing the recipe. `--force` replaces
+only the workflow in this mode, not the policy. It does not merge custom YAML.
+Linked/reparse or shared selected targets require manual integration.
+
 Copy [`examples/pr-comment.yml`](../examples/pr-comment.yml) to
 `.github/workflows/agent-config-regression.yml`. Each pull request receives one
 AgentConfigScore comment; subsequent runs update it with the score change,

@@ -71,10 +71,64 @@ setup, manually review the diff first; only use `--force` if you intend to repla
 the generated targets. Do not install a second workflow alongside an existing
 comment recipe. See [PR comment security and behavior](pr-comments.md).
 
+### Upgrade a workflow without resetting repository policy
+
+Unreleased source builds also accept `--workflow-only`. The selected targets are:
+
+| Mode | Policy file | Workflow file |
+|---|---|---|
+| Default `init` | Generate/check | Generate/check |
+| `init --no-workflow` | Generate/check | Out of scope |
+| `init --workflow-only` | Out of scope | Generate/check |
+
+For an existing integration, compare the desired recipe with any workflow
+customizations, then preview the replacement explicitly:
+
+```bash
+agent-config-score init --workflow-only --pr-comment --force --dry-run
+agent-config-score init --workflow-only --pr-comment --force
+```
+
+This mode does not read, validate, create or reset `.agentconfigscore.json`, even
+with `--force`. It preserves custom policy/suppression bytes, BOM and newlines
+by leaving that file out of the operation entirely. A missing policy stays
+missing. Run `doctor` and review policy separately; workflow generation is not
+proof of a valid configuration or installed remote Action.
+
+`--force` still **replaces the selected workflow**, including its customizations;
+it is not a YAML merge. Dry-run lists target actions, not a full content diff.
+Without `--force`, an existing different workflow remains a conflict. Repeating
+an identical setup is a no-op. `--workflow-only` and `--no-workflow` cannot be
+combined. Ordinary unscoped `init --force` still replaces both selected generated
+targets; use workflow-only mode when that is not what you intend.
+
 The generated workflow currently uses the existing rolling `v0` Action ref.
 Review/pin the tested revision suitable for your repository before committing;
 the new source-only explanatory summaries require an Action revision containing
 this change. Keep scanning dependencies separate from candidate repository code.
+CLI output also discloses this Action ref instead of implying it matches the
+installed CLI source. Initialization does not fetch, verify or update remote refs.
+
+### Generated-file write boundaries
+
+Selected targets and their existing parent directories must not be symbolic
+links or Windows reparse points, even when they resolve inside the repository.
+Hard-linked/unknown-identity selected files and non-file targets are rejected
+before content reads; this includes dangling links and FIFOs. The explicitly
+selected root itself is canonicalized. Unselected targets are not inspected.
+
+All selected targets are preflighted before any writes. Creation uses exclusive
+open so a newly appeared file is not silently overwritten. Opened regular-file
+identity/link checks occur before truncation on an explicit overwrite; no-follow
+and nonblocking flags are used where available. Permissions of an overwritten
+regular file are retained. Expected target I/O failures return exit `2` without
+raw exception details or a successful setup message.
+
+Keep the repository stable: these checks are **not an atomic multi-file
+transaction or hostile-filesystem sandbox**. Concurrent edits/replacements can
+still race checks, and an I/O failure can leave earlier generated files or a
+partially written selected target. Inspect before retrying; no destructive
+rollback is attempted. Alias layouts need manual integration, not `--force`.
 
 ## Coverage is deliberately bounded
 
