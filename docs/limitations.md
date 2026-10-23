@@ -116,9 +116,30 @@ file's directory. For example, `[Guide](../CONTRIBUTING.md#setup)` checks that t
 file exists inside the repository; it does not validate the `setup` heading.
 URL-encoded spaces and angle-bracket destinations are supported. Remote links,
 anchor-only links, fenced examples, absolute paths, and paths escaping the
-repository are skipped. Reference-style links and nested parentheses in link
-destinations are not currently parsed. This is a limited link check, not a full
-Markdown validator.
+repository are skipped. Nested parentheses in inline link destinations are not
+currently parsed. This is a limited link check, not a full Markdown validator.
+
+Unreleased source builds additionally check simple full `[Guide][setup]` and
+collapsed `[setup][]` reference links, including images, when a matching
+single-line definition such as `[setup]: GUIDE.md` exists in the same instruction
+file. Paths stay document-relative; a missing used target is reported once at
+its definition line. Labels use Unicode case folding and ASCII whitespace
+normalization; the first matching definition wins, including external/anchor
+targets. This follows the relevant [CommonMark reference-link conventions](https://spec.commonmark.org/0.31.2/#reference-link),
+not full parser conformance. Unused supported definitions and resolved captions
+are not separately treated as prose paths. These changes are not in v0.24.0.
+
+This subset accepts at most 999 label characters without escapes/nested brackets,
+zero to three spaces before top-level definitions, bare/angle destinations and
+optional single-line quoted/parenthesized titles. Definitions must start a block
+or follow another supported definition; they cannot interrupt a paragraph.
+Fenced/indented code, escaped links and matched inline code do not activate new
+reference checks. Shortcut `[setup]`, multiline definitions/labels, container
+definitions, escaped or parenthesized destinations and HTML-like layouts need
+manual review. Unknown first definitions do not select later duplicates. Inline
+code recognition is conservative, not a complete block parser; unsupported forms
+may remain unchecked. Existing inline/prose checks and independent danger rules
+still run; reference handling does not exempt commands or certify file contents.
 
 ## Plain prose path references
 

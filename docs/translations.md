@@ -103,6 +103,14 @@ does not bundle offline documentation or translated terminal messages. Earlier
 sync notes describe their historical state; the v0.23.0 artifacts and frozen
 research records remain unchanged.
 
+After v0.24.0 on 2026-10-23, built on
+`5d00ab1d5ce64f88fa392df1d0ba396bca98f8de`, both limitation summaries were
+synchronized for the bounded reference-link check: document-local definitions,
+first-definition precedence, definition-line reporting, unused-definition/caption
+handling and unsupported Markdown/code/layout boundaries. This is an unreleased
+source update, not a change to v0.24.0 packages, tags, rolling Action refs or
+frozen research evidence. Executable guide examples are unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

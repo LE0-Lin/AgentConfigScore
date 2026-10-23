@@ -881,14 +881,158 @@ def _looks_like_repository_path(value: str) -> bool:
 
 
 MARKDOWN_LINK = re.compile(r'!?\[[^\]\n]*\]\(\s*(?:<([^>\n]+)>|([^\s()]+))(?:\s+"[^"\n]*")?\s*\)')
+MARKDOWN_REFERENCE = re.compile(r'!?\[([^\[\]\n]{0,999})\]\[([^\[\]\n]{0,999})\]')
+REFERENCE_HEADER = re.compile(r' {0,3}\[([^\[\]\\\n]{1,999})\]:')
+REFERENCE_DEFINITION = re.compile(
+    r' {0,3}\[([^\[\]\\\n]{1,999})\]:[ \t]*'
+    r'(?:<([^<>\\\n]*)>|([^\s<>\\()]+))'
+    r'''(?:[ \t]+(?:"[^"\\\n]*"|'[^'\\\n]*'|\([^()\\\n]*\)))?[ \t]*'''
+)
+REFERENCE_HTML = re.compile(r'<!--|</?[A-Za-z][A-Za-z0-9:-]*(?:[ \t][^>\n]*)?/?>')
+REFERENCE_CONTAINER = re.compile(
+    r' {0,3}(?:>[ \t]*|(?:[-+*]|\d{1,9}[.)])[ \t]+)'
+    r'.*?\[([^\[\]\\\n]{1,999})\]:'
+)
 
 
-def _local_markdown_links(text: str, context: _InstructionContext):
-    """Extract simple inline destinations; reference links are not parsed."""
+def _markdown_span_index(spans: list[tuple[int, int]]) -> tuple[list[int], list[int]]:
+    """Merge intervals once; membership must not rescan all document links."""
+    starts: list[int] = []
+    ends: list[int] = []
+    for start, end in sorted(spans):
+        if ends and start <= ends[-1]:
+            ends[-1] = max(ends[-1], end)
+        else:
+            starts.append(start)
+            ends.append(end)
+    return starts, ends
+
+
+def _markdown_span_overlaps(index: tuple[list[int], list[int]], start: int, end: int) -> bool:
+    item = bisect_right(index[0], end - 1) - 1
+    return item >= 0 and index[1][item] > start
+
+
+def _markdown_escaped(text: str, index: int) -> bool:
+    before = index
+    while before and text[before - 1] == "\\":
+        before -= 1
+    return (index - before) % 2 == 1
+
+
+def _markdown_code_spans(text: str, context: _InstructionContext) -> list[tuple[int, int]]:
+    """Match equal backtick runs, including multiline spans, without an AST."""
+    runs = [m for m in re.finditer(r'`+', text) if not context.inside_fence(m.start())]
+    next_run: dict[int, int] = {}
+    closers: dict[int, int] = {}
+    for index in range(len(runs) - 1, -1, -1):
+        length = len(runs[index].group())
+        if length in next_run:
+            closers[index] = next_run[length]
+        next_run[length] = index
+    spans = []
+    index = 0
+    while index < len(runs):
+        closer = closers.get(index)
+        if closer is not None and not _markdown_escaped(text, runs[index].start()):
+            spans.append((runs[index].start(), runs[closer].end()))
+            index = closer + 1
+        else:
+            index += 1
+    return spans
+
+
+def _markdown_reference_links(
+    text: str, context: _InstructionContext,
+) -> tuple[list[tuple[str, int]], list[tuple[int, int]]]:
+    """Resolve only simple full/collapsed links to single-line definitions.
+
+    Definitions are document-local and first-wins, including external targets.
+    Unknown first definitions block guessing a later duplicate's destination.
+    Return spans too so a definition/label is not reinterpreted as prose paths.
+    HTML layouts, nested/escaped labels and shortcut links need manual review.
+    """
+    if ']:' not in text:
+        return [], []
+    if any(REFERENCE_HTML.search(raw) and not REFERENCE_DEFINITION.fullmatch(raw)
+           for raw in text.splitlines()):
+        return [], []
+    code_spans = _markdown_code_spans(text, context)
+    inline_spans = [m.span() for m in MARKDOWN_LINK.finditer(text)]
+    code_index = _markdown_span_index(code_spans)
+    inline_index = _markdown_span_index(inline_spans)
+    literal_index = _markdown_span_index(code_spans + inline_spans)
+
+    def label_key(label: str) -> str:
+        return re.sub(r'[ \t\r\n]+', ' ', label.strip(' \t\r\n')).casefold()
+
+    definitions: dict[str, tuple[str, int] | None] = {}
+    spans: list[tuple[int, int]] = []
+    can_define = True
+    for number, row in enumerate(context.lines, 1):
+        raw = text[row.start:row.end].rstrip('\r\n')
+        if not raw.strip():
+            can_define = True
+            continue
+        container = REFERENCE_CONTAINER.match(raw)
+        if container and not context.inside_fence(row.start):
+            # Containers are outside this parser. Do not let a later flat
+            # duplicate replace their potentially earlier definition.
+            definitions.setdefault(label_key(container.group(1)), None)
+            can_define = False
+            continue
+        header = REFERENCE_HEADER.match(raw)
+        if (can_define and header and not context.inside_fence(row.start)
+                and not _markdown_span_overlaps(literal_index, row.start, row.end)):
+            match = REFERENCE_DEFINITION.fullmatch(raw)
+            key = label_key(header.group(1))
+            if key and not key.startswith('^'):
+                destination = (match.group(2) or match.group(3) or '') if match else None
+                definitions.setdefault(key, (html.unescape(destination), number)
+                                       if destination is not None else None)
+                if match:
+                    spans.append((row.start, row.end))
+            can_define = match is not None
+        else:
+            # A reference definition cannot interrupt an ordinary paragraph.
+            can_define = row.kind in {'heading', 'boundary', 'fence'}
+
+    links = []
+    definition_index = _markdown_span_index(spans)
+    for match in MARKDOWN_REFERENCE.finditer(text):
+        bracket = match.start() + (1 if match.group().startswith('!') else 0)
+        if (context.inside_fence(match.start()) or _markdown_escaped(text, bracket)
+                or _markdown_span_overlaps(code_index, bracket, bracket + 1)
+                or _markdown_span_overlaps(code_index, match.end() - 1, match.end())
+                or _markdown_span_overlaps(inline_index, match.start(), match.end())
+                or _markdown_span_overlaps(definition_index, match.start(), match.end())):
+            continue
+        row = context.lines[context.line_index(match.start())]
+        if text[row.start:row.end].startswith(('    ', '\t')):
+            continue
+        # Do not partially parse nested or escaped labels as a simpler link.
+        if ('\\' in match.group() or (match.start() and text[match.start() - 1] == '[')
+                or text[match.end():match.end() + 1] == ']'):
+            continue
+        key = label_key(match.group(2) or match.group(1))
+        target = definitions.get(key)
+        if target is not None:
+            links.append(target)
+            spans.append(match.span())
+    return links, spans
+
+
+def _local_markdown_links(
+    text: str, context: _InstructionContext, reference_links: list[tuple[str, int]],
+):
+    """Extract local inline and supported reference destinations, never fetch."""
+    links = list(reference_links)
     for match in MARKDOWN_LINK.finditer(text):
         if context.inside_fence(match.start()):
             continue
         destination = match.group(1) or match.group(2)
+        links.append((destination, _line(text, match.start())))
+    for destination, lineno in links:
         try:
             parts = urlsplit(destination)
         except ValueError:
@@ -898,7 +1042,7 @@ def _local_markdown_links(text: str, context: _InstructionContext):
         candidate = unquote(parts.path)
         if candidate.startswith(("/", "\\", "~", "$")) or any(c in candidate for c in "*{}\x00"):
             continue
-        yield candidate, _line(text, match.start())
+        yield candidate, lineno
 
 
 def _non_required_path_reference(text: str, match: re.Match, value: str) -> bool:
@@ -933,10 +1077,13 @@ def _non_required_path_reference(text: str, match: re.Match, value: str) -> bool
                 and re.match(r"^[ \t]+itself[ \t]*(?:[.,;:!?)]|$)", after, re.I))
 
 
-def _candidate_paths(text: str, context: _InstructionContext):
-    link_spans = [match.span() for match in MARKDOWN_LINK.finditer(text)]
+def _candidate_paths(
+    text: str, context: _InstructionContext, reference_spans: list[tuple[int, int]],
+):
+    link_spans = [match.span() for match in MARKDOWN_LINK.finditer(text)] + reference_spans
+    link_index = _markdown_span_index(link_spans)
     for m in PATH_CANDIDATE.finditer(text):
-        if any(start <= m.start() < end for start, end in link_spans):
+        if _markdown_span_overlaps(link_index, m.start(), m.start() + 1):
             continue
         if context.inside_fence(m.start()):
             continue
@@ -1166,7 +1313,8 @@ def _analyze_with_texts(
             findings.append(_finding("broad-environment-upload", rel, lineno))
 
         seen_refs: set[tuple[str, int]] = set()
-        for candidate, lineno in _local_markdown_links(text, context):
+        reference_links, reference_spans = _markdown_reference_links(text, context)
+        for candidate, lineno in _local_markdown_links(text, context, reference_links):
             key = (candidate, lineno)
             if key in seen_refs:
                 continue
@@ -1174,7 +1322,7 @@ def _analyze_with_texts(
             target = _repo_candidate(root, path.parent, candidate)
             if target is not None and not target.exists():
                 findings.append(_finding("dead-path", rel, lineno, f"Referenced path does not exist: {candidate}"))
-        for candidate, lineno in _candidate_paths(text, context):
+        for candidate, lineno in _candidate_paths(text, context, reference_spans):
             key = (candidate, lineno)
             if key in seen_refs:
                 continue

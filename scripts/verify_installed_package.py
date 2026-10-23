@@ -186,6 +186,25 @@ def verify(python: Path, expected_version: str) -> list[str]:
                 "Fixed maintainer fixture did not pass recheck")
         checks.append("path/override finding, explanatory scan and Git regression, JSON compatibility, fix and recheck")
 
+        reference_target = repo / "REFERENCE.md"
+        reference_target.write_text("Synthetic guide\n", encoding="utf-8")
+        reference_text = "Read [build guide][setup].\n\n[setup]: REFERENCE.md\n"
+        instructions.write_text(reference_text, encoding="utf-8")
+        require(json.loads(run([*cli, ".", "--json"], repo))["findings"] == [],
+                "Existing reference-link target was reported missing")
+        reference_target.unlink()
+        reference_scan = json.loads(run([*cli, ".", "--json", "--explain"], repo))
+        require([(f["code"], f["line"]) for f in reference_scan["findings"]] == [("dead-path", 3)],
+                "Missing reference-link target was not located at its definition")
+        reference_diff = json.loads(run([*cli, "diff", "--json"], repo, expected=1))
+        require([f["code"] for f in reference_diff["new_findings"]] == ["dead-path"],
+                "Missing reference target did not fail the baseline score-drop gate")
+        reference_target.write_text("Restored guide\n", encoding="utf-8")
+        require(json.loads(run([*cli, ".", "--json"], repo))["findings"] == [],
+                "Restored reference target did not pass recheck")
+        instructions.write_text(clean_text, encoding="utf-8")
+        checks.append("reference-link target existence, definition location, regression blocking and fix/recheck")
+
         preview = json.loads(run([*cli, "guardrails", ".", "--json"], repo))
         require(preview["status"] == "review_needed" and preview["advisory_only"] is True,
                 "Guardrail preview was not advisory")

@@ -1,0 +1,40 @@
+name: real-world smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-repositories:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Replay the maintained pinned corpus
+        env:
+          PYTHONPATH: src
+          GIT_TERMINAL_PROMPT: "0"
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .agent-config-score
+          python -u scripts/run_real_world_benchmark.py \
+            --output .agent-config-score/real-world-smoke.json \
+            2>&1 | tee .agent-config-score/real-world-smoke.log
+      - name: Retain results or acquisition-failure logs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: real-world-smoke-${{ github.sha }}
+          path: |
+            .agent-config-score/real-world-smoke.json
+            .agent-config-score/real-world-smoke.log
+          if-no-files-found: warn
+          retention-days: 7
