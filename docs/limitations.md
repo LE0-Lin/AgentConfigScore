@@ -203,6 +203,12 @@ They do not execute referenced commands, infer replacement paths, change score
 arithmetic or certify safety. Optional `init --pr-comment` generates a workflow
 with explicit write permissions; it posts nothing itself and keeps the default
 generated workflow's GitHub permissions read-only. See the [maintainer workflow](maintainer-workflow.md).
+Source-only `init --workflow-only` leaves policy outside its read/write scope,
+including under `--force`; it does not validate that policy. Selected linked,
+reparse, shared or non-file initialization targets require manual setup. Exclusive
+creation and opened-file checks reduce accidental writes, not all filesystem
+races; initialization is not an atomic transaction and failed writes may leave
+partial selected targets. Generated `@v0` is not necessarily the local CLI source.
 
 The optional, unreleased [guardrail completion command](guardrail-suggestions.md)
 does not add keyword-based quality points. It checks only narrow deletion-policy

@@ -117,6 +117,26 @@ def verify(python: Path, expected_version: str) -> list[str]:
         require(comment_workflow.read_bytes() == comment_before, "Default init replaced a comment workflow")
         checks.append("installed opt-in comment setup, permission disclosure, dry-run and overwrite protection (no API writes)")
 
+        scoped_setup = workspace / "workflow only setup"
+        scoped_setup.mkdir()
+        scoped_policy = scoped_setup / ".agentconfigscore.json"
+        custom_policy_bytes = b'\xef\xbb\xbf{"version":1,"policy":{"max_drop":3,"fail_on_new_errors":false}}\r\n'
+        scoped_policy.write_bytes(custom_policy_bytes)
+        scoped_preview = run([*cli, "init", "--workflow-only", "--pr-comment", "--dry-run"], scoped_setup)
+        require("Policy file is out of scope" in scoped_preview and "@v0" in scoped_preview,
+                "Workflow-only scope or Action revision was not disclosed")
+        require(scoped_policy.read_bytes() == custom_policy_bytes and not (scoped_setup / ".github").exists(),
+                "Workflow-only dry-run modified files")
+        run([*cli, "init", "--workflow-only", "--pr-comment"], scoped_setup)
+        scoped_workflow = scoped_setup / ".github" / "workflows" / "agent-config-score.yml"
+        require("createComment" in scoped_workflow.read_text(encoding="utf-8"), "Workflow-only comment setup failed")
+        run([*cli, "init", "--workflow-only", "--force"], scoped_setup)
+        require(scoped_policy.read_bytes() == custom_policy_bytes, "Workflow-only overwrite reset custom policy")
+        require("createComment" not in scoped_workflow.read_text(encoding="utf-8"), "Workflow-only replacement did not apply")
+        require(run([*cli, "init", "--workflow-only", "--no-workflow"], scoped_setup, expected=2) == "",
+                "Conflicting setup scopes emitted success output")
+        checks.append("workflow-only install/overwrite preserves exact custom policy bytes and discloses the Action ref")
+
         artifacts = workspace / "artifacts"
         html, badge, sarif = [artifacts / name for name in ("report.html", "badge.svg", "report.sarif")]
         scan = json.loads(run([*cli, ".", "--json", "--html", str(html),

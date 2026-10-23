@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 from pathlib import Path
+import stat
 
 from .config import SCHEMA_URL
 
 
 class InitError(RuntimeError):
     """Raised when repository initialization cannot proceed safely."""
+
+
+WORKFLOW_ACTION_REF = "LE0-Lin/AgentConfigScore@v0"
 
 
 CONFIG_CONTENT = f"""{{
@@ -150,17 +155,75 @@ class InitChange:
     action: str
 
 
-def _targets(root: Path, include_workflow: bool, pr_comment: bool) -> list[tuple[Path, str]]:
-    items = [(root / ".agentconfigscore.json", CONFIG_CONTENT)]
+def _targets(root: Path, include_config: bool, include_workflow: bool, pr_comment: bool) -> list[tuple[Path, str]]:
+    items = [(root / ".agentconfigscore.json", CONFIG_CONTENT)] if include_config else []
     if include_workflow:
         content = PR_COMMENT_WORKFLOW_CONTENT if pr_comment else WORKFLOW_CONTENT
         items.append((root / ".github" / "workflows" / "agent-config-score.yml", content))
     return items
 
 
+def _validate_target(root: Path, path: Path) -> None:
+    """Reject known aliases/nonfiles before reading or writing selected targets.
+
+    The explicitly selected root is canonicalized by the caller. These checks
+    are not an atomic defense against arbitrary concurrent filesystem changes.
+    """
+    current = root
+    for part in path.relative_to(root).parts:
+        current = current / part
+        try:
+            info = current.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError as exc:
+            raise InitError(f"could not inspect generated path: {current.relative_to(root)}") from exc
+        if stat.S_ISLNK(info.st_mode) or (
+            getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+        ):
+            raise InitError(f"refusing linked or reparse generated path: {current.relative_to(root)}")
+        if current == path:
+            if not stat.S_ISREG(info.st_mode):
+                raise InitError(f"refusing non-file generated target: {path.relative_to(root)}")
+            if info.st_nlink != 1 or info.st_ino == 0:
+                raise InitError(f"refusing shared or unknown generated target: {path.relative_to(root)}")
+        elif not stat.S_ISDIR(info.st_mode):
+            raise InitError(f"generated parent is not a directory: {current.relative_to(root)}")
+
+
+def _write_target(root: Path, path: Path, desired: str, action: str) -> None:
+    descriptor = None
+    try:
+        _validate_target(root, path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _validate_target(root, path)
+        flags = os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_BINARY", 0)
+        if action == "create":
+            flags |= os.O_CREAT | os.O_EXCL
+        # Do not truncate until the opened object has been checked too.
+        descriptor = os.open(path, flags, 0o666)
+        opened = os.fstat(descriptor)
+        _validate_target(root, path)
+        named = path.lstat()
+        if (not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1 or opened.st_ino == 0
+                or (opened.st_dev, opened.st_ino) != (named.st_dev, named.st_ino)):
+            raise InitError(f"generated target changed while opening: {path.relative_to(root)}")
+        with os.fdopen(descriptor, "w", encoding="utf-8") as target:
+            descriptor = None
+            if action == "overwrite":
+                target.truncate(0)
+            target.write(desired)
+    except OSError as exc:
+        raise InitError(f"could not write generated target: {path.relative_to(root)}; inspect it before retrying") from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
 def initialize_repository(
     root: Path,
     *,
+    include_config: bool = True,
     include_workflow: bool = True,
     pr_comment: bool = False,
     force: bool = False,
@@ -172,12 +235,15 @@ def initialize_repository(
 
     if pr_comment and not include_workflow:
         raise InitError("PR comments require a workflow; do not combine --pr-comment with --no-workflow")
-    targets = _targets(root, include_workflow, pr_comment)
+    if not include_config and not include_workflow:
+        raise InitError("No initialization targets selected; do not combine --workflow-only with --no-workflow")
+    targets = _targets(root, include_config, include_workflow, pr_comment)
     plan: list[tuple[Path, str, str]] = []
 
     # Preflight every target before writing anything. A conflicting workflow
     # must not leave a half-initialized policy file behind.
     for path, desired in targets:
+        _validate_target(root, path)
         if not path.exists():
             plan.append((path, desired, "create"))
             continue
@@ -189,26 +255,23 @@ def initialize_repository(
         except UnicodeError as exc:
             raise InitError(f"{path.relative_to(root)} must be saved as UTF-8") from exc
         except OSError as exc:
-            raise InitError(f"could not read {path.relative_to(root)}: {exc}") from exc
+            raise InitError(f"could not read generated target: {path.relative_to(root)}") from exc
 
         if current == desired:
             plan.append((path, desired, "unchanged"))
         elif force:
             plan.append((path, desired, "overwrite"))
         else:
+            hint = " Use --workflow-only for CI-only setup without resetting policy." if path.name == ".agentconfigscore.json" else ""
             raise InitError(
                 f"refusing to overwrite existing {path.relative_to(root)}; "
-                "review it or rerun with --force"
+                "review it or rerun with --force." + hint
             )
 
     if not dry_run:
         for path, desired, action in plan:
             if action == "unchanged":
                 continue
-            path.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                path.write_text(desired, encoding="utf-8")
-            except OSError as exc:
-                raise InitError(f"could not write {path.relative_to(root)}: {exc}") from exc
+            _write_target(root, path, desired, action)
 
     return [InitChange(path=path.relative_to(root), action=action) for path, _desired, action in plan]

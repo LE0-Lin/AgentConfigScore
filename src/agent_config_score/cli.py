@@ -11,7 +11,7 @@ from .feedback import feedback_markdown
 from .gitdiff import GitError, baseline_worktree, repository_root
 from .history import load_history, summarize_history
 from .guardrails import GuardrailError, TEMPLATES, review_guardrails
-from .initializer import InitError, initialize_repository
+from .initializer import InitError, WORKFLOW_ACTION_REF, initialize_repository
 from .regression import compare, markdown_report
 from .rules import RULES, get_rule, rule_guidance
 from .sarif import sarif_report
@@ -156,6 +156,7 @@ def build_init_parser() -> argparse.ArgumentParser:
     workflow = p.add_mutually_exclusive_group()
     workflow.add_argument("--no-workflow", action="store_true", help="Create only .agentconfigscore.json")
     workflow.add_argument("--pr-comment", action="store_true", help="Opt into a generated same-repository PR comment workflow with pull-requests: write; forks use the job summary only")
+    p.add_argument("--workflow-only", action="store_true", help="Generate only the workflow; do not read, create or overwrite .agentconfigscore.json")
     p.add_argument("--force", action="store_true", help="Overwrite conflicting generated files")
     p.add_argument("--dry-run", action="store_true", help="Show the initialization plan without writing files")
     return p
@@ -264,6 +265,7 @@ def _main_init(argv: list[str]) -> int:
     try:
         changes = initialize_repository(
             Path(args.path),
+            include_config=not args.workflow_only,
             include_workflow=not args.no_workflow,
             pr_comment=args.pr_comment,
             force=args.force,
@@ -275,6 +277,10 @@ def _main_init(argv: list[str]) -> int:
 
     if args.pr_comment:
         print("PR comment workflow selected: pull-requests: write is included; fork PR comments are skipped. Review before committing.")
+    if args.workflow_only:
+        print("Policy file is out of scope: not read, created or modified.")
+    if not args.no_workflow:
+        print(f"Workflow uses {WORKFLOW_ACTION_REF}; it may differ from the installed CLI revision. Review/pin the Action revision before committing.")
     for change in changes:
         if change.action == "unchanged":
             label = "unchanged"
@@ -286,6 +292,8 @@ def _main_init(argv: list[str]) -> int:
 
     if args.dry_run:
         print("Dry run: no files written.")
+    elif args.workflow_only:
+        print("\nWorkflow setup complete. Review and commit the generated workflow; run doctor to validate the repository separately.")
     else:
         print("\nAgentConfigScore initialized. Review and commit the generated files.")
     return 0

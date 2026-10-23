@@ -126,6 +126,15 @@ agent-config-score init --pr-comment --dry-run
 
 `--explain` 在文本／Markdown 中为扫描的有效发现、回归比较的新增发现补充静态处理建议，不改变 JSON、评分或退出策略；不执行命令、不修复文件。[最佳实践清单（英文）](../best-practices.md)也不计分。`init --pr-comment` 显式选择生成同仓库 PR 评论工作流，并提示 `pull-requests: write` 权限；默认 `init` 生成的工作流仍只申请 GitHub 只读权限。先预览、审核，只提交一份工作流；已有冲突须主动审核，不能自动覆盖。Fork PR 保留任务摘要，不发评论。生成的 Action 引用仍为 `v0`，新解释需要包含本次改动的 Action 构建。已发布的 v0.23.0 不含这两个参数。详见[维护者流程（英文）](../maintainer-workflow.md)。
 
+仅更新 CI、不读取或重置自定义策略时（仅源码版）：
+
+```bash
+agent-config-score init --workflow-only --pr-comment --force --dry-run
+agent-config-score init --workflow-only --pr-comment --force
+```
+
+执行第二条命令前，先将示例与已有工作流的自定义内容比较；`--force` 会替换该工作流，不会合并 YAML。策略文件不在操作范围内，即使缺失或无效也不会读取，请另行运行 `doctor`。选定目标涉及链接、reparse point 或共享文件时须手动接入。初始化会提示生成的 Action 引用，它可能与本地 CLI 版本不同，也不会更新远程引用。写入有预检，但不是原子文件系统事务。
+
 ## 常见问题
 
 | 现象 | 检查方法 |

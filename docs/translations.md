@@ -85,6 +85,14 @@ New detailed maintainer/checklist references remain English and are linked from
 both variants. Executable guide examples remain identical; published artifacts
 and frozen research evidence are unchanged.
 
+The subsequent workflow-only refinement on 2026-10-23, built on
+`6e665dbb8dc2491cb0ea992c9af0776058413f00`, was synchronized across both core
+guides/limitations: exact policy preservation by excluding it from initialization,
+explicit workflow-only overwrite scope, selected-target alias/write boundaries,
+non-atomic failure limits and disclosure of the unchanged generated Action ref.
+Executable guide examples remain identical; advanced details stay in the English
+maintainer guide. Published artifacts and frozen research evidence are unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;
