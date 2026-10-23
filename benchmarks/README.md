@@ -103,11 +103,20 @@ cannot judge, read the [score contract and known limitations](../docs/limitation
 | `openai/codex` | `d58d0e5` | 2 | B 82 | 3 absent `.rs` path occurrences; 1 context-size warning |
 | `anomalyco/opencode` | `9f69463` | 18 | A 94 | 1 context-size warning |
 | `browser-use/browser-use` | `d379a32` | 2 | B 88 | 1 context-size warning |
-| `Reaparr/Reaparr` | `d9926d6` | 1 | A 100 | Prohibited `rm -rf` replacement-table example remains clean |
+| `Reaparr/Reaparr` | `d9926d6` | Not scanned | No score | Expected whole-tree rejection: a selected instruction symlink has a missing target |
 | `olup/origan` | `95ac789` | 1 | B 88 | 1 active aggressive Docker cleanup error |
 | `restsharp/RestSharp` | `64ee129` | 3 | B 84 | Lowercase `agents.md`; 1 context warning and 1 active broad recursive-deletion error |
 
-All nine findings in the recorded run were manually checked against their rule
+The earlier Reaparr A 100 was recorded before strict selected-source validation.
+The pinned `src/AppHost/ClientApp/AGENTS.md` is a symlink to `../../AGENTS.md`
+(Git blob `b7e6491d3a0dda1d656cc3c4320f5c013cdbc02d`), resolving to absent
+`src/AGENTS.md`. Whole-tree scanning must reject this input, not skip it and
+produce a clean score. The corpus now explicitly expects `FileNotFoundError`,
+errno `2`; that is an operational contract, not a clean prediction or an accuracy
+label. The root file's prohibited replacement-table example remains a separate
+regression case. The immutable earlier releases/reports are unchanged.
+
+All nine findings in the earlier completed scans were checked against their rule
 definitions. In particular, the reviewed output contains no `dead-path` finding
 for API symbols, package imports, documentation URLs, code-fence examples,
 platform paths, or generic filename conventions.
@@ -130,6 +139,24 @@ The script clones but never executes code from the target repositories. It
 checks out the exact commits in `corpus.json`, scans them, compares stable
 finding fingerprints with the reviewed expectations, and exits non-zero on a
 mismatch. Use `--work-dir DIR` to retain the clones for inspection.
+
+The runner now records each repository as `scanned`, `acquisition_error` or
+`scan_error` and continues after expected operational failures. Failed inputs
+have null score/finding fields, not A 100 or an empty clean prediction. Only an
+explicit, exact reviewed scan-error type/errno can match an expected rejection;
+acquisition errors always fail. `all_matched` means maintained expectations
+matched, **not** all repositories scanned or are safe. Inspect `summary` and
+`all_scans_completed` separately. The present corpus expects five completed scans
+and one operational rejection if acquisitions succeed; no independent accuracy
+or user adoption is inferred.
+
+With `--output`, progress is retained after each repository and incomplete runs
+remain `all_completed: false` / `all_matched: false`. Unexpected programming
+errors still surface; they do not erase earlier saved results. Reports retain
+the tool source identity, not just the declared version. These development
+runner changes are not retroactive changes to the v0.24.0 package or frozen
+research protocols. The [manual smoke workflow](../.github/workflows/real-world-smoke.yml)
+can run the same corpus outside a locally blocked network and retains artifacts.
 Only one pinned commit is fetched for each repository. Stalled Git commands
 time out after 180 seconds with the failed command identified in the error.
 

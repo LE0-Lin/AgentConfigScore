@@ -76,12 +76,11 @@
       "url": "https://github.com/Reaparr/Reaparr.git",
       "commit": "d9926d649ae6dc9d35b4c0faf183aa1d4d7b137b",
       "expected": {
-        "files": 1,
-        "score": 100,
-        "grade": "A",
-        "findings": []
+        "status": "scan_error",
+        "error_type": "FileNotFoundError",
+        "error_errno": 2
       },
-      "review_note": "The safety section explicitly prohibits rm -rf and repeats it only in the left-hand side of a nearby replacement table; that example is not an active dangerous instruction."
+      "review_note": "Whole-tree scanning now explicitly rejects the pinned dangling instruction link src/AppHost/ClientApp/AGENTS.md -> ../../AGENTS.md (Git blob b7e6491d3a0dda1d656cc3c4320f5c013cdbc02d), whose src/AGENTS.md target is absent. This is an expected operational rejection, not A 100 or a clean prediction. The earlier isolated root AGENTS.md prohibition/replacement-table interpretation remains a separate regression case; no maintainer confirmation or current adoption is implied."
     },
     {
       "name": "olup/origan",
