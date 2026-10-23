@@ -105,6 +105,15 @@ agent-config-score feedback . --output .agent-config-score/case.md
 
 不会上传任何内容。请自行审核、脱敏后再分享。
 
+## 可选：检查删除保护缺项（尚未发布）
+
+```bash
+agent-config-score guardrails . --file AGENTS.md
+agent-config-score guardrails . --file AGENTS.md --template-language simplified --json
+```
+
+此独立命令只给出选定文件的非计分建议。“未识别到保护”表示需要审核，不等于不安全。默认预览不改文件；审核完整策略上下文和补全文本后，使用打印出的确切确认值，以同一命令加上 `--apply TOKEN` 追加。输入变化须重新预览；有歧义的标记和文件别名需手动合并。英文、简体和繁体补全文本不改变 CLI 界面语言。[语法、范围、隐私及非原子／部分写入限制（英文）](../guardrail-suggestions.md)。现有评分和 CI 默认行为不变。
+
 ## 常见问题
 
 | 现象 | 检查方法 |

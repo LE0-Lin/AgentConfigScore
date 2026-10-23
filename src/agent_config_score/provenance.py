@@ -14,7 +14,7 @@ SOURCE_FORMAT = "acs-python-source-v1"
 # Keep sorted and include new runtime modules when they are added.
 SOURCE_FILES = (
     "__init__.py", "__main__.py", "cli.py", "config.py", "doctor.py",
-    "entrypoint.py", "feedback.py", "gitdiff.py", "history.py", "initializer.py",
+    "entrypoint.py", "feedback.py", "gitdiff.py", "guardrails.py", "history.py", "initializer.py",
     "provenance.py", "regression.py", "rules.py", "sarif.py", "scanner.py",
 )
 

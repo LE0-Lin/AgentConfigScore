@@ -10,6 +10,7 @@ from .config import ConfigError, Policy, load_policy
 from .feedback import feedback_markdown
 from .gitdiff import GitError, baseline_worktree, repository_root
 from .history import load_history, summarize_history
+from .guardrails import GuardrailError, TEMPLATES, review_guardrails
 from .initializer import InitError, initialize_repository
 from .regression import compare, markdown_report
 from .rules import RULES, get_rule
@@ -27,6 +28,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score rules [RULE_ID] [options]
   agent-config-score history [PATH] [options]
   agent-config-score feedback [PATH] [options]
+  agent-config-score guardrails [PATH] [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -37,6 +39,7 @@ commands:
   rules      List or explain the stable AgentConfigScore rule catalog.
   history    Show locally recorded score snapshots and overall trend.
   feedback   Generate a privacy-minimized real-world case report locally.
+  guardrails Review local deletion safeguards and preview a confirmed append.
   diff       Compare a Git ref with the current working tree.
   compare    Compare two already checked-out repository trees.
 
@@ -384,6 +387,43 @@ def _main_feedback(argv: list[str]) -> int:
     return 0
 
 
+def _main_guardrails(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(
+        prog="agent-config-score guardrails",
+        description="Unscored, selected-file deletion-constraint review. Default: preview only; no safety certification.",
+    )
+    parser.add_argument("path", nargs="?", default=".", help="Repository directory")
+    parser.add_argument("--file", default="AGENTS.md", help="Existing supported instruction file, relative to repository root")
+    parser.add_argument("--template-language", choices=tuple(TEMPLATES), default="en", help="Language of the proposed addition only, not CLI localization")
+    parser.add_argument("--json", action="store_true", help="Print JSON without raw source text")
+    parser.add_argument("--apply", metavar="TOKEN", help="Append only after reviewing the proposal and supplying its exact confirmation token")
+    args = parser.parse_args(argv)
+    try:
+        report = review_guardrails(Path(args.path), file=args.file, template_language=args.template_language, apply=args.apply)
+    except GuardrailError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(report.to_dict(), indent=2, ensure_ascii=False))
+    else:
+        print(f"Guardrail review: {report.file} — {report.status}")
+        print("Advisory only. No score change. Selected file only; not a safety or scope certification.")
+        for item in report.evidence:
+            print(f"Recognized {item['kind']} at line {item['line']} (bounded grammar only).")
+        if report.proposed_append:
+            print("Review the full file, inherited policies and tool settings for conflicts before accepting this addition.")
+            print("\nProposed append:\n" + report.proposed_append)
+        if report.applied:
+            print("The reviewed block was appended. Inspect the diff; this is not a security guarantee.")
+        elif report.confirmation_token:
+            print("No files changed. After review, rerun the same command with --apply " + report.confirmation_token)
+        elif report.manual_review_reasons:
+            print("No files changed. Manual merge only: " + ", ".join(report.manual_review_reasons))
+        else:
+            print("No files changed. Recognizing a constraint does not prove it is complete or enforced.")
+    return 0
+
+
 def _main_compare(argv: list[str]) -> int:
     args = build_compare_parser().parse_args(argv)
     base = _existing_dir(args.base)
@@ -490,6 +530,8 @@ def _run(argv: list[str] | None = None) -> int:
         return _main_history(args[1:])
     if args and args[0] == "feedback":
         return _main_feedback(args[1:])
+    if args and args[0] == "guardrails":
+        return _main_guardrails(args[1:])
     if args and args[0] == "compare":
         return _main_compare(args[1:])
     if args and args[0] == "diff":

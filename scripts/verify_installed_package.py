@@ -65,7 +65,7 @@ def verify(python: Path, expected_version: str) -> list[str]:
             require(run([*command, "--version"], repo).strip() == f"AgentConfigScore {expected_version}",
                     "Entrypoint version mismatch")
             help_text = run([*command, "--help"], repo)
-            require("doctor" in help_text and "diff" in help_text, "Incomplete product help")
+            require("doctor" in help_text and "diff" in help_text and "guardrails" in help_text, "Incomplete product help")
             if expected_help is not None:
                 require(help_text == expected_help, "Entrypoint help differs")
             expected_help = help_text
@@ -128,6 +128,21 @@ def verify(python: Path, expected_version: str) -> list[str]:
         require(unchanged["base"]["tool"] == identity and unchanged["head"]["tool"] == identity,
                 "Diff lost scan identities")
         checks.append("clean scan, HTML/SVG/SARIF, rules, history, feedback, and unchanged diff")
+
+        preview = json.loads(run([*cli, "guardrails", ".", "--json"], repo))
+        require(preview["status"] == "review_needed" and preview["advisory_only"] is True,
+                "Guardrail preview was not advisory")
+        require(instructions.read_text(encoding="utf-8") == clean_text, "Guardrail preview changed the source")
+        require(run([*cli, "guardrails", ".", "--apply", "0" * 64, "--json"], repo, expected=2) == "",
+                "Invalid confirmation emitted success output")
+        applied = json.loads(run([*cli, "guardrails", ".", "--apply", preview["confirmation_token"], "--json"], repo))
+        require(applied["applied"] is True and applied["status"] == "appended", "Reviewed addition was not appended")
+        require(instructions.read_text(encoding="utf-8").startswith(clean_text), "Confirmed append replaced original text")
+        once = instructions.read_bytes()
+        repeated = json.loads(run([*cli, "guardrails", ".", "--apply", preview["confirmation_token"], "--json"], repo))
+        require(repeated["status"] == "recognized" and instructions.read_bytes() == once, "Guardrail retry duplicated text")
+        instructions.write_text(clean_text, encoding="utf-8")
+        checks.append("unscored guardrail preview, explicit confirmation, append-only preservation and idempotence")
 
         scoped_rules = repo / "packages" / "client" / "AGENTS.md"
         scoped_rules.parent.mkdir(parents=True)

@@ -63,6 +63,13 @@ same-directory moves, review of scope changes, raw-source privacy and unchanged
 numeric scoring/policy defaults. The detailed coverage reference remains English;
 published artifacts and frozen research evidence are unchanged.
 
+Also on 2026-10-23, both core guides/limitations were synchronized for the opt-in
+deletion-safeguard review built on `09d614d093a67b14bcca294f008e794920516a4f`:
+selected-file evidence, read-only previews, explicit content-bound append
+confirmation, three addition-template languages and privacy/non-atomic limits.
+`--template-language` selects proposed text only; it is not CLI localization or
+general Chinese semantic support. The detailed reference remains English.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;
