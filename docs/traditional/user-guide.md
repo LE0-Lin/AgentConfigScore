@@ -68,7 +68,7 @@ agent-config-score compare ../repo-base . --max-drop 0 --fail-on-new-errors
 
 兩側都套用基準策略與排除設定。候選改動不能藉由增加自己的降分預算或排除新錯誤來核准自身；受信任呼叫端若要覆寫命令列設定，必須明確傳入。
 
-尚未發布的原始碼版本僅豁免同一目錄內、一對一配對、文字完全相同且目標為新增檔案的搬移；既有副本或把根目錄規則搬入子目錄不能掩蓋刪除。比較重用掃描時讀取的文字，不再重新開啟指令檔；請保持兩側目錄穩定，編輯後重新檢查。[回歸涵蓋範圍（英文）](../regression-coverage.md)。兩邊都是 `100` 分仍可能有回歸專用錯誤；上述範例啟用了新錯誤阻擋，沒有策略的裸 CLI 預設仍只檢查降分。
+v0.24.0+ 僅豁免同一目錄內、一對一配對、文字完全相同且目標為新增檔案的搬移；既有副本或把根目錄規則搬入子目錄不能掩蓋刪除。比較重用掃描時讀取的文字，不再重新開啟指令檔；請保持兩側目錄穩定，編輯後重新檢查。[回歸涵蓋範圍（英文）](../regression-coverage.md)。兩邊都是 `100` 分仍可能有回歸專用錯誤；上述範例啟用了新錯誤阻擋，沒有策略的裸 CLI 預設仍只檢查降分。
 
 ## 5. 理解失敗並處理
 
@@ -95,7 +95,7 @@ agent-config-score diff --markdown .agent-config-score/regression.md
 
 不要將報告放在會被視為指令檔掃描的位置。JSON、HTML、SARIF 與回歸報告可能包含儲存庫路徑和檢查資訊，分享前請先檢查。輸出路徑不要選擇原始碼或策略檔案，以免覆寫。多份報告寫入不是交易：後一份寫入失敗時，前一份可能已經產生。
 
-尚未發布的原始碼版本，也會在 JSON、HTML、SARIF 與新的歷史快照中保留宣告版本及盡力讀取的工具原始碼 SHA-256；`compare` / `diff` JSON 分別保留兩次掃描的身分。它用來區分同版本號的不同實作，本身不證明準確率或可重現性。工具原始碼缺失時指紋不可用，但不使掃描失效。涵蓋範圍、相容性及環境／輸入限制見[報告身分說明（英文）](../report-identity.md)；已發布的 v0.23.0 不變。
+v0.24.0+ 也會在 JSON、HTML、SARIF 與新的歷史快照中保留宣告版本及盡力讀取的工具原始碼 SHA-256；`compare` / `diff` JSON 分別保留兩次掃描的身分。它用來區分同版本號的不同實作，本身不證明準確率或可重現性。工具原始碼缺失時指紋不可用，但不使掃描失效。涵蓋範圍、相容性及環境／輸入限制見[報告身分說明（英文）](../report-identity.md)；不會為舊報告補標新的身分。
 
 需要盡量減少私人資訊的草稿時：
 
@@ -105,7 +105,7 @@ agent-config-score feedback . --output .agent-config-score/case.md
 
 不會上傳任何內容。請自行審閱並移除敏感資訊後再分享。
 
-## 選用：檢查刪除保護缺項（尚未發布）
+## 選用：檢查刪除保護缺項（v0.24.0+）
 
 ```bash
 agent-config-score guardrails . --file AGENTS.md
@@ -116,7 +116,7 @@ agent-config-score guardrails . --file AGENTS.md --template-language simplified 
 
 明確標示的範例章節不算有效策略；如果該章節延續到檔案末尾，就不能自動追加。少數明確要求略過刪除確認的句式會產生只含行號與類型的 `review_signals`，即使其他位置已識別到保護，也不能自動追加。請先手動處理這些策略；這不是通用的矛盾偵測器。
 
-## 選用：面向維護者的具體建議（尚未發布）
+## 選用：面向維護者的具體建議（v0.24.0+）
 
 ```bash
 agent-config-score . --explain
@@ -124,9 +124,9 @@ agent-config-score diff --explain --markdown .agent-config-score/regression.md
 agent-config-score init --pr-comment --dry-run
 ```
 
-`--explain` 在文字／Markdown 中為掃描的有效發現、回歸比較的新增發現補充靜態處理建議，不改變 JSON、評分或退出策略；不執行命令、不修復檔案。[最佳實務清單（英文）](../best-practices.md)也不計分。`init --pr-comment` 明確選擇產生同儲存庫 PR 評論工作流程，並提示 `pull-requests: write` 權限；預設 `init` 產生的工作流程仍僅申請 GitHub 唯讀權限。先預覽、審閱，只提交一份工作流程；既有衝突須主動審閱，不能自動覆寫。Fork PR 保留工作摘要，不發評論。產生的 Action 參照仍為 `v0`，新解釋需要包含本次變更的 Action 建置。已發布的 v0.23.0 不含這兩個參數。詳見[維護者流程（英文）](../maintainer-workflow.md)。
+`--explain` 在文字／Markdown 中為掃描的有效發現、回歸比較的新增發現補充靜態處理建議，不改變 JSON、評分或退出策略；不執行命令、不修復檔案。[最佳實務清單（英文）](../best-practices.md)也不計分。`init --pr-comment` 明確選擇產生同儲存庫 PR 評論工作流程，並提示 `pull-requests: write` 權限；預設 `init` 產生的工作流程仍僅申請 GitHub 唯讀權限。先預覽、審閱，只提交一份工作流程；既有衝突須主動審閱，不能自動覆寫。Fork PR 保留工作摘要，不發評論。產生的 Action 參照仍為 `v0`，解釋摘要需要 v0.24.0+ 或包含該功能的已驗證 Action 版本。升級本機 CLI 不會改變既有工作流程固定的 Action 版本。詳見[維護者流程（英文）](../maintainer-workflow.md)。
 
-僅更新 CI、不讀取或重設自訂策略時（僅原始碼版）：
+僅更新 CI、不讀取或重設自訂策略時（v0.24.0+）：
 
 ```bash
 agent-config-score init --workflow-only --pr-comment --force --dry-run

@@ -8,15 +8,15 @@ read the result, and troubleshoot a failing gate.
 ## Using the tool
 
 - [User guide and exit codes](user-guide.md)
-- [Maintainer setup, actionable next steps and PR results](maintainer-workflow.md) (new setup/explanations unreleased)
+- [Maintainer setup, actionable next steps and PR results](maintainer-workflow.md) (v0.24.0+)
 - [Unscored instruction-file best-practice checklist](best-practices.md)
 - [Visual tour](visual-tour.md)
 - [Instruction templates](../examples/README.md)
-- [Opt-in deletion safeguard review and completion](guardrail-suggestions.md) (unreleased)
+- [Opt-in deletion safeguard review and completion](guardrail-suggestions.md) (v0.24.0+)
 - [Repository doctor](doctor.md)
 - [Optional PR comments](pr-comments.md)
 - [Score-history workflow](score-history.md) and [local history command](score-history-cli.md)
-- [Report tool identity and source fingerprints](report-identity.md) (unreleased)
+- [Report tool identity and source fingerprints](report-identity.md) (v0.24.0+)
 - [Policy and suppression schema](../schema/agentconfigscore.schema.json)
 
 ## Understanding findings

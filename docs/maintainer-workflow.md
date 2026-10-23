@@ -1,11 +1,9 @@
 # Maintainer workflow: findings, next steps and one PR comment
 
-`--explain` and `init --pr-comment` are **unreleased source features** after
-v0.23.0. The current PyPI package, release tags and rolling `v0` Action have not
-been updated. Commands below require a source build containing these changes.
-The existing [copy-ready comment recipe](../examples/pr-comment.yml) also works
-with the published Action, but that version's job summary has no new next-step
-guidance. Generating a workflow does not change which Action revision it uses.
+`--explain`, `init --pr-comment` and `init --workflow-only` are available in
+**v0.24.0+**. The [copy-ready comment recipe](../examples/pr-comment.yml) remains
+an alternative setup method. Upgrade the installed CLI and review the Action
+revision independently: generating a workflow does not update remote refs.
 
 ## 1. Inspect concrete problems locally
 
@@ -39,7 +37,7 @@ The baseline policy and suppressions still govern the comparison. Guidance is
 attached only to new findings, so unchanged historical findings do not become
 new fix requests on every PR. Review accepted exceptions separately.
 
-The Action in this source revision requests explanatory Markdown in its job
+The v0.24.0+ Action requests explanatory Markdown in its job
 summary automatically. It does not publish a comment unless a caller workflow
 opts in. Generated comments contain validated numeric results and a link to
 details, not raw instruction text or arbitrary finding messages.
@@ -73,7 +71,7 @@ comment recipe. See [PR comment security and behavior](pr-comments.md).
 
 ### Upgrade a workflow without resetting repository policy
 
-Unreleased source builds also accept `--workflow-only`. The selected targets are:
+v0.24.0+ also accepts `--workflow-only`. The selected targets are:
 
 | Mode | Policy file | Workflow file |
 |---|---|---|
@@ -104,8 +102,8 @@ targets; use workflow-only mode when that is not what you intend.
 
 The generated workflow currently uses the existing rolling `v0` Action ref.
 Review/pin the tested revision suitable for your repository before committing;
-the new source-only explanatory summaries require an Action revision containing
-this change. Keep scanning dependencies separate from candidate repository code.
+explanatory summaries require v0.24.0+ (or a verified revision containing
+that feature). Keep scanning dependencies separate from candidate repository code.
 CLI output also discloses this Action ref instead of implying it matches the
 installed CLI source. Initialization does not fetch, verify or update remote refs.
 

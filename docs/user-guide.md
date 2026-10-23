@@ -93,7 +93,7 @@ The baseline policy and suppressions govern both sides. A candidate cannot
 increase its drop budget or suppress its newly introduced error to approve
 itself. Trusted invocation-time overrides are explicit.
 
-In unreleased source builds, removal checks only exempt one-to-one exact-text
+In v0.24.0+, removal checks only exempt one-to-one exact-text
 moves to newly added files in the same directory. Existing copies and moving root
 rules into a subtree do not hide removal. Comparisons reuse scan-time text instead
 of reopening sources; keep both trees stable and rerun after edits. See
@@ -138,12 +138,12 @@ messages; inspect them before sharing. Do not overwrite your source or policy
 files by choosing their paths as report destinations. Multiple output writes
 are not a transaction: an earlier artifact may remain if a later write fails.
 
-Unreleased source builds also retain the declared tool version and a best-effort
+v0.24.0+ also retains the declared tool version and a best-effort
 tool-source SHA-256 in JSON, HTML, SARIF and new history snapshots. Compare/diff
 JSON retains both scan identities. This distinguishes local implementations with
 the same version, not accuracy or reproducibility by itself. Missing source makes
 the digest unavailable, not the scan invalid. See [report identity](report-identity.md)
-for coverage, compatibility and environment/input limits; released v0.23.0 is unchanged.
+for coverage, compatibility and environment/input limits; older reports are not relabelled.
 
 For a privacy-minimized draft instead:
 
@@ -153,7 +153,7 @@ agent-config-score feedback . --output .agent-config-score/case.md
 
 Nothing is uploaded. Review and sanitize the draft yourself before sharing.
 
-## Optional: review missing deletion safeguards (unreleased)
+## Optional: review missing deletion safeguards (v0.24.0+)
 
 ```bash
 agent-config-score guardrails . --file AGENTS.md
@@ -174,7 +174,7 @@ policies manually; this is not a general contradiction detector.
 See [guardrail suggestions](guardrail-suggestions.md) for grammar, scope, privacy
 and non-atomic/partial-write limits. Existing scoring and CI defaults are unchanged.
 
-## Optional: actionable maintainer results (unreleased)
+## Optional: actionable maintainer results (v0.24.0+)
 
 ```bash
 agent-config-score . --explain
@@ -190,11 +190,12 @@ discloses `pull-requests: write`; the default generated workflow keeps read-only
 GitHub permissions. Preview,
 review and commit only one workflow. Existing conflicts require deliberate
 review, not an automatic overwrite. Fork PRs use job summaries without comments.
-The generated Action ref remains `v0`; new explanations require an Action build
-containing this change. Neither flag exists in published v0.23.0.
+The generated Action ref remains rolling `v0`; explanations require v0.24.0+
+or a verified Action revision containing this feature. Older pinned workflows
+remain unchanged when you upgrade the local CLI.
 See the [maintainer workflow](maintainer-workflow.md) for setup and limits.
 
-To update only CI without reading/resetting custom policy (source builds only):
+To update only CI without reading/resetting custom policy (v0.24.0+):
 
 ```bash
 agent-config-score init --workflow-only --pr-comment --force --dry-run
