@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- An explicitly manual, read-only GitHub Actions replay of the existing pinned real-repository smoke corpus. The same runner propagates acquisition/mismatch failures and retains logs/results for seven days; it does not execute external repository code, run on every PR or establish independent accuracy/adoption.
+
 ### Fixed
 
 - Check simple full/collapsed Markdown reference links and images against document-relative local targets, reporting a used target at its definition line. Respect document-local, first-definition precedence, skip unused definitions and avoid treating supported definitions/link captions as extra prose paths. Code, ambiguous containers/layouts and unsupported Markdown forms retain explicit coverage limits. Stable rule IDs/penalties, runtime dependencies, published v0.24.0 artifacts and frozen research records are unchanged.

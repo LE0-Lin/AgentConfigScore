@@ -46,6 +46,15 @@ python scripts/run_real_world_benchmark.py
 
 The benchmark requires Git and network access only for cloning its public, pinned inputs. It does not execute code from those repositories. See [`benchmarks/README.md`](benchmarks/README.md) for its scope and limitations.
 
+If local Git downloads are blocked, a maintainer can select **real-world smoke**
+in GitHub Actions and use **Run workflow**, choosing the revision to check. The
+optional workflow uses this same corpus/runner with read-only permissions, no
+runtime dependencies and no external repository code execution. It is manual,
+not a new network gate on every PR. A failed acquisition stays failed; the run
+retains its log (and a result JSON only if produced) for seven days. Check the
+run's exact commit, not just its branch name. Passing this maintained smoke suite
+is not an independent accuracy result or evidence of user adoption.
+
 Regenerate the README demo after changing its example output or visual design:
 
 ```bash
