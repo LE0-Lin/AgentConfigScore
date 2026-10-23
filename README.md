@@ -97,6 +97,13 @@ agent-config-score init --force        # intentionally replace conflicting gener
 
 ## Copy-ready templates
 
+Unreleased source builds also provide an optional [deletion-safeguard review and
+completion workflow](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/guardrail-suggestions.md):
+preview a selected file with `agent-config-score guardrails . --file AGENTS.md`,
+review the proposed addition, then explicitly confirm it before an append.
+This is unscored advice, not proof of danger or safety; it does not change the
+published v0.23.0 package or default regression gate.
+
 Start with a conservative template, then replace generic guidance with your
 repository's real commands, architecture, and ownership boundaries:
 

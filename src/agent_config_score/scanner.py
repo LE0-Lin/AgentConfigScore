@@ -648,6 +648,68 @@ def _active_prose_lines(context: _InstructionContext):
         yield number, body
 
 
+def _deletion_guardrail_evidence(text: str) -> list[dict]:
+    """Recognize only bounded local constraints; never infer global safety."""
+    context = _instruction_context(text)
+    english_approval = re.compile(
+        r"(?:Before (?:deleting|removing) (?:existing |any |user )?files"
+        r"(?:, overwriting user changes, or discarding uncommitted work)?, "
+        r"(?:explain the exact targets and impact and )?(?:obtain explicit user approval|ask for (?:user )?confirmation)"
+        r"|(?:Always )?ask for (?:user )?confirmation before (?:deleting|removing) (?:existing |any |user )?files)\.?",
+        re.I,
+    )
+    english_ban = re.compile(
+        r"(?:Never|Do not|Must not) (?:delete|remove) (?:existing |any |user )?files"
+        r"(?: without (?:explicit user approval|user confirmation))?\.?", re.I,
+    )
+    chinese_approval = re.compile(
+        r"(?:(?:删除|刪除)(?:现有文件|既有檔案|文件|檔案)?(?:前|之前)[，,]?"
+        r"(?:必须|必須)(?:先)?(?:取得|获得|獲得|征得)(?:(?:用户|使用者)的?)?(?:明确|明確)?(?:确认|確認|授权|授權)"
+        r"|在删除现有文件、覆盖用户改动或丢弃未提交的工作之前，必须先说明确切目标和影响范围，并取得用户的明确授权"
+        r"|在刪除既有檔案、覆寫使用者變更或捨棄未提交的工作之前，必須先說明確切目標與影響範圍，並取得使用者的明確授權)[。.]?"
+    )
+    command = r"(?:rm(?:\s+-[A-Za-z]+)*|rmdir)"
+    command_list = command + r"(?:(?:\s*,\s*(?:(?:or|and)\s+)?|\s+(?:or|and)\s+)" + command + r")*"
+    command_ban = re.compile(
+        r"(?:(?:Never|Do not|Must not) (?:use|run|execute)\s+|(?:禁止|不得|切勿)(?:执行|執行|使用)\s*)"
+        + command_list + r"(?: under any circumstances)?[。. ]?", re.I,
+    )
+    frontmatter = text.lstrip("\ufeff").startswith("---\n") or text.lstrip("\ufeff").startswith("---\r\n")
+    in_comment = False
+    evidence = []
+    for number, row in enumerate(context.lines, 1):
+        raw = text[row.start:row.end].rstrip("\r\n").lstrip("\ufeff")
+        if frontmatter:
+            if number > 1 and raw.strip() in {"---", "..."}:
+                frontmatter = False
+            continue
+        if row.kind in {"code", "fence"}:
+            continue
+        if in_comment or "<!--" in raw:
+            # Never borrow an apparent instruction from a multiline comment.
+            in_comment = raw.rfind("<!--") > raw.rfind("-->") if "-->" in raw else True
+            continue
+        if row.kind not in {"prose", "list"} or raw.startswith(("    ", "\t")) or raw.lstrip().startswith(">"):
+            continue
+        start = row.body_start if row.body_start is not None else row.start
+        body = text[start:row.end].strip().lstrip("\ufeff")
+        if body.startswith(("`", '"', "'", "“", "‘")):
+            continue
+        body = re.sub(r"\*\*|__|`", "", body)
+        if len(body) > 512:
+            continue
+        kind = None
+        if english_approval.fullmatch(body) or chinese_approval.fullmatch(body):
+            kind = "approval_before_deletion"
+        elif english_ban.fullmatch(body):
+            kind = "file_deletion_constraint"
+        elif command_ban.fullmatch(body):
+            kind = "specific_command_ban"
+        if kind is not None:
+            evidence.append({"line": number, "kind": kind})
+    return evidence
+
+
 def _false_success_lines(context: _InstructionContext):
     """Recognize bounded complete clauses without joining independent evidence."""
     for number, body in _active_prose_lines(context):

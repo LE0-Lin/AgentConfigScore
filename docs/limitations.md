@@ -197,6 +197,15 @@ The bare CLI's score-only compatibility default is unchanged.
 
 ## Known blind spots
 
+The optional, unreleased [guardrail completion command](guardrail-suggestions.md)
+does not add keyword-based quality points. It checks only narrow deletion-policy
+phrases in one selected file, offers a preview and requires content-bound
+confirmation to append. Unrecognized text is review-needed, not proof of missing
+safety; recognized wording is neither complete coverage nor enforcement. External
+permissions, inheritance and arbitrary language semantics are outside this check.
+Initial previews are read-only; append is explicitly requested, not an atomic
+transaction, and may fail partially. Existing scoring and CI gates are unchanged.
+
 The scanner intentionally does not claim to understand arbitrary prose. These
 inputs can still receive A 100 when they avoid every known deterministic rule:
 

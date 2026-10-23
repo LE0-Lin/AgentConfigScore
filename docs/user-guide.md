@@ -153,6 +153,22 @@ agent-config-score feedback . --output .agent-config-score/case.md
 
 Nothing is uploaded. Review and sanitize the draft yourself before sharing.
 
+## Optional: review missing deletion safeguards (unreleased)
+
+```bash
+agent-config-score guardrails . --file AGENTS.md
+agent-config-score guardrails . --file AGENTS.md --template-language simplified --json
+```
+
+This independent command gives unscored, selected-file advice. No recognized
+constraint means “review needed,” not “unsafe.” Default previews change nothing.
+After reviewing the full policy context and addition, rerun the same command
+with `--apply TOKEN` using its exact printed confirmation. Changed input requires
+a new preview; ambiguous markup and aliases require manual merging. English,
+Simplified and Traditional addition templates do not localize CLI messages.
+See [guardrail suggestions](guardrail-suggestions.md) for grammar, scope, privacy
+and non-atomic/partial-write limits. Existing scoring and CI defaults are unchanged.
+
 ## Common setup problems
 
 | Symptom | What to check |
