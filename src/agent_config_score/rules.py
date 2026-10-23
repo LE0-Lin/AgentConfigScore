@@ -61,7 +61,7 @@ RULES = (
     Rule("no-agents-md", "info", "quality", 3, "No canonical root AGENTS.md", "Reports multiple tool-specific instruction files without a root AGENTS.md to coordinate them."),
     Rule("empty-instructions", "error", "coverage", 30, "Instruction file is empty", "Reports supported coding-agent instruction files that contain no instructions and therefore cannot be meaningfully audited."),
     Rule("no-config", "error", "coverage", 30, "No supported coding-agent instruction files found", "Reports that discovery found no supported coding-agent instruction files, so an A-grade audit result would be misleading."),
-    Rule("instruction-file-removed", "error", "coverage", 0, "Instruction file removed in candidate", "Regression-only rule that reports removal of a supported instruction file unless its exact content moved to another supported file."),
+    Rule("instruction-file-removed", "error", "coverage", 0, "Instruction file removed in candidate", "Regression-only rule that reports removal of a supported instruction file. A nonempty, exact decoded-text match in the same directory can pair one removed file with one newly added supported file; existing copies, whitespace folding and cross-directory moves do not exempt a removal. This filename-coverage heuristic does not certify equivalent agent behavior."),
     Rule("directive-polarity-flip", "error", "quality", 0, "Persistent directive reversed in candidate", "Regression-only rule that reports an exact directive changing between positive and negative polarity in the same instruction file."),
 )
 

@@ -19,6 +19,7 @@ read the result, and troubleshoot a failing gate.
 ## Understanding findings
 
 - [Score contract and limitations](limitations.md)
+- [Regression input consistency and file-removal checks](regression-coverage.md)
 - [Path-reference grammar and limits](limitations.md#plain-prose-path-references)
 - [Instruction context and prohibition scopes](instruction-context.md)
 - [False success-reporting checks](verification-reporting.md)

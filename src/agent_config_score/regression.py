@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from .config import Suppression
 from .scanner import (
     Finding,
     Report,
     SuppressedFinding,
+    _analyze_with_texts,
     _directives,
     _finding,
     _matching_suppression,
-    analyze,
 )
 
 
@@ -21,29 +22,21 @@ def _finding_key(finding: Finding) -> tuple[str, str, str, str]:
     return (finding.severity, finding.code, finding.file, finding.message)
 
 
-def _instruction_texts(root: Path, files: list[str]) -> dict[str, str]:
-    texts: dict[str, str] = {}
-    for rel in files:
-        try:
-            texts[rel] = (root / rel).read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            continue
-    return texts
-
-
-def _normalized_content(text: str) -> str:
-    return " ".join(text.split())
-
-
-def _regression_findings(base_root: Path, head_root: Path, base: Report, head: Report) -> list[Finding]:
-    base_texts = _instruction_texts(base_root, base.files)
-    head_texts = _instruction_texts(head_root, head.files)
-    head_contents = {_normalized_content(text) for text in head_texts.values() if _normalized_content(text)}
+def _regression_findings(base_texts: dict[str, str], head_texts: dict[str, str]) -> list[Finding]:
+    # Only newly added files in the same directory may count as exact-text moves.
+    # Consume each target once: an existing copy or one new file cannot hide
+    # multiple deletions. Preserve literal whitespace; scan reads normalize EOLs.
+    moved_contents = Counter(
+        (PurePosixPath(rel).parent, head_texts[rel])
+        for rel in head_texts.keys() - base_texts.keys()
+        if head_texts[rel].strip()
+    )
     findings: list[Finding] = []
 
     for rel in sorted(set(base_texts) - set(head_texts)):
-        content = _normalized_content(base_texts[rel])
-        if content and content in head_contents:
+        key = (PurePosixPath(rel).parent, base_texts[rel])
+        if moved_contents[key] > 0:
+            moved_contents[key] -= 1
             continue
         findings.append(
             _finding(
@@ -112,8 +105,11 @@ def compare(
     # The caller supplies the baseline repository suppressions. Applying the
     # same trusted suppression set to both trees prevents a candidate PR from
     # exempting its own newly introduced findings.
-    base = analyze(base_root, suppressions=suppressions)
-    head = analyze(head_root, suppressions=suppressions)
+    # Reuse exactly the text that produced each scan's findings. A second,
+    # unguarded read could see different text, skip an I/O failure, or follow
+    # an instruction alias replaced after scanning.
+    base, base_texts = _analyze_with_texts(base_root, suppressions=suppressions)
+    head, head_texts = _analyze_with_texts(head_root, suppressions=suppressions)
 
     base_by_key = {_finding_key(finding): finding for finding in base.findings}
     head_by_key = {_finding_key(finding): finding for finding in head.findings}
@@ -122,7 +118,7 @@ def compare(
     resolved_keys = base_by_key.keys() - head_by_key.keys()
 
     candidate_findings = [head_by_key[key] for key in new_keys]
-    for finding in _regression_findings(base_root, head_root, base, head):
+    for finding in _regression_findings(base_texts, head_texts):
         suppression = _matching_suppression(finding, suppressions)
         if suppression is None:
             candidate_findings.append(finding)

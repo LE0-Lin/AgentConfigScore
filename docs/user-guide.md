@@ -93,6 +93,14 @@ The baseline policy and suppressions govern both sides. A candidate cannot
 increase its drop budget or suppress its newly introduced error to approve
 itself. Trusted invocation-time overrides are explicit.
 
+In unreleased source builds, removal checks only exempt one-to-one exact-text
+moves to newly added files in the same directory. Existing copies and moving root
+rules into a subtree do not hide removal. Comparisons reuse scan-time text instead
+of reopening sources; keep both trees stable and rerun after edits. See
+[regression coverage and limits](regression-coverage.md). A regression-only error
+may occur with two `100` scores: the example above enables new-error blocking;
+the bare CLI without a policy remains score-only by default.
+
 ## 5. Read a failure and resolve it
 
 - Exit `1` from `diff` / `compare` means the configured regression gate failed.

@@ -987,6 +987,14 @@ def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...
 
 
 def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report:
+    report, _ = _analyze_with_texts(root, suppressions=suppressions)
+    return report
+
+
+def _analyze_with_texts(
+    root: Path, *, suppressions: tuple[Suppression, ...] = (),
+) -> tuple[Report, dict[str, str]]:
+    """Keep scan-time text internal for comparisons; never attach it to Report."""
     tool = capture_tool_identity()
     root = root.resolve()
     files = discover(root)
@@ -1119,7 +1127,7 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
         score = min(score, 89)
     grade = "A" if score >= 90 else "B" if score >= 80 else "C" if score >= 70 else "D" if score >= 60 else "F"
     order = {"error": 0, "warning": 1, "info": 2}
-    return Report(
+    report = Report(
         tool=tool,
         root=str(root), files=rels, score=score, grade=grade,
         estimated_tokens=total_tokens, duplicate_ratio=duplicate_ratio,
@@ -1134,6 +1142,7 @@ def analyze(root: Path, *, suppressions: tuple[Suppression, ...] = ()) -> Report
             ),
         ),
     )
+    return report, {path.relative_to(root).as_posix(): text for path, text in texts.items()}
 
 
 def badge_svg(report: Report) -> str:

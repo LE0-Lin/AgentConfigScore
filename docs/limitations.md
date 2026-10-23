@@ -180,9 +180,20 @@ scanner against empty, misleading, and deliberately weakened instructions.
 | Candidate deletes an instruction file | Could report no regression | `instruction-file-removed` error |
 | Candidate changes `Always X` to `Never X` | Could report no regression | `directive-polarity-flip` error |
 
-Each hardened case has an automated regression test. Exact file moves are not
-reported as deletion, and baseline-owned suppressions can document an intentional
-exception.
+Each hardened case has an automated regression test. In unreleased source builds,
+only one-to-one, nonempty exact decoded-text moves to newly added supported files
+in the same directory are exempt from removal. Existing copies, cross-directory
+moves and whitespace-folded lookalikes are not exemptions. This does not certify
+equivalent agent/format/scope behavior. Baseline-owned suppressions can document
+an intentional exception. See [regression coverage](regression-coverage.md).
+
+Unreleased comparisons also reuse each scan's captured instruction text rather
+than reopening sources and silently skipping second-read failures. Initial read
+failures still stop the check; raw captured text is not retained in public report
+objects or exports. This is not an atomic snapshot or concurrent-change detector.
+Regression-only errors can coexist with two standalone `100` scores; enable the
+baseline's `fail_on_new_errors` policy or `--fail-on-new-errors` to block them.
+The bare CLI's score-only compatibility default is unchanged.
 
 ## Known blind spots
 
