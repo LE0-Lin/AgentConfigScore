@@ -174,6 +174,14 @@ policies manually; this is not a general contradiction detector.
 See [guardrail suggestions](guardrail-suggestions.md) for grammar, scope, privacy
 and non-atomic/partial-write limits. Existing scoring and CI defaults are unchanged.
 
+Unreleased source builds resolve `--file` without whole-tree discovery, so an
+unrelated broken instruction link does not block this selected-file review.
+Relevant ignore rules and selected ancestry still apply; directory aliases or
+ambiguous directory casing need manual integration. Other sources are not
+certified or repaired. Normal scan/doctor failures still need separate attention;
+an append does not turn an incomplete whole-tree scan into a clean result.
+This scope refinement is not in the v0.24.0 package.
+
 ## Optional: actionable maintainer results (v0.24.0+)
 
 ```bash

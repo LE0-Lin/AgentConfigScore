@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Keep explicit guardrail review scoped to the selected file instead of requiring whole-repository instruction discovery first. Unselected broken/external/nonregular sources and unrelated subtrees no longer block a valid review; relevant ignore rules, selected ancestry, supported filenames and canonical filename preference still apply. Directory aliases or ambiguous directory casing require manual integration. Full scans/doctor still reject unreadable sources; confirmation, append guards, scoring and published v0.24.0 artifacts are unchanged.
+
 - Preserve per-repository smoke results and partial progress after acquisition or scanner operational failures instead of aborting and losing earlier rows. Error cases have null scores/findings; acquisition failures never match a clean expectation. Explicitly document the pinned Reaparr dangling instruction symlink as an expected typed operational rejection, separate from the historical clean root-file example. Expectation matching is not all-scans-completed or accuracy.
 
 - Check simple full/collapsed Markdown reference links and images against document-relative local targets, reporting a used target at its definition line. Respect document-local, first-definition precedence, skip unused definitions and avoid treating supported definitions/link captions as extra prose paths. Code, ambiguous containers/layouts and unsupported Markdown forms retain explicit coverage limits. Stable rule IDs/penalties, runtime dependencies, published v0.24.0 artifacts and frozen research records are unchanged.
