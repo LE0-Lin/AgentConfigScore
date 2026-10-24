@@ -11,7 +11,7 @@ import re
 import stat
 
 from .provenance import ToolIdentity, capture_tool_identity
-from .scanner import _deletion_guardrail_assessment, _instruction_context, _scanner_source_target, discover
+from .scanner import _deletion_guardrail_assessment, _instruction_context, _scanner_source_target, _select_instruction_source
 
 
 class GuardrailError(ValueError):
@@ -157,9 +157,9 @@ def review_guardrails(root: Path, *, file: str = "AGENTS.md", template_language:
     if not root.is_dir():
         raise GuardrailError("Repository path must be a directory")
     rel = _relative_file(file)
-    path = root / rel
-    if path not in discover(root):
-        raise GuardrailError("Selected file was not discovered: choose an existing, non-ignored supported instruction file with --file")
+    path = _select_instruction_source(root, rel)
+    if path is None:
+        raise GuardrailError("Selected file is unavailable: choose an existing, non-ignored supported instruction file without directory aliases or ambiguous path casing")
     target = _scanner_source_target(root, path)
     try:
         original, info = _read_source(root, path, target)

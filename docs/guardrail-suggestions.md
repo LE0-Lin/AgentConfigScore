@@ -23,6 +23,16 @@ does not create missing instruction files or silently choose another agent's
 configuration. Paths must be repository-relative and cannot escape the root.
 The target must be a regular in-repository UTF-8 file of at most 1 MiB.
 
+Unreleased source builds select this exact file without walking the whole tree.
+They inspect the relevant ignore file and selected ancestry/parent names, keeping
+supported-file, ignored/pruned-directory and canonical filename-preference rules.
+An unselected broken or external instruction link does not block this local
+review and is not opened or repaired. This is not in v0.24.0. Directory aliases,
+Windows reparse ancestors and ambiguous directory casing require manual
+integration rather than guessing a discovery scope. Relevant selection I/O
+failures remain errors. Normal scans and `doctor` still check the whole tree
+and reject unsafe/unreadable sources; review success cannot bypass that gate.
+
 The preview reads but does not modify files or save a plan. It reports evidence
 line numbers/kinds without quoting old instruction text, and otherwise proposes
 a block requiring explicit user approval before deleting existing files,

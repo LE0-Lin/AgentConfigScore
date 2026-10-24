@@ -245,6 +245,15 @@ whole selected file. Narrow approval-bypass directives also require manual
 resolution even alongside recognized protection; they are unscored review
 signals, not complete conflict detection or evidence of actual agent behavior.
 
+Unreleased source builds scope explicit guardrail selection without whole-tree
+discovery. Only relevant ignore rules and the selected ancestry/parent names are
+inspected for selection; unselected broken/external/nonregular instruction files
+are not validated or repaired. Directory aliases/reparse ancestors and ambiguous
+directory casing require manual integration. This does not change full scans or
+doctor: an unsafe source elsewhere still stops the whole-tree check. Selected
+review/append success is not a clean repository result. This refinement is not
+in v0.24.0; confirmation and non-atomic append boundaries remain unchanged.
+
 The scanner intentionally does not claim to understand arbitrary prose. These
 inputs can still receive A 100 when they avoid every known deterministic rule:
 

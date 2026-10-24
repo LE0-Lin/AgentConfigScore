@@ -111,6 +111,13 @@ handling and unsupported Markdown/code/layout boundaries. This is an unreleased
 source update, not a change to v0.24.0 packages, tags, rolling Action refs or
 frozen research evidence. Executable guide examples are unchanged.
 
+On 2026-10-24, built on `8c1747be614a79692d07882d2c7841fb0ad83543`, both core
+guides and limitation summaries were synchronized for scoped guardrail file
+selection: no whole-tree traversal, relevant ignore/ancestor checks, manual-only
+directory aliases/case ambiguity and unchanged full-scan/doctor failure behavior.
+This is unreleased source behavior, not a v0.24.0 artifact change. Executable
+guide examples, scoring, confirmation and append boundaries remain unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

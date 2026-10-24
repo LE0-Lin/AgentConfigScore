@@ -240,6 +240,35 @@ def verify(python: Path, expected_version: str) -> list[str]:
         checks.append("unscored guardrail preview, explicit confirmation, append-only preservation and idempotence")
         checks.append("guardrail examples, ambiguous layout and opposing approval directives require manual resolution")
 
+        selected_repo = workspace / "selected guardrail scope"
+        selected_repo.mkdir()
+        selected_source = selected_repo / "AGENTS.md"
+        selected_original = b"Run tests.\n"
+        selected_source.write_bytes(selected_original)
+        dangling = selected_repo / "CLAUDE.md"
+        has_dangling = False
+        try:
+            os.symlink("missing.txt", dangling)
+            has_dangling = True
+        except OSError:
+            pass  # Not all Windows hosts permit creating symbolic links.
+        selected_check = json.loads(run([str(python), "-I", "-c",
+            "import json; from pathlib import Path; from unittest.mock import patch; "
+            "from agent_config_score.guardrails import review_guardrails; "
+            "scope=patch('agent_config_score.scanner.os.walk', side_effect=AssertionError('whole tree walked')); "
+            "scope.start(); preview=review_guardrails(Path.cwd()); "
+            "applied=review_guardrails(Path.cwd(), apply=preview.confirmation_token); scope.stop(); "
+            "print(json.dumps(applied.to_dict()))"
+        ], selected_repo))
+        require(selected_check["applied"] is True and selected_check["scope"] == "selected_file_only",
+                "Selected guardrail review walked or certified the whole tree")
+        require(selected_source.read_bytes().startswith(selected_original), "Selected append replaced existing bytes")
+        if has_dangling:
+            require(os.readlink(dangling) == "missing.txt", "Unselected broken source was changed")
+            require(run([*cli, ".", "--json"], selected_repo, expected=2) == "",
+                    "Selected review weakened full-scan source rejection")
+        checks.append("installed selected-file guardrail review avoids whole-tree discovery; full scan still rejects broken sources where symlinks are available")
+
         scoped_rules = repo / "packages" / "client" / "AGENTS.md"
         scoped_rules.parent.mkdir(parents=True)
         instructions.rename(scoped_rules)

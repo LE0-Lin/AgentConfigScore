@@ -488,6 +488,81 @@ def _prefer_canonical_name(candidate: Path, current: Path) -> bool:
     return candidate.name < current.name
 
 
+def _supported_instruction_path(rel: str) -> bool:
+    path = PurePosixPath(rel)
+    return (path.name.casefold() in TARGET_NAMES_CASEFOLD
+            or (rel.startswith((".cursor/rules/", ".claude/", ".github/instructions/"))
+                and path.suffix.lower() in {".md", ".mdc"}))
+
+
+def _instruction_directory_excluded(rel: str, patterns: list[str]) -> bool:
+    return PurePosixPath(rel).name in SKIP_DIRS or any(
+        pattern.endswith("/**") and fnmatch(rel, pattern[:-3]) for pattern in patterns
+    )
+
+
+def _select_instruction_source(root: Path, rel: str) -> Path | None:
+    """Select an exact file without discovering/validating the whole tree.
+
+    Apply the same support, exclusion and filename precedence rules. Only the
+    selected ancestry/parent names and relevant ignore file are inspected.
+    Directory aliases and ambiguous directory-case layouts require manual work.
+    The caller must still validate and safely open the selected file itself.
+    """
+    relative = PurePosixPath(rel)
+    if (not rel or relative.is_absolute() or PureWindowsPath(rel).drive
+            or '..' in relative.parts or '\\' in rel or '\x00' in rel
+            or not _supported_instruction_path(relative.as_posix())):
+        return None
+    try:
+        root = root.resolve(strict=True)
+        patterns = _ignore_patterns(root)
+        if _ignored(relative.as_posix(), patterns):
+            return None
+        parent = root
+        for depth, name in enumerate(relative.parts[:-1], 1):
+            partial = PurePosixPath(*relative.parts[:depth]).as_posix()
+            if _instruction_directory_excluded(partial, patterns):
+                return None
+            directory = parent / name
+            try:
+                info = directory.lstat()
+            except FileNotFoundError:
+                return None
+            reparse = getattr(info, 'st_file_attributes', 0) & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0)
+            if (not stat.S_ISDIR(info.st_mode) or reparse or directory.is_symlink()
+                    or directory.resolve(strict=True) != directory):
+                return None
+            # A whole-tree case-folded winner can depend on another directory.
+            # Do not inspect that subtree or guess which scope would win.
+            if sum(entry.name.casefold() == name.casefold() for entry in parent.iterdir()) != 1:
+                return None
+            parent = directory
+        path = root / relative.as_posix()
+        try:
+            info = path.lstat()
+        except FileNotFoundError:
+            return None
+        reparse = getattr(info, 'st_file_attributes', 0) & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0)
+        if stat.S_ISDIR(info.st_mode) and not reparse:
+            return None
+        for entry in parent.iterdir():
+            if entry == path or entry.name.casefold() != path.name.casefold():
+                continue
+            sibling = entry.lstat()
+            sibling_reparse = (getattr(sibling, 'st_file_attributes', 0)
+                               & getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0))
+            if stat.S_ISDIR(sibling.st_mode) and not sibling_reparse:
+                continue
+            if _prefer_canonical_name(entry, path):
+                return None
+        return path
+    except RuntimeError as exc:
+        raise OSError(errno.ELOOP, "Unable to select instruction source") from exc
+    except OSError as exc:
+        raise OSError(exc.errno, "Unable to select instruction source") from exc
+
+
 def discover(root: Path) -> list[Path]:
     # Keep the caller's path identity instead of resolving filesystem aliases.
     # macOS may rewrite /var to /private/var and Windows may expand 8.3 paths;
@@ -502,9 +577,7 @@ def discover(root: Path) -> list[Path]:
         rel = path.relative_to(root).as_posix()
         if _ignored(rel, patterns):
             return
-        if (path.name.casefold() in TARGET_NAMES_CASEFOLD
-                or (rel.startswith((".cursor/rules/", ".claude/", ".github/instructions/"))
-                    and path.suffix.lower() in {".md", ".mdc"})):
+        if _supported_instruction_path(rel):
             key = rel.casefold()
             current = found.get(key)
             if current is None or _prefer_canonical_name(path, current):
@@ -517,9 +590,7 @@ def discover(root: Path) -> list[Path]:
             rel = path.relative_to(root).as_posix()
             # Only /** patterns prove every descendant is excluded. A literal
             # directory-name match alone must not change existing glob meaning.
-            if name in SKIP_DIRS or any(
-                pattern.endswith("/**") and fnmatch(rel, pattern[:-3]) for pattern in patterns
-            ):
+            if _instruction_directory_excluded(rel, patterns):
                 continue
             if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
                 select(path)  # A link named AGENTS.md must not silently vanish.
