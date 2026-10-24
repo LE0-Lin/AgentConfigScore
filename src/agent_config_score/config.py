@@ -137,7 +137,7 @@ def parse_policy(data: object, *, today: date | None = None) -> Policy:
         raise ConfigError("$schema must be a non-empty string when provided")
 
     version = data.get("version", 1)
-    if version != 1:
+    if isinstance(version, bool) or version != 1:
         raise ConfigError("version must be 1")
 
     raw_policy = data.get("policy", {})
@@ -179,15 +179,38 @@ def parse_policy(data: object, *, today: date | None = None) -> Policy:
     )
 
 
-def load_policy(root: Path) -> Policy:
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for name, value in pairs:
+        if name in result:
+            # Member names as well as values can contain private material.
+            raise ConfigError("duplicate JSON member names are not allowed; keep one value per field")
+        result[name] = value
+    return result
+
+
+def _reject_nonstandard_number(_value: str) -> None:
+    raise ConfigError("non-standard JSON number constants are not allowed")
+
+
+def _load_policy_document(root: Path) -> tuple[Policy, dict | None]:
+    """Validate one decoded document; None identifies a missing config.
+
+    Retain metadata for doctor without reopening the file or decoding it using
+    different rules. This is not an atomic snapshot of the repository.
+    """
     path = root.resolve() / CONFIG_NAME
     if not path.exists():
-        return Policy()
+        return Policy(), None
     if not path.is_file():
         raise ConfigError(f"{CONFIG_NAME} exists but is not a file")
 
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=_unique_json_object,
+            parse_constant=_reject_nonstandard_number,
+        )
     except UnicodeError as exc:
         raise ConfigError(f"{CONFIG_NAME} must be saved as UTF-8") from exc
     except OSError as exc:
@@ -196,8 +219,14 @@ def load_policy(root: Path) -> Policy:
         raise ConfigError(
             f"invalid JSON in {CONFIG_NAME} at line {exc.lineno}, column {exc.colno}: {exc.msg}"
         ) from exc
+    except ConfigError as exc:
+        raise ConfigError(f"invalid JSON in {CONFIG_NAME}: {exc}") from exc
 
     try:
-        return parse_policy(data)
+        return parse_policy(data), data
     except ConfigError as exc:
         raise ConfigError(f"invalid {CONFIG_NAME}: {exc}") from exc
+
+
+def load_policy(root: Path) -> Policy:
+    return _load_policy_document(root)[0]

@@ -41,6 +41,14 @@ Commit the generated files after reviewing them. If you only want local checks,
 use `init --no-workflow`. A missing standard workflow is then an advisory doctor
 warning, not an error.
 
+Unreleased source builds reject duplicate config member names (including nested
+objects and escaped spellings), `NaN`/`Infinity` constants and a Boolean format
+`version`, rather than choosing an overwritten value. Review and keep one value
+per field. Scans, `feedback`, `diff` and `compare` return `2` without a success
+report; doctor returns `1` with a `config` error. Threshold overrides do not bypass
+config validation. Missing-config defaults remain unchanged. This is not in
+v0.24.0; see [configuration decoding](doctor.md#configuration-decoding).
+
 If doctor finds no supported instruction files, add repository-specific
 instructions or adapt one of the [templates](../examples/README.md). Do not add
 phrases just to increase the score. See [supported discovery](../README.md#what-it-scans).

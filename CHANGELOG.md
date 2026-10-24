@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Reject duplicate decoded JSON member names throughout repository configuration instead of silently adopting the last policy/suppression value, including escaped aliases and equal-valued repeats. Reject non-standard numeric constants and Boolean format versions while preserving valid-policy defaults and numeric `1.0` compatibility. Doctor derives policy/schema metadata from one read. Invalid baseline and candidate configs remain errors despite CLI threshold overrides; rejection does not overwrite reports or certify policy adequacy. Published v0.24.0 artifacts, Action refs, rule scores and frozen research are unchanged.
+
 - Keep explicit guardrail review scoped to the selected file instead of requiring whole-repository instruction discovery first. Unselected broken/external/nonregular sources and unrelated subtrees no longer block a valid review; relevant ignore rules, selected ancestry, supported filenames and canonical filename preference still apply. Directory aliases or ambiguous directory casing require manual integration. Full scans/doctor still reject unreadable sources; confirmation, append guards, scoring and published v0.24.0 artifacts are unchanged.
 
 - Preserve per-repository smoke results and partial progress after acquisition or scanner operational failures instead of aborting and losing earlier rows. Error cases have null scores/findings; acquisition failures never match a clean expectation. Explicitly document the pinned Reaparr dangling instruction symlink as an expected typed operational rejection, separate from the historical clean root-file example. Expectation matching is not all-scans-completed or accuracy.

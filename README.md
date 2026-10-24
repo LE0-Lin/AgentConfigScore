@@ -133,6 +133,14 @@ The `$schema` annotation enables live validation and completion in editors that 
 
 The schema is Draft 2020-12 and lives at `schema/agentconfigscore.schema.json`. AgentConfigScore's tests verify that its suppression rule enum stays exactly aligned with the stable Rule Catalog, so editor hints cannot silently drift away from scanner behavior.
 
+Unreleased source builds additionally reject duplicate JSON member names at any
+depth, even if the values match or a name uses JSON escapes. A repeated threshold
+is a configuration error, not "last value wins." `NaN`/`Infinity` constants and a
+Boolean format `version` are rejected too. Keep one reviewed value per field;
+do not rely on editor schema validation to detect duplicate names. See
+[configuration failure behavior](docs/doctor.md#configuration-decoding). These
+changes are not in the published v0.24.0 artifacts.
+
 Policy fields:
 
 | Key | Default | Meaning |

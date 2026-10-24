@@ -331,6 +331,37 @@ def verify(python: Path, expected_version: str) -> list[str]:
         checks.append("danger regression, compare, baseline policy/suppressions, removal, and worktree cleanup")
 
         instructions.write_text(clean_text, encoding="utf-8")
+        for invalid_json in (
+            '{"policy":{"fail_under":90,"fail_under":0}}',
+            r'{"policy":{"fail_under":90,"fail\u005funder":0}}',
+            '{"version":true}',
+            '{"version":NaN}',
+            '{"version":Infinity}',
+            '{"version":-Infinity}',
+        ):
+            config.write_text(invalid_json, encoding="utf-8")
+            require(run([*cli, ".", "--json"], repo, expected=2) == "",
+                    "Ambiguous/non-standard config emitted a scan")
+        ambiguous = '{"policy":{"fail_under":90,"fail_under":0}}'
+        config.write_text(ambiguous, encoding="utf-8")
+        for command in commands[1:]:
+            require(run([*command, ".", "--json"], repo, expected=2) == "",
+                    "Alternate entrypoint accepted ambiguous config")
+        invalid_doctor = json.loads(run([*cli, "doctor", "--json"], repo, expected=1))
+        require(invalid_doctor["ok"] is False
+                and any(c["name"] == "config" and c["status"] == "error" for c in invalid_doctor["checks"]),
+                "Doctor certified ambiguous config")
+        for args in (["diff", "--json"], ["compare", str(base), str(repo), "--json"]):
+            require(run([*cli, *args], repo, expected=2) == "", "Invalid config emitted a regression report")
+        protected_report = workspace / "preserved-feedback.md"
+        protected_report.write_bytes(b"preserved report")
+        require(run([*cli, "feedback", "--output", str(protected_report)], repo, expected=2) == "",
+                "Feedback accepted ambiguous config")
+        require(protected_report.read_bytes() == b"preserved report" and config.read_text(encoding="utf-8") == ambiguous,
+                "Config rejection overwrote an input or report")
+        config.write_bytes(original[0])
+        checks.append("strict policy JSON across aliases, module, doctor, diff, compare and feedback without success reports or overwrites")
+
         config.write_bytes(b'{"private":"synthetic-\xff"}')
         require(run([*cli, ".", "--json"], repo, expected=2) == "", "Invalid config emitted a scan")
         config.write_bytes(original[0])

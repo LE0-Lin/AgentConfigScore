@@ -22,6 +22,39 @@ When automatic baseline detection succeeds, doctor reports the selected ref, for
 
 Warnings are advisory and keep exit status `0`. Concrete configuration or standard-workflow errors return a non-zero exit status.
 
+## Configuration decoding
+
+Unreleased source builds use one shared configuration decoder for scans,
+`feedback`, `diff`, `compare` and `doctor`. Every JSON object in
+`.agentconfigscore.json` must have unique decoded member names, including nested
+policy and suppression objects. Repeating a name is an error even when both
+values match; `fail_under` and `fail\u005funder` are the same decoded name.
+Names reused in separate objects are not duplicates. Remove the duplicate after
+reviewing which value is intended; no automatic rewrite or first/last-value
+selection is performed.
+
+The decoder also rejects the non-standard number constants `NaN`, `Infinity`
+and `-Infinity`. The format `version` cannot be a Boolean; numeric `1` (including
+the previously supported `1.0`) and an omitted version retain their behavior.
+Duplicate/constant diagnostics do not echo raw member names or values. Ordinary
+JSON syntax failures still report a line and column. Editor JSON Schema checks
+may see only an already-decoded object and are not a substitute for this check.
+
+Invalid configuration returns `2` from scans, `feedback`, `diff` and `compare`,
+without a successful report or overwriting a requested report destination.
+`doctor --json` instead reports `ok: false` and a `config` error, with exit `1`.
+Both baseline and candidate configurations must validate even when trusted CLI
+threshold overrides are supplied. `doctor` derives policy and schema metadata
+from one read, not two potentially different reads. Missing config still uses
+compatibility defaults and produces an advisory doctor warning.
+
+This is configuration validation, not an atomic repository snapshot, filesystem
+sandbox, authenticity check or proof that the policy is adequate. The direct
+`parse_policy(dict)` API cannot recover duplicate names that a caller has already
+discarded while decoding. Published v0.24.0 packages and Action refs are unchanged.
+
+## Instruction and repository access
+
 The `repository-paths` check reports an error if index traversal fails, for
 example because a source directory cannot be read. Fix the access problem before
 scanning; an incomplete index must not be treated as a clean result or evidence
