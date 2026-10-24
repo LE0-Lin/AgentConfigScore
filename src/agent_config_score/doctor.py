@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-import json
 from pathlib import Path
 
-from .config import CONFIG_NAME, SCHEMA_URL, ConfigError, load_policy
+from .config import CONFIG_NAME, SCHEMA_URL, ConfigError, _load_policy_document
 from .gitdiff import GitError, detect_base_ref, repository_root
 from .scanner import _read_scanner_source, _repository_path_index, discover
 
@@ -49,28 +48,21 @@ class DoctorReport:
 
 def _check_config(root: Path) -> tuple[list[DoctorCheck], object | None]:
     checks: list[DoctorCheck] = []
-    path = root / CONFIG_NAME
-    if not path.exists():
+    try:
+        policy, raw = _load_policy_document(root)
+    except ConfigError as exc:
+        checks.append(DoctorCheck("config", "error", f"Invalid {CONFIG_NAME}: {exc}"))
+        return checks, None
+    except OSError:
+        checks.append(DoctorCheck("config", "error", f"Could not read {CONFIG_NAME}; check filesystem access."))
+        return checks, None
+    if raw is None:
         checks.append(DoctorCheck(
             "config",
             "warning",
             f"{CONFIG_NAME} is missing; compatibility defaults will be used.",
         ))
         return checks, None
-    if not path.is_file():
-        checks.append(DoctorCheck("config", "error", f"{CONFIG_NAME} exists but is not a file."))
-        return checks, None
-
-    try:
-        policy = load_policy(root)
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except UnicodeError:
-        checks.append(DoctorCheck("config", "error", f"{CONFIG_NAME} must be saved as UTF-8."))
-        return checks, None
-    except (OSError, json.JSONDecodeError, ConfigError) as exc:
-        checks.append(DoctorCheck("config", "error", f"Invalid {CONFIG_NAME}: {exc}"))
-        return checks, None
-
     checks.append(DoctorCheck(
         "config",
         "pass",

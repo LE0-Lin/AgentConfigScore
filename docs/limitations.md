@@ -16,6 +16,17 @@ not an accuracy result or a reproducibility guarantee: repository inputs, policy
 runtime and filesystem behavior are outside that fingerprint. Missing source is
 explicitly unknown, and historic reports are not relabelled.
 
+## Configuration decoding
+
+Unreleased source builds reject duplicate decoded JSON member names at every
+configuration depth, non-standard `NaN`/`Infinity` constants and a Boolean format
+`version`. They do not choose the first or last repeated value. Both comparison
+trees must validate; CLI threshold overrides cannot authorize malformed config.
+`doctor` uses one read for policy and schema metadata. These changes are not in
+v0.24.0. See [failure and compatibility details](doctor.md#configuration-decoding).
+The check does not validate policy adequacy, authenticate config authors, provide
+an atomic snapshot or recover names already lost by a caller's JSON decoder.
+
 ## Instruction-file filesystem boundary
 
 Selected instruction files and `.agentconfigscoreignore` must resolve to regular

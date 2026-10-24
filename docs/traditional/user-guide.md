@@ -28,6 +28,8 @@ agent-config-score doctor
 
 審閱後提交產生的設定與工作流程。只想在本機使用時選 `init --no-workflow`；缺少標準工作流程只會成為 doctor 的提示性警告，不是錯誤。
 
+尚未發布的原始碼拒絕設定中重複的欄位名稱（包括巢狀物件及跳脫拼寫）、`NaN`/`Infinity` 常數與布林型別的格式 `version`，不會悄悄採用覆蓋後的值。請審閱並為每個欄位保留一個值。掃描、`feedback`、`diff` 與 `compare` 返回 `2` 且不產生成功報告；doctor 提供 `config` 錯誤並返回 `1`。命令列門檻覆寫不能略過設定驗證；缺少設定時的預設行為不變。這些變更不在 v0.24.0 中。[設定解析細節（英文）](../doctor.md#configuration-decoding)。
+
 若沒有找到支援的指令檔，請撰寫符合儲存庫實際需求的指令，或使用[範本（英文）](../../examples/README.md)。不要只為提高分數添加詞句。[完整探索範圍（英文）](../../README.md#what-it-scans)。
 
 ## 3. 檢查目前目錄

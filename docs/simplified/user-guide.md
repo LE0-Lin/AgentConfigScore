@@ -28,6 +28,8 @@ agent-config-score doctor
 
 审核后提交生成的配置和工作流。只想本地使用时选 `init --no-workflow`；标准工作流缺失会成为 doctor 的提示性警告，而不是错误。
 
+尚未发布的源码拒绝配置中重复的字段名（包括嵌套对象和转义拼写）、`NaN`/`Infinity` 常量及布尔类型的格式 `version`，不会悄悄采用覆盖后的值。请审核并为每个字段保留一个值。扫描、`feedback`、`diff` 和 `compare` 返回 `2` 且不生成成功报告；doctor 给出 `config` 错误并返回 `1`。命令行门槛覆盖不能跳过配置验证；缺失配置时的默认行为不变。这些变化不在 v0.24.0 中。[配置解析细节（英文）](../doctor.md#configuration-decoding)。
+
 若没有找到支持的指令文件，请编写符合仓库实际情况的指令，或采用[模板（英文）](../../examples/README.md)。不要仅为涨分添加词句。[完整发现范围（英文）](../../README.md#what-it-scans)。
 
 ## 3. 检查当前目录

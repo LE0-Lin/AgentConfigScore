@@ -118,6 +118,15 @@ directory aliases/case ambiguity and unchanged full-scan/doctor failure behavior
 This is unreleased source behavior, not a v0.24.0 artifact change. Executable
 guide examples, scoring, confirmation and append boundaries remain unchanged.
 
+On 2026-10-25, built on `10e9b50a6f507ae9edf7a1589fdca704d05cfc07`, both core
+guides and limitation summaries were synchronized for strict policy JSON:
+duplicate decoded names at every depth, non-standard numeric constants, Boolean
+format-version rejection, one-read doctor metadata and unchanged missing-config
+defaults. Invalid baseline/candidate configs remain operational failures even
+under CLI threshold overrides; validation is not policy adequacy or an atomic
+snapshot. This is unreleased source behavior, not a v0.24.0 artifact or Action-ref
+update. Executable examples, valid-policy scoring and frozen research are unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;
