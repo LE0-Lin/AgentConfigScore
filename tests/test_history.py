@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from agent_config_score.history import append_snapshot, load_history, summarize_history
+from agent_config_score.history import HistoryError, append_snapshot, load_history, summarize_history
 
 
 class HistoryTests(unittest.TestCase):
@@ -40,14 +40,16 @@ class HistoryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "history limit must be >= 1"):
                 append_snapshot(Path(directory), {"score": 100}, limit=0)
 
-    def test_invalid_history_returns_empty_list(self):
+    def test_invalid_history_raises_instead_of_returning_empty_list(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             path = root / ".agentconfigscore" / "history" / "index.json"
             path.parent.mkdir(parents=True)
             path.write_text("not-json", encoding="utf-8")
 
-            self.assertEqual(load_history(root), [])
+            with self.assertRaises(HistoryError):
+                load_history(root)
+            self.assertEqual(path.read_text(encoding="utf-8"), "not-json")
 
     def test_summarize_history_trend(self):
         summary = summarize_history([

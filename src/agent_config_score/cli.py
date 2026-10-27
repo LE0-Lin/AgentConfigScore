@@ -9,7 +9,7 @@ from . import __version__
 from .config import ConfigError, Policy, load_policy
 from .feedback import feedback_markdown
 from .gitdiff import GitError, baseline_worktree, repository_root
-from .history import load_history, summarize_history
+from .history import HistoryError, load_history, summarize_history
 from .guardrails import GuardrailError, TEMPLATES, review_guardrails
 from .initializer import InitError, WORKFLOW_ACTION_REF, initialize_repository
 from .regression import compare, markdown_report
@@ -345,7 +345,11 @@ def _main_history(argv: list[str]) -> int:
         print("error: --limit must be >= 1", file=sys.stderr)
         return 2
 
-    history = load_history(root)
+    try:
+        history = load_history(root)
+    except HistoryError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     visible = history[-args.limit:]
     summary = summarize_history(history)
 

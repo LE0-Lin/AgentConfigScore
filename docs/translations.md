@@ -127,6 +127,15 @@ under CLI threshold overrides; validation is not policy adequacy or an atomic
 snapshot. This is unreleased source behavior, not a v0.24.0 artifact or Action-ref
 update. Executable examples, valid-policy scoring and frozen research are unchanged.
 
+On 2026-10-28, built on `6fc26b5b1c62e9588d8f3c0b80805e27f821bc55`, both core
+guides and limitation summaries were synchronized for local history preservation:
+absent versus damaged/unreadable stores, operational failure instead of a clean
+empty list, partial legacy records and unknown scores, full-file replacement,
+manual alias migration and serialized-writer/atomicity/evidence limits. Local
+history is not automatically appended by scans or imported from CI artifacts.
+This is unreleased source behavior; executable guide examples, rule scores,
+published v0.24.0 artifacts, Action refs and frozen research remain unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

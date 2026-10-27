@@ -27,6 +27,21 @@ v0.24.0. See [failure and compatibility details](doctor.md#configuration-decodin
 The check does not validate policy adequacy, authenticate config authors, provide
 an atomic snapshot or recover names already lost by a caller's JSON decoder.
 
+## Local history integrity
+
+Unreleased source builds distinguish an absent local history index from damaged
+or unreadable data. Invalid history returns operational exit `2`, not an empty
+success report. The Python append helper refuses to reset it and uses a complete
+same-directory replacement instead of truncating existing bytes. Partial legacy
+snapshots remain supported; missing scores are unknown. Linked/reparse history
+paths require manual migration. These changes are not in v0.24.0.
+
+History validation is not evidence authenticity, policy/tool comparability or
+semantic quality. The append helper needs serialized writers and does not claim
+locking, a hostile-filesystem transaction or power-loss durability. Normal scans
+do not automatically record local snapshots; immutable CI artifacts are separate.
+See [recovery, retention and metadata limits](score-history-cli.md).
+
 ## Instruction-file filesystem boundary
 
 Selected instruction files and `.agentconfigscoreignore` must resolve to regular
