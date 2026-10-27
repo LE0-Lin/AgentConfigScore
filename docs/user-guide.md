@@ -153,6 +153,15 @@ the same version, not accuracy or reproducibility by itself. Missing source make
 the digest unavailable, not the scan invalid. See [report identity](report-identity.md)
 for coverage, compatibility and environment/input limits; older reports are not relabelled.
 
+For local snapshots, unreleased source builds distinguish absent history from
+damaged/unreadable history. `history` returns `2` with no success output for an
+invalid index; appending through the Python helper refuses to reset it. Back up
+and repair the index before retrying. Partial legacy records remain readable;
+missing scores are unknown, not zero. The helper uses complete-file replacement
+but requires serialized writers, not concurrent transactions. Scans do not
+automatically append local history. See [local history and recovery](score-history-cli.md).
+These changes are not in v0.24.0 or an update to immutable CI artifacts.
+
 For a privacy-minimized draft instead:
 
 ```bash
