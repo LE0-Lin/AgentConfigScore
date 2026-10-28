@@ -395,6 +395,46 @@ def verify(python: Path, expected_version: str) -> list[str]:
         config.write_bytes(original[0])
         checks.append("strict policy JSON across aliases, module, doctor, diff, compare and feedback without success reports or overwrites")
 
+        policy_scope = workspace / "policy source boundary"
+        policy_scope.mkdir()
+        (policy_scope / "AGENTS.md").write_text(clean_text, encoding="utf-8")
+        shared_policy = policy_scope / "shared.json"
+        shared_policy.write_text('{"policy":{"fail_under":90}}', encoding="utf-8")
+        policy_alias = policy_scope / ".agentconfigscore.json"
+        policy_links = False
+        try:
+            os.symlink("shared.json", policy_alias)
+            policy_links = True
+        except OSError:
+            pass  # Some Windows hosts do not permit symbolic links.
+        if policy_links:
+            resolved_policy = run([str(python), "-I", "-c",
+                "from pathlib import Path; from agent_config_score.config import load_policy; "
+                "assert load_policy(Path.cwd()).fail_under == 90; print('internal policy retained')"
+            ], policy_scope)
+            require(resolved_policy.strip() == "internal policy retained", "Internal policy alias stopped working")
+            outside_policy = workspace / "outside-policy.json"
+            outside_bytes = b'{"policy":{"fail_under":0}}'
+            outside_policy.write_bytes(outside_bytes)
+            for target in (outside_policy, Path("missing-policy.json")):
+                policy_alias.unlink()  # Only the disposable fixture-owned alias.
+                os.symlink(target, policy_alias)
+                for command in commands:
+                    require(run([*command, ".", "--json", "--fail-under", "0"], policy_scope, expected=2) == "",
+                            "Invalid policy source fell back to defaults or emitted a scan")
+                broken_policy = json.loads(run([*cli, "doctor", "--json"], policy_scope, expected=1))
+                require(broken_policy["ok"] is False and any(c["name"] == "config" and c["status"] == "error"
+                        for c in broken_policy["checks"]), "Doctor hid an invalid policy source")
+                require(run([*cli, "compare", str(base), str(policy_scope), "--json"], repo, expected=2) == "",
+                        "Comparison accepted an invalid candidate policy source")
+                require(run([*cli, "feedback", "--output", str(protected_report)], policy_scope, expected=2) == "",
+                        "Feedback accepted an invalid policy source")
+                require(protected_report.read_bytes() == b"preserved report" and policy_alias.is_symlink(),
+                        "Policy source failure overwrote the report or alias")
+            require(outside_policy.read_bytes() == outside_bytes and not (policy_scope / "missing-policy.json").exists(),
+                    "Policy source validation changed a linked target")
+        checks.append("policy source boundary: internal aliases retained and invalid aliases rejected where host permits symlinks")
+
         config.write_bytes(b'{"private":"synthetic-\xff"}')
         require(run([*cli, ".", "--json"], repo, expected=2) == "", "Invalid config emitted a scan")
         config.write_bytes(original[0])

@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 from fnmatch import fnmatch
 import json
 from pathlib import Path
+import stat
 
 from .rules import get_rule
 
@@ -193,28 +194,51 @@ def _reject_nonstandard_number(_value: str) -> None:
     raise ConfigError("non-standard JSON number constants are not allowed")
 
 
+def _configuration_source(root: Path) -> Path | None:
+    """Only an absent entry uses defaults; validate other sources before reads.
+
+    Internal file aliases and an explicitly chosen root alias are supported.
+    Resolution/metadata checks are not atomic against concurrent replacement.
+    """
+    try:
+        boundary = root.resolve(strict=True)
+        path = boundary / CONFIG_NAME
+        try:
+            path.lstat()  # exists() would silently treat a dangling link as absent.
+        except FileNotFoundError:
+            return None
+        target = path.resolve(strict=True)
+        if not target.is_relative_to(boundary):
+            raise ConfigError("configuration source must remain inside the repository")
+        if not stat.S_ISREG(target.stat().st_mode):
+            raise ConfigError("configuration source must resolve to a regular file")
+        return target
+    except RuntimeError as exc:  # pathlib link loops on Python 3.10-3.12.
+        raise ConfigError("could not resolve configuration source; check the config link") from exc
+    except OSError as exc:
+        raise ConfigError("could not inspect or resolve configuration source; check access and the config link") from exc
+
+
 def _load_policy_document(root: Path) -> tuple[Policy, dict | None]:
     """Validate one decoded document; None identifies a missing config.
 
     Retain metadata for doctor without reopening the file or decoding it using
     different rules. This is not an atomic snapshot of the repository.
     """
-    path = root.resolve() / CONFIG_NAME
-    if not path.exists():
+    source = _configuration_source(root)
+    if source is None:
         return Policy(), None
-    if not path.is_file():
-        raise ConfigError(f"{CONFIG_NAME} exists but is not a file")
 
     try:
         data = json.loads(
-            path.read_text(encoding="utf-8"),
+            source.read_text(encoding="utf-8"),
             object_pairs_hook=_unique_json_object,
             parse_constant=_reject_nonstandard_number,
         )
     except UnicodeError as exc:
         raise ConfigError(f"{CONFIG_NAME} must be saved as UTF-8") from exc
     except OSError as exc:
-        raise ConfigError(f"could not read {CONFIG_NAME}: {exc}") from exc
+        raise ConfigError(f"could not read {CONFIG_NAME}; check filesystem access and keep the source stable") from exc
     except json.JSONDecodeError as exc:
         raise ConfigError(
             f"invalid JSON in {CONFIG_NAME} at line {exc.lineno}, column {exc.colno}: {exc.msg}"

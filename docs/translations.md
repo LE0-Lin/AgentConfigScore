@@ -136,6 +136,15 @@ history is not automatically appended by scans or imported from CI artifacts.
 This is unreleased source behavior; executable guide examples, rule scores,
 published v0.24.0 artifacts, Action refs and frozen research remain unchanged.
 
+Also on 2026-10-28, built on `7d19d47c0818edecaf0c93a50190315e069a6ab0`, both
+core guides/limitations were synchronized for repository-policy source checks:
+absent entries versus invalid links, in-root regular-file targets, retained
+internal/root aliases, both baseline/candidate boundaries and sanitized source
+I/O failures. Migration, platform/link and non-atomic/hard-link/mount limits are
+explicit; workflow-only setup and unscored guardrails remain separate. This is
+unreleased behavior, not a v0.24.0, Action-ref, scoring or frozen-evidence update.
+Executable guide examples are unchanged.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

@@ -53,6 +53,37 @@ sandbox, authenticity check or proof that the policy is adequate. The direct
 `parse_policy(dict)` API cannot recover duplicate names that a caller has already
 discarded while decoding. Published v0.24.0 packages and Action refs are unchanged.
 
+## Configuration file boundary (unreleased)
+
+Source builds distinguish an absent `.agentconfigscore.json` directory entry
+from an existing but invalid source. Only a genuinely absent config uses
+compatibility defaults. Dangling/cyclic links, failed metadata access, external
+targets and non-regular sources are configuration errors, not missing config.
+The source must resolve to a regular file inside the selected repository root;
+internal file links are supported, and an explicitly selected root alias defines
+the resolved boundary. The resolved target is opened as strict UTF-8. Raw target
+paths and filesystem error details are not echoed in these source diagnostics.
+
+The same loader serves scans, feedback, both sides of compare/diff and doctor.
+Failure keeps operational exit `2` and no success report for policy-using CLI
+commands; doctor emits a `config` error with exit `1`. Threshold overrides cannot
+authorize an invalid source. No source/report is repaired or rewritten by the
+check. Unscored `guardrails` and workflow-only initialization remain separate
+interfaces and do not certify repository policy.
+
+For a shared config, prefer a relative link to a tracked in-repository JSON file
+so the target exists inside each Git baseline worktree. A link back to the
+original checkout can be external to the temporary baseline root and is rejected.
+For an invalid link, review/migrate the intended policy into the repository or
+repair the link deliberately, then rerun doctor. Do not delete the link merely
+to make the tool fall back to defaults. Git/platform link support still matters.
+
+This changes compatibility for external config links and is not yet in v0.24.0.
+It is not an atomic snapshot or filesystem sandbox: concurrent replacement of
+parents/targets remains possible between metadata checks and open. Hard-link
+identity and mount boundaries are not certified; workflow/report readers are
+separate interfaces. Keep the tree stable during validation and comparison.
+
 ## Instruction and repository access
 
 The `repository-paths` check reports an error if index traversal fails, for
