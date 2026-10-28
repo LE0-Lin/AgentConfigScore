@@ -27,6 +27,15 @@ v0.24.0. See [failure and compatibility details](doctor.md#configuration-decodin
 The check does not validate policy adequacy, authenticate config authors, provide
 an atomic snapshot or recover names already lost by a caller's JSON decoder.
 
+Unreleased config-source checks also distinguish absent files from dangling
+links. Config must resolve to a regular file inside the selected repository root;
+internal file links and explicit root aliases remain supported. External/cyclic/
+nonregular/unreadable sources fail rather than using defaults. Both Git worktrees
+must satisfy the boundary independently. This is not atomic against concurrent
+path replacement, and hard-link/mount identity is not certified. Workflow-only
+setup and unscored guardrails remain separate from policy validation. See
+[compatibility and migration](doctor.md#configuration-file-boundary-unreleased).
+
 ## Local history integrity
 
 Unreleased source builds distinguish an absent local history index from damaged

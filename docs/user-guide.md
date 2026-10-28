@@ -49,6 +49,16 @@ report; doctor returns `1` with a `config` error. Threshold overrides do not byp
 config validation. Missing-config defaults remain unchanged. This is not in
 v0.24.0; see [configuration decoding](doctor.md#configuration-decoding).
 
+Unreleased config-source checks also require `.agentconfigscore.json` to resolve
+to a regular file inside the selected repository root. Only an absent entry uses
+defaults; dangling/external/cyclic/unreadable sources are errors. Internal file
+links and explicit repository-root aliases remain supported. Use a relative,
+tracked shared config so each Git baseline has its own in-root target. Keep the
+tree stable: this is not an atomic filesystem sandbox. Existing invalid links
+need deliberate repair, not deletion to bypass policy. See
+[config boundary and migration](doctor.md#configuration-file-boundary-unreleased).
+Published v0.24.0 and Action refs are unchanged.
+
 If doctor finds no supported instruction files, add repository-specific
 instructions or adapt one of the [templates](../examples/README.md). Do not add
 phrases just to increase the score. See [supported discovery](../README.md#what-it-scans).
