@@ -5,6 +5,10 @@ template, see the [design lab](regression-lab/README.md). It compares five known
 synthetic before/after scenarios under three explicitly defined gate settings;
 it is not independent accuracy or adoption evidence.
 
+The separate [Cursor file-context example](cursor-scope/README.md) demonstrates
+single-file activation, multi-file co-activation and explicitly unknown model
+selection. It needs an unreleased source build and does not change scoring.
+
 These templates provide conservative repository workflow, verification, safety,
 and handoff guidance without assuming a programming language or package manager.
 Copy one into the matching path in your repository, then adapt it to your real

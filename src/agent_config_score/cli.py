@@ -15,7 +15,8 @@ from .initializer import InitError, WORKFLOW_ACTION_REF, initialize_repository
 from .regression import compare, markdown_report
 from .rules import RULES, get_rule, rule_guidance
 from .sarif import sarif_report
-from .scanner import analyze, badge_svg, html_report
+from .scanner import analyze, analyze_cursor_scope, badge_svg, html_report
+from .scopes import ScopeInputError
 
 RESET = "\033[0m"
 BOLD = "\033[1m"
@@ -29,6 +30,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score history [PATH] [options]
   agent-config-score feedback [PATH] [options]
   agent-config-score guardrails [PATH] [options]
+  agent-config-score scope [PATH] --target FILE [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -40,6 +42,7 @@ commands:
   history    Show locally recorded score snapshots and overall trend.
   feedback   Generate a privacy-minimized real-world case report locally.
   guardrails Review local deletion safeguards and preview a confirmed append.
+  scope      Analyze Cursor rule activation for declared file context (unscored).
   diff       Compare a Git ref with the current working tree.
   compare    Compare two already checked-out repository trees.
 
@@ -454,6 +457,38 @@ def _main_guardrails(argv: list[str]) -> int:
     return 0
 
 
+def _main_scope(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="agent-config-score scope", description=(
+        "Unscored Cursor project-rule activation prediction for declared file context; not an observed agent run or safety gate."))
+    parser.add_argument("path", nargs="?", default=".", help="Repository directory")
+    parser.add_argument("--target", action="append", required=True, metavar="FILE",
+                        help="Repository-relative file assumed in context; repeat for multi-file context; existence is not checked")
+    parser.add_argument("--json", action="store_true", help="Print structured activation and source-line evidence")
+    args = parser.parse_args(argv)
+    try:
+        report = analyze_cursor_scope(Path(args.path), args.target)
+    except ScopeInputError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    else:
+        print(f"Cursor file-context analysis ({report['profile']}; unscored)")
+        print("Predicted automatic attachment only; manual/model selection and runtime settings are not observed.")
+        print("Targets (existence not checked): " + ", ".join(report["targets"]))
+        for rule in report["rules"]:
+            print(f"{rule['activation']:8} {rule['file']} — {rule['mode']}: {rule['reason']}")
+        for signal in report["opposing_directives"]:
+            sources = " / ".join(f"{item['file']}:{item['line']} ({item['polarity']})" for item in signal["sources"])
+            print(f"Review signal [{signal['activation']}]: opposing directives at {sources}")
+        summary = report["summary"]
+        print(f"Rules: {summary['active']} active, {summary['inactive']} not triggered, {summary['unknown']} unknown. "
+              f"Signals: {summary['active_signals']} active, {summary['uncertain_signals']} uncertain.")
+        print(f"Rule bodies not interpreted: {summary['uninterpreted_bodies']}.")
+        print("No safety verdict. Different target globs can co-activate in a multi-file task; no signal is not a clean bill of health.")
+    return 0
+
+
 def _main_compare(argv: list[str]) -> int:
     args = build_compare_parser().parse_args(argv)
     base = _existing_dir(args.base)
@@ -562,6 +597,8 @@ def _run(argv: list[str] | None = None) -> int:
         return _main_feedback(args[1:])
     if args and args[0] == "guardrails":
         return _main_guardrails(args[1:])
+    if args and args[0] == "scope":
+        return _main_scope(args[1:])
     if args and args[0] == "compare":
         return _main_compare(args[1:])
     if args and args[0] == "diff":

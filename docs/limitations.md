@@ -82,6 +82,23 @@ this guard does not claim to constrain every filesystem operation in the tool.
 Non-instruction link cycles are excluded from the path index, not judged safe or
 semantically correct. Keep repositories stable while scanning.
 
+## Cursor file-context profile (unreleased)
+
+The opt-in `scope` command predicts automatic rule attachment from declared file
+paths for root `.cursor/rules/`. It is unscored and does not observe Cursor,
+validate target existence, resolve other formats/precedence or change normal
+scan/regression findings. Inactive means not triggered under this profile;
+manual/model selection, unsupported metadata and runtime settings remain
+unobserved. Disjoint globs can co-activate in a multi-file task.
+
+Bounded English opposing-directive pairs are review signals with source lines,
+not semantic-conflict proofs. Uninterpreted bodies and unknown activation stay
+visible; no signals is not a clean bill of health. Completed advisory analysis
+returns `0` even with signals; input/read/limit errors use `2`. Whole-repository
+supported-source preflight still applies. See the [grammar, report and limits](cursor-scope.md).
+This first activation-model phase is not in published v0.24.0 artifacts and
+does not implement constraint-impact comparison or execution verification.
+
 ## Command interpretation
 
 The `rm-rf`, `git-clean-force`, and `docker-system-prune` rules tokenize bounded

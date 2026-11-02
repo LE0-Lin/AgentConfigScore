@@ -19,6 +19,7 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score history [PATH] [options]
   agent-config-score feedback [PATH] [options]
   agent-config-score guardrails [PATH] [options]
+  agent-config-score scope [PATH] --target FILE [options]
   agent-config-score diff [BASE_REF] [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -31,6 +32,7 @@ commands:
   history    Show locally recorded score snapshots and overall trend.
   feedback   Generate a privacy-minimized real-world case report locally.
   guardrails Review local deletion safeguards and preview a confirmed append.
+  scope      Analyze Cursor rule activation for declared file context (unscored).
   diff       Compare a Git baseline with the current working tree.
   compare    Compare two already checked-out repository trees.
 

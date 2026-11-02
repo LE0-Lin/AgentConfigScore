@@ -126,6 +126,17 @@ agent-config-score guardrails . --file AGENTS.md --template-language simplified 
 
 尚未發布的原始碼可直接選擇 `--file`，不先遍歷整個儲存庫，因此無關指令檔的失效連結不會阻止這次單檔審閱。相關排除規則及所選路徑的祖先目錄檢查仍生效；目錄別名或大小寫有歧義的目錄須手動整合。其他檔案不會因此被驗證或修復，一般掃描／doctor 的失敗仍須另行處理；追加成功不代表整個儲存庫已完整掃描或安全。此範圍修正不在 v0.24.0 套件中。
 
+## 選用：Cursor 檔案上下文分析（尚未發布）
+
+```bash
+agent-config-score scope . --target src/web/app.ts
+agent-config-score scope . --target src/web/app.ts --target src/api/service.py --json
+```
+
+v0.24.0 之後的原始碼建置可根據你宣告在上下文中的邏輯檔案路徑，預測根目錄 `.cursor/rules/` 專案規則的自動載入條件。不會檢查目標檔案是否存在。手動引用、模型選擇和不支援的中繼資料保留為未知；inactive 僅表示這些路徑未觸發規則，不代表實際未載入。多個檔案可以觸發不同 glob 的規則共同載入。
+
+這是帶來源行號、不計分的審閱建議，不是實際 Agent 軌跡或阻斷門禁。分析完成回傳 `0`，包括存在訊號／未知的情況；輸入或讀取失敗回傳 `2`。原有掃描和回歸評分不變。此命令仍使用全儲存庫支援來源預先檢查，無關的失效指令連結也可能導致失敗。詳見[模型與限制（英文）](../cursor-scope.md)及[可執行的合成範例（英文）](../../examples/cursor-scope/README.md)。已發布的 v0.24.0 套件和滾動 Action 不包含此命令。
+
 ## 選用：面向維護者的具體建議（v0.24.0+）
 
 ```bash

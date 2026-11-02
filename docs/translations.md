@@ -152,6 +152,15 @@ accuracy, real users or agent behavior. The source-checkout requirement and
 evidence boundary are synchronized; executable guide examples, runtime behavior,
 published artifacts, Action refs and frozen research are unchanged.
 
+On 2026-11-03, built on `21105b1f6bacfa0c51f3bb0d0bcc04e920a26d48`, both core
+guides and limitations were synchronized for the unreleased Cursor file-context
+profile: declared logical paths, automatic attachment predictions, manual/model
+unknowns, multi-file co-activation, source-line review signals, unchanged scores,
+advisory exit codes and whole-repository source preflight. Executable examples
+remain identical in all three guides. The detailed grammar and runnable
+synthetic fixture are linked in English; this is not an observed agent run,
+constraint-impact engine or published v0.24.0/Action update.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

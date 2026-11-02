@@ -19,6 +19,7 @@ from urllib.parse import unquote, urlsplit
 from .config import Suppression
 from .provenance import ToolIdentity, capture_tool_identity
 from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
+from .scopes import PROFILE as CURSOR_SCOPE_PROFILE, normalize_targets, parse_cursor_rule
 
 AGENTS_FILENAMES = {"AGENTS.md", "AGENTS.override.md"}
 AGENTS_FILENAMES_CASEFOLD = {name.casefold() for name in AGENTS_FILENAMES}
@@ -1314,6 +1315,82 @@ def _unresolved_contradiction_files(rows: list[tuple[str, str, int]]) -> set[str
             conflicts.add(positive[1])
             conflicts.add(negative[1])
     return conflicts
+
+
+def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
+    """Unscored, explicit-file-context analysis, not an observed agent context.
+
+    Normal discovery/source preflight remains fail-closed. Only root Cursor
+    project rules are modelled; other supported file contents are not read.
+    Default scan/regression scoring is intentionally unchanged.
+    """
+    target_paths = normalize_targets(targets)  # Validate before repository reads.
+    root = root.resolve(strict=True)
+    if not root.is_dir():
+        raise OSError(errno.ENOTDIR, "Scope repository must be a directory")
+    identity = capture_tool_identity()
+    discovered = discover(root)
+    sources = [path for path in discovered if path.relative_to(root).as_posix().startswith(".cursor/rules/")]
+    rules = []
+    directives = defaultdict(lambda: {"pos": [], "neg": []})
+    for path in sources:
+        file = path.relative_to(root).as_posix()
+        text = ""
+        if path.suffix == ".mdc":
+            target = _scanner_source_target(root, path)
+            try:
+                text = target.read_text(encoding="utf-8")
+            except UnicodeError as exc:
+                raise OSError(errno.EILSEQ, "Cursor scope source must be UTF-8") from exc
+            except OSError as exc:
+                raise OSError(exc.errno, "Unable to read Cursor scope source") from exc
+        model = parse_cursor_rule(file, text)
+        activation = model.activate(target_paths)
+        if model.body_line is None:
+            candidates, interpretable = [], False
+        else:
+            body = "\n".join(text.lstrip("\ufeff").splitlines()[model.body_line - 1:])
+            candidates, open_example = _guardrail_policy_context(body)
+            interpretable = not open_example and re.search(r"</?[A-Za-z]", body) is None
+        activation["directive_analysis"] = "bounded_prose" if interpretable else "not_interpreted"
+        activation["recognized_directives"] = 0
+        rules.append(activation)
+        if activation["activation"] == "inactive" or not interpretable:
+            continue
+        for number, line in candidates:
+            for polarity, body, _ in _directives(line):
+                activation["recognized_directives"] += 1
+                key = hashlib.sha256(body.encode("utf-8")).hexdigest()
+                directives[key][polarity].append({"file": file, "line": model.body_line + number - 1,
+                                                "polarity": polarity})
+    by_file = {rule["file"]: rule for rule in rules}
+    pairs = sum(len(rows["pos"]) * len(rows["neg"]) for rows in directives.values())
+    if pairs > 10000:
+        raise OSError(errno.E2BIG, "Cursor scope opposition-pair budget exceeded; narrow the repository")
+    signals = []
+    for key, rows in sorted(directives.items()):
+        for positive in rows["pos"]:
+            for negative in rows["neg"]:
+                left, right = by_file[positive["file"]], by_file[negative["file"]]
+                active = left["activation"] == right["activation"] == "active"
+                signals.append({"kind": "opposing_directives", "activation": "active" if active else "unknown",
+                                "directive_sha256": key, "sources": [positive, negative],
+                                "trigger_targets": sorted(set(left["matched_targets"]) | set(right["matched_targets"])),
+                                "shared_target_matches": sorted(set(left["matched_targets"]) & set(right["matched_targets"]))})
+    signals.sort(key=lambda row: (row["sources"][0]["file"], row["sources"][0]["line"],
+                                 row["sources"][1]["file"], row["sources"][1]["line"], row["directive_sha256"]))
+    return {"schema_version": 1, "analysis": "cursor_file_context", "profile": CURSOR_SCOPE_PROFILE,
+            "tool": identity.to_dict(), "status": "completed", "scored": False,
+            "targets": list(target_paths), "targets_existence_checked": False,
+            "observed_agent_context": False, "activation_inputs": "declared_file_paths_only",
+            "unmodelled_inputs": ["manual_mentions", "model_selection", "user_team_rules", "runtime_settings", "other_instruction_formats"],
+            "rules": rules, "opposing_directives": signals,
+            "summary": {"rules": len(rules),
+                        "other_supported_sources": len(discovered) - len(sources),
+                        **{state: sum(rule["activation"] == state for rule in rules) for state in ("active", "inactive", "unknown")},
+                        "uninterpreted_bodies": sum(rule["directive_analysis"] == "not_interpreted" for rule in rules),
+                        "active_signals": sum(row["activation"] == "active" for row in signals),
+                        "uncertain_signals": sum(row["activation"] == "unknown" for row in signals)}}
 
 
 def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...]) -> Suppression | None:

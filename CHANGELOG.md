@@ -4,6 +4,8 @@
 
 ### Added
 
+- An opt-in, unscored `scope` command predicting root Cursor project-rule activation for explicitly declared file context. A bounded scalar-metadata parser and iterative glob model retain unknowns, source-line evidence and multi-file opposing-directive signals even for disjoint patterns. Includes a runnable synthetic example, installed-wheel acceptance and aligned core guides. It does not observe Cursor, prove semantic conflicts, alter scan/gate scores or ship in the published v0.24.0 artifacts or rolling Action.
+
 - An offline runnable design lab with five synthetic before/after scenarios and two passing controls, comparing baseline new-error gating, score-delta-only gating and explicit candidate-threshold caller overrides through the real CLI. Retains observed decisions, commands and source/scenario hashes without claiming independent accuracy, AI superiority or user adoption. Runtime rules, scores, package artifacts and Action refs are unchanged.
 
 - An explicitly manual, read-only GitHub Actions replay of the existing pinned real-repository smoke corpus. The same runner propagates acquisition/mismatch failures and retains logs/results for seven days; it does not execute external repository code, run on every PR or establish independent accuracy/adoption.
