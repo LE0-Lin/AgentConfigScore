@@ -13,6 +13,7 @@ read the result, and troubleshoot a failing gate.
 - [Visual tour](visual-tour.md)
 - [Instruction templates](../examples/README.md)
 - [Opt-in deletion safeguard review and completion](guardrail-suggestions.md) (v0.24.0+)
+- [Cursor rule activation for declared file context](cursor-scope.md) (unreleased, unscored)
 - [Repository doctor](doctor.md)
 - [Optional PR comments](pr-comments.md)
 - [Score-history workflow](score-history.md) and [local history command](score-history-cli.md)

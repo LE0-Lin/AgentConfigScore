@@ -214,6 +214,27 @@ certified or repaired. Normal scan/doctor failures still need separate attention
 an append does not turn an incomplete whole-tree scan into a clean result.
 This scope refinement is not in the v0.24.0 package.
 
+## Optional: Cursor file-context analysis (unreleased)
+
+```bash
+agent-config-score scope . --target src/web/app.ts
+agent-config-score scope . --target src/web/app.ts --target src/api/service.py --json
+```
+
+Source builds after v0.24.0 can predict automatic attachment of root
+`.cursor/rules/` project rules for logical file paths you declare in context.
+Target existence is not checked. Manual/model selection and unsupported
+metadata remain unknown; inactive means not triggered by these paths, not
+observed absent. Different globs can co-activate in multi-file tasks.
+
+This is unscored advice with source-line evidence, not an observed agent run or
+blocking gate. Completion returns `0`, including signals/unknowns; input/read
+failures return `2`. Existing scan and regression scores remain unchanged.
+The command still uses whole-repository supported-source preflight, so unrelated
+invalid instruction links can stop it. See the [model and limits](cursor-scope.md)
+and [runnable synthetic example](../examples/cursor-scope/README.md).
+This command is not in the published v0.24.0 package or rolling Action.
+
 ## Optional: actionable maintainer results (v0.24.0+)
 
 ```bash

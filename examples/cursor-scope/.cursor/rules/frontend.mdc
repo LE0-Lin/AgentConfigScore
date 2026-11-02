@@ -1,0 +1,5 @@
+---
+globs: "src/web/**"
+alwaysApply: false
+---
+Always use tabs.

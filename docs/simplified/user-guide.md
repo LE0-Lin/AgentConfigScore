@@ -126,6 +126,17 @@ agent-config-score guardrails . --file AGENTS.md --template-language simplified 
 
 尚未发布的源码可直接选择 `--file`，不先遍历整仓，因此无关指令文件的坏链接不会阻止这次单文件审阅。相关忽略规则和所选路径的祖先目录检查仍生效；目录别名或大小写有歧义的目录须手动接入。其他文件不会因此被验证或修复，普通扫描／doctor 的失败仍须单独处理；追加成功不代表整仓扫描完整或安全。此范围修正不在 v0.24.0 包中。
 
+## 可选：Cursor 文件上下文分析（尚未发布）
+
+```bash
+agent-config-score scope . --target src/web/app.ts
+agent-config-score scope . --target src/web/app.ts --target src/api/service.py --json
+```
+
+v0.24.0 之后的源码构建可根据你声明在上下文中的逻辑文件路径，预测根目录 `.cursor/rules/` 项目规则的自动加载条件。不会检查目标文件是否存在。手动引用、模型选择和不支持的元数据保留为未知；inactive 仅表示这些路径未触发规则，不代表实际未加载。多个文件可以触发不同 glob 的规则共同加载。
+
+这是带来源行号、不计分的审核建议，不是实际 Agent 轨迹或阻断门禁。分析完成返回 `0`，包括存在信号／未知的情况；输入或读取失败返回 `2`。原有扫描和回归评分不变。该命令仍使用全仓库支持来源预检查，无关的失效指令链接也可能导致失败。详见[模型与限制（英文）](../cursor-scope.md)及[可运行的合成示例（英文）](../../examples/cursor-scope/README.md)。已发布的 v0.24.0 包和滚动 Action 不包含此命令。
+
 ## 可选：面向维护者的具体建议（v0.24.0+）
 
 ```bash
