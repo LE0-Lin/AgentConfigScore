@@ -4,6 +4,8 @@
 
 ### Added
 
+- An offline runnable design lab with five synthetic before/after scenarios and two passing controls, comparing baseline new-error gating, score-delta-only gating and explicit candidate-threshold caller overrides through the real CLI. Retains observed decisions, commands and source/scenario hashes without claiming independent accuracy, AI superiority or user adoption. Runtime rules, scores, package artifacts and Action refs are unchanged.
+
 - An explicitly manual, read-only GitHub Actions replay of the existing pinned real-repository smoke corpus. The same runner propagates acquisition/mismatch failures and retains logs/results for seven days; it does not execute external repository code, run on every PR or establish independent accuracy/adoption.
 
 ### Fixed

@@ -7,6 +7,11 @@ gate for coding-agent instructions. It does not call an AI service or execute
 commands found in instruction files. A 100 means no active rule matched, not
 that instructions are useful, safe in every context, or better than AI review.
 
+The [runnable design lab](../examples/regression-lab/README.md) shows why a numeric
+score delta alone differs from baseline-governed new-error gating. Its passing
+controls and explicit caller overrides are synthetic development demonstrations,
+not user cases or an AI comparison. The runner requires a source checkout.
+
 ## 1. Install and check the version
 
 Python 3.10 or later is required. Git is required for `diff`, but not for a

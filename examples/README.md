@@ -1,5 +1,10 @@
 # Copy-ready instruction examples
 
+For a runnable explanation of the regression gate rather than an instruction
+template, see the [design lab](regression-lab/README.md). It compares five known
+synthetic before/after scenarios under three explicitly defined gate settings;
+it is not independent accuracy or adoption evidence.
+
 These templates provide conservative repository workflow, verification, safety,
 and handoff guidance without assuming a programming language or package manager.
 Copy one into the matching path in your repository, then adapt it to your real

@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "evidence_tier": "synthetic_development_demo",
+  "independent_accuracy_estimate": null,
+  "ai_comparison_run": false,
+  "user_adoption_established": false,
+  "tool": {
+    "name": "AgentConfigScore",
+    "version": "0.24.0",
+    "source_fingerprint": {
+      "format": "acs-python-source-v1",
+      "sha256": "bca1d4976d359c2f6e37a7068c077691461d8fc117d3df6a6ab3fdb5a10f82ef",
+      "files": [
+        "__init__.py",
+        "__main__.py",
+        "cli.py",
+        "config.py",
+        "doctor.py",
+        "entrypoint.py",
+        "feedback.py",
+        "gitdiff.py",
+        "guardrails.py",
+        "history.py",
+        "initializer.py",
+        "provenance.py",
+        "regression.py",
+        "rules.py",
+        "sarif.py",
+        "scanner.py"
+      ]
+    }
+  },
+  "scenario_sha256": "31e1387c13200afcaa3ae3fc463bf6f452571f2f072450f136bedd9eefc2745e",
+  "runner_sha256": "723f9e8fd02385fc4c0b496ca11bdea123515f9aa2c22a4d1f8b04d4ba433ee3",
+  "all_expectations_matched": true,
+  "scenarios": [
+    {
+      "id": "unchanged",
+      "observations": {
+        "baseline_gate": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json"
+          ]
+        },
+        "score_only": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--no-fail-on-new-errors"
+          ]
+        },
+        "candidate_threshold_override": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--max-drop",
+            "0",
+            "--fail-on-new-errors"
+          ]
+        }
+      },
+      "matches_development_expectation": true
+    },
+    {
+      "id": "root_moved_into_subtree",
+      "observations": {
+        "baseline_gate": {
+          "exit_code": 1,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [
+            "instruction-file-removed"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json"
+          ]
+        },
+        "score_only": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [
+            "instruction-file-removed"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--no-fail-on-new-errors"
+          ]
+        },
+        "candidate_threshold_override": {
+          "exit_code": 1,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [
+            "instruction-file-removed"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--max-drop",
+            "0",
+            "--fail-on-new-errors"
+          ]
+        }
+      },
+      "matches_development_expectation": true
+    },
+    {
+      "id": "exact_directive_reversed",
+      "observations": {
+        "baseline_gate": {
+          "exit_code": 1,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [
+            "directive-polarity-flip"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json"
+          ]
+        },
+        "score_only": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [
+            "directive-polarity-flip"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--no-fail-on-new-errors"
+          ]
+        },
+        "candidate_threshold_override": {
+          "exit_code": 1,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [
+            "directive-polarity-flip"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--max-drop",
+            "0",
+            "--fail-on-new-errors"
+          ]
+        }
+      },
+      "matches_development_expectation": true
+    },
+    {
+      "id": "same_directory_exact_rename",
+      "observations": {
+        "baseline_gate": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json"
+          ]
+        },
+        "score_only": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--no-fail-on-new-errors"
+          ]
+        },
+        "candidate_threshold_override": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 100,
+          "delta": 0,
+          "new_errors": [],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--max-drop",
+            "0",
+            "--fail-on-new-errors"
+          ]
+        }
+      },
+      "matches_development_expectation": true
+    },
+    {
+      "id": "candidate_weakens_thresholds",
+      "observations": {
+        "baseline_gate": {
+          "exit_code": 1,
+          "base_score": 100,
+          "head_score": 82,
+          "delta": -18,
+          "new_errors": [
+            "curl-pipe-shell"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json"
+          ]
+        },
+        "score_only": {
+          "exit_code": 1,
+          "base_score": 100,
+          "head_score": 82,
+          "delta": -18,
+          "new_errors": [
+            "curl-pipe-shell"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--no-fail-on-new-errors"
+          ]
+        },
+        "candidate_threshold_override": {
+          "exit_code": 0,
+          "base_score": 100,
+          "head_score": 82,
+          "delta": -18,
+          "new_errors": [
+            "curl-pipe-shell"
+          ],
+          "command": [
+            "python",
+            "-m",
+            "agent_config_score",
+            "compare",
+            "<BASE>",
+            "<HEAD>",
+            "--json",
+            "--max-drop",
+            "100",
+            "--no-fail-on-new-errors"
+          ]
+        }
+      },
+      "matches_development_expectation": true
+    }
+  ]
+}
