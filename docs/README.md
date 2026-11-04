@@ -8,6 +8,7 @@ read the result, and troubleshoot a failing gate.
 ## Using the tool
 
 - [User guide and exit codes](user-guide.md)
+- [CLI, policy, suppressions and integration reference](reference.md)
 - [Maintainer setup, actionable next steps and PR results](maintainer-workflow.md) (v0.24.0+)
 - [Unscored instruction-file best-practice checklist](best-practices.md)
 - [Visual tour](visual-tour.md)

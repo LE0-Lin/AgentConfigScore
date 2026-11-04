@@ -2,11 +2,18 @@
 
 [English](README.md) | [简体中文](README.simplified.md) | 繁體中文
 
-為 AI 程式開發助手的指令檔提供本機檢查與 PR 回歸檢查。
+在合併前發現 AI 程式開發助手指令中的已知退化。
 
 ![AgentConfigScore 示範](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif)
 
 AgentConfigScore 檢查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini 等設定，並與改動前的基準比較，回答一個具體問題：**這次改動是否引入了已知規則能偵測到的風險？**
+
+| 改動 | 審閱依據 |
+|---|---|
+| 加入已知危險命令、憑證或失效路徑 | 規則 ID、說明及可用的來源位置 |
+| 刪除指令檔或反轉精確指令 | 獨立於總分的回歸發現，即使分數相同也能回報 |
+| PR 放寬自己的門檻或增加排除設定 | 一般比較仍使用基準策略；呼叫端的明確覆寫須另行審閱 |
+| 接受已知例外 | 必須填寫原因和到期日期，並保留稽核紀錄 |
 
 它是確定性的檢查工具，不是 AI 評審。**A 100 只表示沒有命中生效的規則，不代表指令實用、語意完美或完全安全。** 提供中文文件也不表示檢查工具已經能理解任意中文指令。
 
@@ -29,6 +36,33 @@ agent-config-score diff
 - [繁體中文使用指南](docs/traditional/user-guide.md)：安裝、基準、報告、結束代碼與疑難排解。
 - [分數意義與限制](docs/traditional/limitations.md)：先了解能偵測哪些問題，以及可能遺漏什麼。
 - [完整英文文件索引](docs/README.md)：進階介面與研究資料。
+- [詳細參考（英文）](docs/reference.md)：策略、CLI、Action 參數、SARIF 和稽核格式。
+
+## 發布版與原始碼版
+
+| 版本 | 可用能力 |
+|---|---|
+| 已發布 v0.24.0 | 本機檢查、基準回歸檢查、可稽核的例外、報告及選用刪除保護審閱 |
+| `main` 上尚未發布的原始碼 | Cursor 檔案上下文載入預測、修改前後載入變化審閱，以及變更紀錄中的修正 |
+
+PyPI 套件和滾動 `v0` Action **不包含尚未發布的 Cursor 命令**。安裝及選擇 Action 參照前，請查看[發布說明（英文）](docs/releases/v0.24.0.md)和[變更紀錄（英文）](CHANGELOG.md)。
+
+## Cursor 載入變化審閱——尚未發布的原始碼功能
+
+對於只宣告後端檔案 `src/api/service.py` 的任務，保持 `Never delete files without approval.` 正文不變，僅把 Cursor glob 從 `src/**` 改為 `src/web/**`，兩側一般評分仍是 **100**，預測自動載入卻從活動變為不活動。
+
+在原始碼儲存庫目錄中執行合成範例：
+
+```bash
+python -m pip install -e .
+agent-config-score scope compare \
+  examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
+  --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
+```
+
+預期結束代碼為 **1**：已識別的活動指令失去自動載入來源，需要審閱。報告給出中繼資料與指令行號；另一條活動規則中的相同指令，或任務中其他仍符合的檔案，可以保留可用性。手動／模型選擇載入及不支援的輸入保留為未知。
+
+比較兩側使用同一組宣告的檔案上下文，不觀察實際 Agent 行為，也不證明語意等價。預設比較只給建議；兩個旗標明確啟用呼叫端的審閱檢查，不擴充現有基準評分策略格式。詳見[四個對照（英文）](examples/cursor-scope-impact/README.md)和[Git 基準比較與 CI 範例（英文）](docs/cursor-scope-impact.md)。
 
 ## 為什麼使用回歸檢查
 
@@ -105,8 +139,10 @@ jobs:
 
 執行時沒有第三方相依套件；本機掃描不呼叫 AI API，也不執行指令檔內的命令。安裝套件需存取選定的套件索引；GitHub Actions 是獨立的 CI 環境，報告存取權限由你的工作流程決定。
 
-跨平台測試、持續維護的規則案例與安裝驗收，證明程式符合指定的工程預期，**不代表它比直接詢問 AI 更準確，也不代表已經具備真實使用者價值**。獨立對照評測尚未完成，已知的語意漏報仍保留。請見[限制說明](docs/traditional/limitations.md)與[評測資料（英文）](benchmarks/README.md)。
+跨平台測試、持續維護的合成案例與安裝驗收驗證指定的工程行為；已知語意漏報仍保留。目前固定版本的真實儲存庫回放中，5 個完成掃描，1 個依預期拒絕來源：Reaparr 的失效指令連結導致拒絕掃描，**沒有分數**；歷史 A 100 早於嚴格來源驗證，不是目前結果。
 
-本頁是核心入門的中文概覽，不是完整英文 README 的逐行翻譯。使用指南與限制說明已提供中文；進階 Action 參數、規則語法細節、貢獻和研究文件目前仍為英文。[翻譯範圍與維護說明](docs/translations.md)。命令、終端機訊息和 JSON 協定維持原樣，English 仍為預設入口。
+獨立 AI 對照評測尚未完成。這些開發與相容性結果不是現實準確率、AI 優勢或使用者採用證據。詳見[限制說明](docs/traditional/limitations.md)與[目前評測紀錄（英文）](benchmarks/README.md)。
+
+本頁與英文首頁對齊核心功能；使用指南和限制說明也提供中文。詳細參考、規則語法、貢獻和研究文件目前仍為英文。[翻譯範圍與維護說明](docs/translations.md)。命令、終端機訊息和 JSON 協定維持原樣，English 仍為預設入口。
 
 專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.24.0.md)目前為英文。
