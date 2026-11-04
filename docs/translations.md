@@ -161,6 +161,15 @@ remain identical in all three guides. The detailed grammar and runnable
 synthetic fixture are linked in English; this is not an observed agent run,
 constraint-impact engine or published v0.24.0/Action update.
 
+On 2026-11-04, built on `e68506c5fc3e1d5bc2aa1460fe2d5a0d7fdbd36f`, both core
+guides/limitations were synchronized for unreleased Cursor attachment-change
+comparisons: same declared context, captured evidence, retained copies and
+multi-file triggers, exact-recognition loss versus unknown, caller-owned opt-in
+gates, empty baselines and Git/operational failure semantics. The new executable
+guide examples are identical in all three languages. Detailed comparison/CI
+guidance and four synthetic controls remain English references. No application
+documents, published package/Action refs or frozen evaluation data were changed.
+
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON
 keys verbatim. Keep the score limitations and failure/exit semantics aligned;

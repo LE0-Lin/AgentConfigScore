@@ -120,6 +120,8 @@ explicit. Each rule records mode, activation/reason, pattern count, metadata
 line numbers, body start, matched targets, directive-analysis status and the
 number of recognized directives considered for pairing. Inactive rules have
 zero considered directives even when their body contains supported prose.
+Read `.mdc` sources additionally carry a newline-normalized `source_sha256`;
+unread formats have a null hash. This binds captured text without exporting it.
 
 Reports retain source paths and supplied target paths. Raw descriptions, glob
 values and directive bodies are not exported; hashes are not anonymization or
@@ -135,13 +137,16 @@ formats are counted but not interpreted. Unknown extension casing remains
 unknown. Existing containment checks and their non-atomic filesystem limits
 apply; this is not an isolated selected-file traversal.
 
-Exit `0` means the advisory analysis completed, including signals and unknowns.
+For standalone `scope PATH`, exit `0` means the advisory analysis completed, including signals and unknowns.
 Invalid inputs, unreadable/invalid UTF-8 sources or resource-limit failures use
 exit `2` without a successful JSON report. There is no exit `1` conflict gate,
 score, policy threshold, suppression handling or pass/fail safety result.
 
 Normal scan, compare, diff and Action scoring are unchanged. In particular,
 the old general contradiction check is not suppressed by this new command.
-This is the first activation-model phase, not effective-policy inheritance,
-configuration-change impact analysis, or execution-invariant verification.
+The [comparison commands](cursor-scope-impact.md) additionally report bounded
+before/after attachment and exact recognized-directive availability, with
+explicit opt-in review gates. General effective-policy inheritance, semantic
+constraint-impact analysis and execution-invariant verification remain outside
+the implementation.
 Try the [runnable synthetic example](../examples/cursor-scope/README.md).

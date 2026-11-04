@@ -96,8 +96,15 @@ not semantic-conflict proofs. Uninterpreted bodies and unknown activation stay
 visible; no signals is not a clean bill of health. Completed advisory analysis
 returns `0` even with signals; input/read/limit errors use `2`. Whole-repository
 supported-source preflight still applies. See the [grammar, report and limits](cursor-scope.md).
-This first activation-model phase is not in published v0.24.0 artifacts and
-does not implement constraint-impact comparison or execution verification.
+Unreleased [comparison commands](cursor-scope-impact.md) additionally compare
+the same declared context across trees/a local Git baseline. File lifecycle and
+trigger losses are distinct from loss of aggregated exact recognized directives;
+another active copy or remaining trigger may retain availability. Opt-in
+caller-owned flags gate known recognition losses and unknowns separately with
+exit `1`; default comparisons remain advisory. Neither semantic paraphrase
+equivalence, arbitrary scope narrowing nor runtime compliance is established.
+An unrecognized/empty baseline protects zero identities. These additions are not
+in published v0.24.0 artifacts or the existing baseline score-policy schema.
 
 ## Command interpretation
 

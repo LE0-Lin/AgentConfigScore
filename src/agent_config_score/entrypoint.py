@@ -20,6 +20,8 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score feedback [PATH] [options]
   agent-config-score guardrails [PATH] [options]
   agent-config-score scope [PATH] --target FILE [options]
+  agent-config-score scope compare BASE HEAD --target FILE [options]
+  agent-config-score scope diff [BASE_REF] --target FILE [options]
   agent-config-score diff [BASE_REF] [options]
   agent-config-score compare BASE HEAD [options]
 
