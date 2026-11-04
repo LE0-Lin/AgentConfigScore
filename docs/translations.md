@@ -12,7 +12,7 @@ providing Chinese documentation.
 
 | English source | 简体中文 | 繁體中文 | Scope |
 |---|---|---|---|
-| [README](../README.md) | [Overview](../README.simplified.md) | [Overview](../README.traditional.md) | Localized core overview, not the entire long English reference |
+| [README](../README.md) | [Overview](../README.simplified.md) | [Overview](../README.traditional.md) | Core overview and released/source distinction; detailed reference remains English |
 | [User guide](user-guide.md) | [Guide](simplified/user-guide.md) | [Guide](traditional/user-guide.md) | Core user journey, all executable examples, exit codes and troubleshooting |
 | [Limitations](limitations.md) | [Limits](simplified/limitations.md) | [Limits](traditional/limitations.md) | Core score contract, rule limits and unestablished accuracy; historic table/manual links stay in English |
 
@@ -169,6 +169,15 @@ gates, empty baselines and Git/operational failure semantics. The new executable
 guide examples are identical in all three languages. Detailed comparison/CI
 guidance and four synthetic controls remain English references. No application
 documents, published package/Action refs or frozen evaluation data were changed.
+
+Also on 2026-11-04, built on `1580df39946523a2ca6203d819625b1e22084332`, the
+three repository overviews were aligned around instruction-change review,
+baseline-governed checks and a clearly unreleased Cursor attachment example.
+Both Chinese variants retain identical executable/config/workflow examples.
+The current five-scan/one-expected-rejection corpus status replaces the ambiguous
+historic Reaparr A 100 summary. Detailed policy, CLI and integration material
+moved from the English homepage into [the English reference](reference.md).
+Runtime behavior, published artifacts, Action refs and frozen evidence are unchanged.
 
 When an English source page changes, review both variants together and record
 the new source revision here. Preserve executable examples, rule IDs and JSON

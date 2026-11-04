@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Documentation
+
+- Refocus the English/Simplified/Traditional project overviews on instruction-change review and baseline-governed checks. Separate published v0.24.0 from unreleased Cursor analysis, add a concrete attachment-loss example, and move detailed policy/CLI/integration material into a reference page while retaining the visual demos. Point to the current pinned-corpus status: five scans and an expected Reaparr source rejection with no score, rather than presenting its historic A 100 as current. Runtime rules, artifacts and frozen evidence are unchanged.
+
 ### Added
 
 - Unreleased `scope compare` and Git-backed `scope diff` for the same declared Cursor file context: file lifecycle, trigger matches and aggregated exact-directive availability, with original line evidence and captured source hashes. Optional caller-owned flags gate recognized active losses and unknowns separately; active duplicate/renamed sources and remaining multi-file triggers retain availability. Includes four runnable synthetic examples and source-build CI guidance. This is bounded attachment/recognition analysis, not general semantic impact or runtime enforcement; normal scoring, policy schema, published packages and Action refs are unchanged.
