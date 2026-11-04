@@ -97,7 +97,7 @@ on: [pull_request]
 permissions:
   contents: read
 env:
-  ACS_TOOL_REVISION: SCOPE_IMPACT_TOOL_COMMIT
+  ACS_TOOL_REVISION: dd208c9302737f6d61b4f327de87b197479f8d0d
 jobs:
   scope:
     runs-on: ubuntu-latest
