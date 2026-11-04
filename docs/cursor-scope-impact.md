@@ -109,8 +109,16 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      - name: Check out the reviewed tool source
+        uses: actions/checkout@v7
+        with:
+          repository: LE0-Lin/AgentConfigScore
+          ref: ${{ env.ACS_TOOL_REVISION }}
+          path: build/agent-config-score-tool
+          fetch-depth: 1
+          persist-credentials: false
       - name: Install the reviewed tool source
-        run: python -m pip install "git+https://github.com/LE0-Lin/AgentConfigScore.git@$ACS_TOOL_REVISION"
+        run: python -m pip install ./build/agent-config-score-tool
       - name: Review declared API-task context
         env:
           BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
@@ -125,6 +133,9 @@ from the repository being checked. Installing the published v0.24.0 package or
 using the rolling `v0` Action does not supply them. Choose task files relevant to
 your repository and review each declared context; one context is not
 whole-repository coverage. The workflow uses ordinary read-only PR permissions.
+The separate tool checkout sits under `build/`, which this profile skips during
+instruction-source discovery. A depth-one tool checkout avoids cloning its full
+history; the repository under review still needs its baseline commit available.
 
 The profile inherits its bounded metadata/glob/prose grammar, whole-repository
 supported-source preflight, ignore rules and non-atomic filesystem limits.
