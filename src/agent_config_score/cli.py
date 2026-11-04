@@ -8,15 +8,15 @@ import sys
 from . import __version__
 from .config import ConfigError, Policy, load_policy
 from .feedback import feedback_markdown
-from .gitdiff import GitError, baseline_worktree, repository_root
+from .gitdiff import GitError, baseline_worktree, detect_base_ref, repository_root
 from .history import HistoryError, load_history, summarize_history
 from .guardrails import GuardrailError, TEMPLATES, review_guardrails
 from .initializer import InitError, WORKFLOW_ACTION_REF, initialize_repository
 from .regression import compare, markdown_report
 from .rules import RULES, get_rule, rule_guidance
 from .sarif import sarif_report
-from .scanner import analyze, analyze_cursor_scope, badge_svg, html_report
-from .scopes import ScopeInputError
+from .scanner import analyze, analyze_cursor_scope, compare_cursor_scope, badge_svg, html_report
+from .scopes import ScopeInputError, normalize_targets
 
 RESET = "\033[0m"
 BOLD = "\033[1m"
@@ -31,6 +31,8 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score feedback [PATH] [options]
   agent-config-score guardrails [PATH] [options]
   agent-config-score scope [PATH] --target FILE [options]
+  agent-config-score scope compare BASE HEAD --target FILE [options]
+  agent-config-score scope diff [BASE_REF] --target FILE [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -458,8 +460,10 @@ def _main_guardrails(argv: list[str]) -> int:
 
 
 def _main_scope(argv: list[str]) -> int:
+    if argv and argv[0] in {"compare", "diff"}:
+        return _main_scope_comparison(argv[0], argv[1:])
     parser = argparse.ArgumentParser(prog="agent-config-score scope", description=(
-        "Unscored Cursor project-rule activation prediction for declared file context; not an observed agent run or safety gate."))
+        "Unscored Cursor rule activation prediction. Use scope compare or scope diff for change impact; not an observed agent run."))
     parser.add_argument("path", nargs="?", default=".", help="Repository directory")
     parser.add_argument("--target", action="append", required=True, metavar="FILE",
                         help="Repository-relative file assumed in context; repeat for multi-file context; existence is not checked")
@@ -487,6 +491,74 @@ def _main_scope(argv: list[str]) -> int:
         print(f"Rule bodies not interpreted: {summary['uninterpreted_bodies']}.")
         print("No safety verdict. Different target globs can co-activate in a multi-file task; no signal is not a clean bill of health.")
     return 0
+
+
+def _main_scope_comparison(command: str, argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog=f"agent-config-score scope {command}", description=(
+        "Compare predicted Cursor attachment and exact recognized directives for the same declared file context."))
+    if command == "compare":
+        parser.add_argument("base", help="Baseline repository directory")
+        parser.add_argument("head", help="Candidate repository directory")
+    else:
+        parser.add_argument("base_ref", nargs="?", help="Local baseline ref; autodetected when omitted (no fetch)")
+        parser.add_argument("--path", default=".", help="Git repository directory; the candidate is its working tree")
+    parser.add_argument("--target", action="append", required=True, metavar="FILE",
+                        help="Logical repository-relative file in both contexts; repeat for multi-file context")
+    parser.add_argument("--json", action="store_true", help="Print structured before/after evidence")
+    parser.add_argument("--fail-on-lost-directives", action="store_true",
+                        help="Exit 1 when a baseline-active exact directive becomes inactive or unrecognized")
+    parser.add_argument("--fail-on-unknown", action="store_true",
+                        help="Exit 1 when either tree has unknown rule activation or a non-inactive uninterpreted body")
+    args = parser.parse_args(argv)
+    try:
+        # Reject bad logical paths before Git metadata changes or source reads.
+        normalize_targets(args.target)
+        if command == "compare":
+            report = compare_cursor_scope(Path(args.base), Path(args.head), args.target)
+        else:
+            repo = repository_root(Path(args.path))
+            ref = args.base_ref if args.base_ref is not None else detect_base_ref(repo)
+            with baseline_worktree(repo, ref) as (base, sha):
+                report = compare_cursor_scope(base, repo, args.target)
+            report["comparison_inputs"] = {"base": "git_ref", "base_ref": ref, "base_commit": sha,
+                                           "head": "working_tree"}
+    except (ScopeInputError, GitError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    summary = report["summary"]
+    reasons = []
+    if args.fail_on_lost_directives and summary["recognized_active_losses"]:
+        reasons.append("recognized_active_directives_lost")
+    if args.fail_on_unknown and summary["has_unknown"]:
+        reasons.append("unknown_scope_or_body")
+    report["review_gate"] = {"fail_on_lost_directives": args.fail_on_lost_directives,
+                             "fail_on_unknown": args.fail_on_unknown, "failed": bool(reasons), "reasons": reasons}
+    if args.json:
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    else:
+        print(f"Cursor scope comparison ({report['comparison_profile']}; unscored)")
+        print("Same declared targets: " + ", ".join(report["targets"]))
+        for change in report["rule_changes"]:
+            print(f"{change['change']:8} {change['file']}: {change['transition']}")
+            for side in ("base", "head"):
+                row = change[side]
+                if row:
+                    evidence = ", ".join(f"{key}:{line}" for key, line in row["metadata_lines"].items())
+                    print(f"  {side}: {row['reason']}; metadata lines [{evidence}]; matched {', '.join(row['matched_targets']) or '(none)'}")
+        for change in report["directive_changes"]:
+            locations = []
+            for side in ("base", "head"):
+                origins = ", ".join(f"{s['file']}:{s['line']}" for s in change[side]["sources"]) or "(no recognized source)"
+                locations.append(f"{side} {origins}")
+            print(f"Directive {change['polarity']} {change['directive_sha256'][:12]}: {change['transition']}; " + "; ".join(locations))
+        print(f"Recognized active directives: {summary['baseline_active_directives']} baseline, "
+              f"{summary['retained_active_directives']} retained, {summary['recognized_active_losses']} lost. "
+              f"Unknown rules: {summary['unknown_rules']}; uninterpreted non-inactive bodies: {summary['uninterpreted_noninactive_bodies']}.")
+        if not summary["baseline_active_directives"]:
+            print("Baseline contains no recognized active directives to preserve.")
+        print("Review gate: " + ("FAILED (" + ", ".join(reasons) + ")" if reasons else "not triggered"))
+        print("Exact recognition and predicted attachment only; no semantic-equivalence, agent-behavior or safety verdict.")
+    return 1 if reasons else 0
 
 
 def _main_compare(argv: list[str]) -> int:

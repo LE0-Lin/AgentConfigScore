@@ -137,6 +137,15 @@ v0.24.0 之後的原始碼建置可根據你宣告在上下文中的邏輯檔案
 
 這是帶來源行號、不計分的審閱建議，不是實際 Agent 軌跡或阻斷門禁。分析完成回傳 `0`，包括存在訊號／未知的情況；輸入或讀取失敗回傳 `2`。原有掃描和回歸評分不變。此命令仍使用全儲存庫支援來源預先檢查，無關的失效指令連結也可能導致失敗。詳見[模型與限制（英文）](../cursor-scope.md)及[可執行的合成範例（英文）](../../examples/cursor-scope/README.md)。已發布的 v0.24.0 套件和滾動 Action 不包含此命令。
 
+比較修改前後同一組宣告的上下文：
+
+```bash
+agent-config-score scope compare ../repo-base . --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown
+agent-config-score scope diff origin/main --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown --json
+```
+
+這些尚未發布的命令分別報告檔案變化、觸發路徑減少，以及精確識別的指令失去全部預測活動來源。另一條活動規則中的相同指令，或仍符合的其他任務檔案，可以保留可用性。兩個旗標明確啟用呼叫端設定的審閱門禁：遺失或未知回傳 `1`，操作失敗回傳 `2`；不帶旗標時，完成的比較仍為建議性結果（`0`）。基準未識別到活動指令，就沒有受保護的指令身分。詳見[比較約定與 CI 範例（英文）](../cursor-scope-impact.md)及[四個合成對照（英文）](../../examples/cursor-scope-impact/README.md)。
+
 ## 選用：面向維護者的具體建議（v0.24.0+）
 
 ```bash

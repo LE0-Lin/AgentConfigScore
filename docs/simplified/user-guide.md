@@ -137,6 +137,15 @@ v0.24.0 之后的源码构建可根据你声明在上下文中的逻辑文件路
 
 这是带来源行号、不计分的审核建议，不是实际 Agent 轨迹或阻断门禁。分析完成返回 `0`，包括存在信号／未知的情况；输入或读取失败返回 `2`。原有扫描和回归评分不变。该命令仍使用全仓库支持来源预检查，无关的失效指令链接也可能导致失败。详见[模型与限制（英文）](../cursor-scope.md)及[可运行的合成示例（英文）](../../examples/cursor-scope/README.md)。已发布的 v0.24.0 包和滚动 Action 不包含此命令。
 
+比较修改前后同一组声明的上下文：
+
+```bash
+agent-config-score scope compare ../repo-base . --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown
+agent-config-score scope diff origin/main --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown --json
+```
+
+这些尚未发布的命令分别报告文件变化、触发路径减少，以及精确识别的指令失去全部预计活动来源。另一条活动规则中的相同指令，或仍匹配的其他任务文件，可以保留可用性。两个标志显式启用调用方配置的审核门禁：丢失或未知返回 `1`，操作失败返回 `2`；不带标志时，完成的比较仍为建议性结果（`0`）。基线未识别到活动指令，就没有受保护的指令身份。详见[比较约定与 CI 示例（英文）](../cursor-scope-impact.md)及[四个合成对照（英文）](../../examples/cursor-scope-impact/README.md)。
+
 ## 可选：面向维护者的具体建议（v0.24.0+）
 
 ```bash

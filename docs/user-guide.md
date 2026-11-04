@@ -235,6 +235,21 @@ invalid instruction links can stop it. See the [model and limits](cursor-scope.m
 and [runnable synthetic example](../examples/cursor-scope/README.md).
 This command is not in the published v0.24.0 package or rolling Action.
 
+Compare the same declared context before and after a change:
+
+```bash
+agent-config-score scope compare ../repo-base . --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown
+agent-config-score scope diff origin/main --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown --json
+```
+
+These unreleased commands separate file changes, lost trigger matches and exact
+recognized directives losing all predicted active sources. Another active copy
+or a remaining multi-file trigger can preserve availability. Both flags opt into
+a caller-configured review gate: loss or unknown uses `1`; operational failures
+use `2`. Without flags, completed comparisons remain advisory (`0`). No recognized
+baseline means zero protected identities. See the [comparison contract and CI
+recipe](cursor-scope-impact.md) and [four synthetic controls](../examples/cursor-scope-impact/README.md).
+
 ## Optional: actionable maintainer results (v0.24.0+)
 
 ```bash

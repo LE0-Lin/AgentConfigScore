@@ -4,6 +4,8 @@
 
 ### Added
 
+- Unreleased `scope compare` and Git-backed `scope diff` for the same declared Cursor file context: file lifecycle, trigger matches and aggregated exact-directive availability, with original line evidence and captured source hashes. Optional caller-owned flags gate recognized active losses and unknowns separately; active duplicate/renamed sources and remaining multi-file triggers retain availability. Includes four runnable synthetic examples and source-build CI guidance. This is bounded attachment/recognition analysis, not general semantic impact or runtime enforcement; normal scoring, policy schema, published packages and Action refs are unchanged.
+
 - An opt-in, unscored `scope` command predicting root Cursor project-rule activation for explicitly declared file context. A bounded scalar-metadata parser and iterative glob model retain unknowns, source-line evidence and multi-file opposing-directive signals even for disjoint patterns. Includes a runnable synthetic example, installed-wheel acceptance and aligned core guides. It does not observe Cursor, prove semantic conflicts, alter scan/gate scores or ship in the published v0.24.0 artifacts or rolling Action.
 
 - An offline runnable design lab with five synthetic before/after scenarios and two passing controls, comparing baseline new-error gating, score-delta-only gating and explicit candidate-threshold caller overrides through the real CLI. Retains observed decisions, commands and source/scenario hashes without claiming independent accuracy, AI superiority or user adoption. Runtime rules, scores, package artifacts and Action refs are unchanged.

@@ -101,6 +101,69 @@ def verify_cursor_scope(commands: list[list[str]], workspace: Path) -> None:
             "Declared-context analysis weakened ordinary danger scanning")
 
 
+def verify_cursor_scope_impact(commands: list[list[str]], workspace: Path) -> None:
+    base, head = workspace / "scope base", workspace / "scope head"
+    for root in (base, head):
+        (root / ".cursor/rules").mkdir(parents=True)
+
+    def text(pattern):
+        return f'---\nglobs: "{pattern}"\nalwaysApply: false\n---\nNever expose synthetic-private-invariant-value.\n'
+
+    baseline, candidate = base / ".cursor/rules/policy.mdc", head / ".cursor/rules/policy.mdc"
+    baseline.write_text(text("src/**"), encoding="utf-8")
+    candidate.write_text(text("src/web/**"), encoding="utf-8")
+    arguments = ["scope", "compare", str(base), str(head), "--target", "src/api/service.py"]
+    strict = ["--fail-on-lost-directives", "--fail-on-unknown", "--json"]
+    original = (baseline.read_bytes(), candidate.read_bytes())
+    for command in commands:
+        report_text = run([*command, *arguments, *strict], workspace, expected=1)
+        report = json.loads(report_text)
+        require(report["summary"]["recognized_active_losses"] == 1
+                and report["rule_changes"][0]["head"]["metadata_lines"]["globs"] == 2
+                and report["directive_changes"][0]["base"]["sources"][0]["line"] == 5,
+                "Installed comparison lost scope change or original evidence")
+        require(report["scored"] is False and report["review_gate"]["reasons"] == ["recognized_active_directives_lost"],
+                "Installed scope gate confused score, uncertainty and recognized loss")
+        require("synthetic-private" not in report_text and "src/web/**" not in report_text,
+                "Scope comparison exported raw source values")
+        advisory = json.loads(run([*command, *arguments, "--json"], workspace))
+        require(advisory["review_gate"]["failed"] is False, "Comparison became a default blocking gate")
+        multi = json.loads(run([*command, *arguments, "--target", "src/web/app.ts", *strict], workspace))
+        require(multi["summary"]["recognized_active_losses"] == 0
+                and multi["summary"]["retained_active_directives"] == 1,
+                "Remaining multi-file trigger did not preserve attachment")
+    require((baseline.read_bytes(), candidate.read_bytes()) == original, "Scope comparison modified input files")
+    candidate.rename(candidate.with_name("renamed.mdc"))
+    candidate = candidate.with_name("renamed.mdc")
+    candidate.write_bytes(baseline.read_bytes())
+    renamed = json.loads(run([*commands[0], *arguments, *strict], workspace))
+    require(renamed["summary"]["rules_removed"] == 1 and renamed["summary"]["recognized_active_losses"] == 0,
+            "Rule rename became a false directive loss")
+    candidate.write_text("---\nalwaysApply: false\n---\nNever expose synthetic-private-invariant-value.\n", encoding="utf-8")
+    unknown = json.loads(run([*commands[0], *arguments, *strict], workspace, expected=1))
+    require(unknown["summary"]["recognized_active_losses"] == 0
+            and unknown["review_gate"]["reasons"] == ["unknown_scope_or_body"], "Unknown loading became a definite loss")
+    hooks = workspace / "scope-empty-hooks"
+    hooks.mkdir()
+    for args in (["init", "-q", "-b", "main", "--template="], ["config", "core.hooksPath", str(hooks)],
+                 ["config", "commit.gpgsign", "false"], ["config", "user.name", "Scope Acceptance"],
+                 ["config", "user.email", "scope@example.invalid"], ["add", "."],
+                 ["-c", "core.autocrlf=false", "commit", "-qm", "scope baseline"]):
+        run(["git", *args], base)
+    sha = run(["git", "rev-parse", "HEAD"], base).strip()
+    baseline.write_text(text("src/web/**"), encoding="utf-8")
+    git_args = ["scope", "diff", "HEAD", "--path", str(base), "--target", "src/api/service.py", *strict]
+    for command in commands:
+        diff = json.loads(run([*command, *git_args], workspace, expected=1))
+        require(diff["comparison_inputs"]["base_commit"] == sha and diff["summary"]["recognized_active_losses"] == 1,
+                "Installed Git scope comparison lost baseline identity or change")
+    baseline.write_bytes(b"private-invalid-utf8-\xff")
+    require(run([*commands[0], *git_args], workspace, expected=2) == "", "Git scope source error emitted partial JSON")
+    worktrees = run(["git", "worktree", "list", "--porcelain"], base)
+    require(sum(line.startswith("worktree ") for line in worktrees.splitlines()) == 1,
+            "Git scope comparison leaked a baseline worktree")
+
+
 def verify(python: Path, expected_version: str) -> list[str]:
     checks: list[str] = []
     with tempfile.TemporaryDirectory(prefix="acs-acceptance-") as directory:
@@ -132,6 +195,8 @@ def verify(python: Path, expected_version: str) -> list[str]:
 
         verify_cursor_scope(commands, workspace)
         checks.append("Cursor declared-file activation, multi-file opposition, unknown metadata, line evidence and read-only aliases")
+        verify_cursor_scope_impact(commands, workspace)
+        checks.append("Cursor compare/Git change gate across aliases, retained triggers/renames, unknowns, source privacy and cleanup")
 
         run([*cli, "init", "--dry-run"], repo)
         require(list(repo.iterdir()) == [], "Dry-run wrote files")

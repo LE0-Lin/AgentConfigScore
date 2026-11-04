@@ -1325,6 +1325,12 @@ def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
     Default scan/regression scoring is intentionally unchanged.
     """
     target_paths = normalize_targets(targets)  # Validate before repository reads.
+    report, _ = _cursor_scope_snapshot(root, target_paths)
+    return report
+
+
+def _cursor_scope_snapshot(root: Path, target_paths: tuple[str, ...]) -> tuple[dict, dict]:
+    """Capture each source once for both activation and directive evidence."""
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise OSError(errno.ENOTDIR, "Scope repository must be a directory")
@@ -1333,6 +1339,7 @@ def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
     sources = [path for path in discovered if path.relative_to(root).as_posix().startswith(".cursor/rules/")]
     rules = []
     directives = defaultdict(lambda: {"pos": [], "neg": []})
+    directive_index = defaultdict(list)
     for path in sources:
         file = path.relative_to(root).as_posix()
         text = ""
@@ -1346,6 +1353,8 @@ def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
                 raise OSError(exc.errno, "Unable to read Cursor scope source") from exc
         model = parse_cursor_rule(file, text)
         activation = model.activate(target_paths)
+        activation["source_sha256"] = (hashlib.sha256(text.encode("utf-8")).hexdigest()
+                                       if path.suffix == ".mdc" else None)
         if model.body_line is None:
             candidates, interpretable = [], False
         else:
@@ -1355,14 +1364,16 @@ def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
         activation["directive_analysis"] = "bounded_prose" if interpretable else "not_interpreted"
         activation["recognized_directives"] = 0
         rules.append(activation)
-        if activation["activation"] == "inactive" or not interpretable:
+        if not interpretable:
             continue
         for number, line in candidates:
             for polarity, body, _ in _directives(line):
-                activation["recognized_directives"] += 1
                 key = hashlib.sha256(body.encode("utf-8")).hexdigest()
-                directives[key][polarity].append({"file": file, "line": model.body_line + number - 1,
-                                                "polarity": polarity})
+                source = {"file": file, "line": model.body_line + number - 1, "polarity": polarity}
+                directive_index[(polarity, key)].append(source)
+                if activation["activation"] != "inactive":
+                    activation["recognized_directives"] += 1
+                    directives[key][polarity].append(source)
     by_file = {rule["file"]: rule for rule in rules}
     pairs = sum(len(rows["pos"]) * len(rows["neg"]) for rows in directives.values())
     if pairs > 10000:
@@ -1379,7 +1390,7 @@ def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
                                 "shared_target_matches": sorted(set(left["matched_targets"]) & set(right["matched_targets"]))})
     signals.sort(key=lambda row: (row["sources"][0]["file"], row["sources"][0]["line"],
                                  row["sources"][1]["file"], row["sources"][1]["line"], row["directive_sha256"]))
-    return {"schema_version": 1, "analysis": "cursor_file_context", "profile": CURSOR_SCOPE_PROFILE,
+    report = {"schema_version": 1, "analysis": "cursor_file_context", "profile": CURSOR_SCOPE_PROFILE,
             "tool": identity.to_dict(), "status": "completed", "scored": False,
             "targets": list(target_paths), "targets_existence_checked": False,
             "observed_agent_context": False, "activation_inputs": "declared_file_paths_only",
@@ -1391,6 +1402,90 @@ def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
                         "uninterpreted_bodies": sum(rule["directive_analysis"] == "not_interpreted" for rule in rules),
                         "active_signals": sum(row["activation"] == "active" for row in signals),
                         "uncertain_signals": sum(row["activation"] == "unknown" for row in signals)}}
+    return report, dict(directive_index)
+
+
+def _cursor_directive_states(report: dict, index: dict, keys: list[tuple[str, str]]) -> dict:
+    by_file = {row["file"]: row for row in report["rules"]}
+    opaque = [row["file"] for row in report["rules"]
+              if row["activation"] != "inactive" and row["directive_analysis"] == "not_interpreted"]
+    states = {}
+    for key in keys:
+        sources = [{**source, "activation": by_file[source["file"]]["activation"]}
+                   for source in index.get(key, ())]
+        if any(row["activation"] == "active" for row in sources):
+            availability = "active"
+        elif opaque or any(row["activation"] == "unknown" for row in sources):
+            availability = "unknown"
+        else:
+            availability = "inactive" if sources else "not_recognized"
+        states[key] = {"availability": availability, "sources": sources, "uninterpreted_sources": opaque}
+    return states
+
+
+def compare_cursor_scope(base_root: Path, head_root: Path, targets: list[str]) -> dict:
+    """Compare predicted attachment and exact recognized directives, not intent.
+
+    One identical declared file context is used for both captured trees. Source
+    failures abort; unsupported bodies cannot be mistaken for proven absence.
+    """
+    target_paths = normalize_targets(targets)
+    base, base_index = _cursor_scope_snapshot(base_root, target_paths)
+    head, head_index = _cursor_scope_snapshot(head_root, target_paths)
+    if base["tool"] != head["tool"]:
+        raise OSError(errno.EAGAIN, "Tool identity changed during Cursor scope comparison")
+    base_rules = {row["file"]: row for row in base["rules"]}
+    head_rules = {row["file"]: row for row in head["rules"]}
+    rule_changes = []
+    for file in sorted(base_rules.keys() | head_rules.keys()):
+        before, after = base_rules.get(file), head_rules.get(file)
+        if before == after:
+            continue
+        left = before["activation"] if before else "missing"
+        right = after["activation"] if after else "missing"
+        lost = set(before["matched_targets"] if before else ()) - set(after["matched_targets"] if after else ())
+        gained = set(after["matched_targets"] if after else ()) - set(before["matched_targets"] if before else ())
+        rule_changes.append({"file": file, "change": "added" if before is None else "removed" if after is None else "modified",
+                             "transition": f"{left}_to_{right}", "base": before, "head": after,
+                             "trigger_targets_lost": sorted(lost), "trigger_targets_gained": sorted(gained),
+                             "automatic_attachment_lost": left == "active" and right in {"inactive", "missing"}})
+    directive_changes = []
+    base_active = retained_active = losses = gains = uncertain = 0
+    keys = sorted(base_index.keys() | head_index.keys())
+    base_states = _cursor_directive_states(base, base_index, keys)
+    head_states = _cursor_directive_states(head, head_index, keys)
+    for key in keys:
+        before, after = base_states[key], head_states[key]
+        left, right = before["availability"], after["availability"]
+        lost = left == "active" and right in {"inactive", "not_recognized"}
+        gained = right == "active" and left != "active"
+        base_active += left == "active"
+        retained_active += left == right == "active"
+        losses += lost
+        gains += gained
+        uncertain += "unknown" in {left, right}
+        if before != after:
+            directive_changes.append({"polarity": key[0], "directive_sha256": key[1],
+                                      "transition": f"{left}_to_{right}", "base": before, "head": after,
+                                      "recognized_active_lost": lost, "recognized_active_gained": gained})
+    unknown_rules = sum(row["activation"] == "unknown" for report in (base, head) for row in report["rules"])
+    opaque_bodies = sum(row["activation"] != "inactive" and row["directive_analysis"] == "not_interpreted"
+                        for report in (base, head) for row in report["rules"])
+    return {"schema_version": 1, "analysis": "cursor_file_context_comparison", "profile": CURSOR_SCOPE_PROFILE,
+            "comparison_profile": "cursor-activation-delta-v1", "tool": base["tool"],
+            "status": "completed", "scored": False, "targets": list(target_paths),
+            "observed_agent_context": False, "targets_existence_checked": False,
+            "comparison_inputs": {"base": "supplied_tree", "head": "supplied_tree"},
+            "base": base, "head": head, "rule_changes": rule_changes, "directive_changes": directive_changes,
+            "summary": {"rules_added": sum(row["change"] == "added" for row in rule_changes),
+                        "rules_removed": sum(row["change"] == "removed" for row in rule_changes),
+                        "rules_modified": sum(row["change"] == "modified" for row in rule_changes),
+                        "automatic_attachment_losses": sum(row["automatic_attachment_lost"] for row in rule_changes),
+                        "baseline_active_directives": base_active, "retained_active_directives": retained_active,
+                        "recognized_active_losses": losses, "recognized_active_gains": gains,
+                        "uncertain_directives": uncertain, "unknown_rules": unknown_rules,
+                        "uninterpreted_noninactive_bodies": opaque_bodies,
+                        "has_unknown": bool(unknown_rules or opaque_bodies)}}
 
 
 def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...]) -> Suppression | None:
