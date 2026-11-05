@@ -38,6 +38,13 @@
     }
   },
   "regression_cases": {
+    "instruction-move": {
+      "base_score": 100,
+      "head_score": 100,
+      "delta": 0,
+      "new_findings": ["instruction-file-removed"],
+      "resolved_findings": []
+    },
     "unsafe-shell": {
       "base_score": 100,
       "head_score": 82,
