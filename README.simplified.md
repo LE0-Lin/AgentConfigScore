@@ -6,6 +6,8 @@
 
 ![AgentConfigScore 演示](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif)
 
+[安装演示](#快速开始) · [分数历史演示](#分数历史演示) · [完整演示图集](docs/visual-tour.md)
+
 AgentConfigScore 检查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini 等配置，并比较改动前后的基线，回答一个具体问题：**这次改动是否引入了已知规则能检测到的风险？**
 
 | 改动 | 审查依据 |
@@ -14,6 +16,8 @@ AgentConfigScore 检查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini �
 | 删除指令文件或反转精确指令 | 独立于总分的回归发现，即使分数相同也能报告 |
 | PR 放宽自己的阈值或增加豁免 | 正常比较仍使用基线策略；调用方的显式覆盖需单独审核 |
 | 接受已知例外 | 必须填写原因和到期日期，并保留审计记录 |
+
+![工作流程图，展示仓库初始化、基线回归检查与报告留存](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg)
 
 它是确定性检查器，不是 AI 评委。**A 100 只表示没有命中生效的规则，不表示指令有用、语义完美或安全无误。** 中文文档也不意味着检测器已经能够理解任意中文指令。
 
@@ -32,6 +36,10 @@ agent-config-score diff
 在自己的仓库目录中运行。`init` 会生成 `.agentconfigscore.json` 和 `.github/workflows/agent-config-score.yml`；检查后提交这两个文件，后续 PR 即可自动检查。它不会替你编写或重写指令文件，也不会默认覆盖冲突的已有配置。
 
 `acs` 是短命令别名。v0.23.0+ 还可以使用 `python -m agent_config_score`，避免终端 PATH 没有找到命令的问题。
+
+![终端演示，展示安装、初始化与 doctor 检查](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif)
+
+*动图以 v0.18 为例展示接入步骤。当前版本请按上方命令安装。*
 
 - [简体中文使用指南](docs/simplified/user-guide.md)：安装、基线、报告、退出码与排错。
 - [分数含义与限制](docs/simplified/limitations.md)：先了解什么能检出、什么仍可能漏掉。
@@ -144,5 +152,11 @@ jobs:
 独立 AI 对照评测尚未完成。这些开发与兼容性结果不是现实准确率、AI 优势或用户采用证据。详见[限制说明](docs/simplified/limitations.md)与[当前评测记录（英文）](benchmarks/README.md)。
 
 本页与英文首页对齐核心功能；使用指南和限制说明也提供中文。详细参考、规则语法、贡献及研究文档目前仍为英文。[翻译范围与维护说明](docs/translations.md)。命令、终端消息和 JSON 协议保持原样，English 仍是默认入口。
+
+## 分数历史演示
+
+![分数历史示例，逐条显示日期、分数、变化与提交](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif)
+
+示例展示 `agent-config-score history` 如何把每次评分和对应提交放在一起。[历史工作流（英文）](docs/score-history.md)
 
 项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.24.0.md)目前为英文。

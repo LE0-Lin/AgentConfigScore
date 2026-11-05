@@ -26,6 +26,8 @@ decisions. No model API or runtime dependencies are needed.
   <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif" alt="A known instruction regression is reported and blocked in CI" width="100%" />
 </p>
 
+[Setup demo](#quick-start) · [Workflow diagram](#what-it-helps-you-review) · [Score history demo](#score-history-demo) · [Visual gallery](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/visual-tour.md)
+
 **A 100 means no active deterministic rule matched.** It does not certify
 instruction usefulness, semantic correctness or safety.
 [Read the score contract and limitations.](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/limitations.md)
@@ -42,6 +44,8 @@ instruction usefulness, semantic correctness or safety.
 Existing repositories can adopt the gate without first reaching 100.
 `init` enables new-error blocking and no score decrease; a passing comparison
 means no regression under the selected rules and policy.
+
+![Workflow diagram showing repository setup, PR checks against a baseline, and retained reports](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg)
 
 ## Quick start
 
@@ -64,6 +68,10 @@ instructions or overwrite conflicting setup files by default. `acs` and
 without fetching; use `agent-config-score diff origin/main` when you want an
 explicit ref. The [user guide](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/user-guide.md)
 covers setup, exits and troubleshooting.
+
+![Terminal demo showing package installation, init, and doctor](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif)
+
+*The v0.18 demo illustrates the install, initialize, and verify steps. Use the commands above for the current setup.*
 
 ## Release and source status
 
@@ -181,18 +189,12 @@ and [privacy-minimized feedback drafts](https://github.com/LE0-Lin/AgentConfigSc
 | Keep score history | [History workflow](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/score-history.md) |
 | Browse all topics | [Documentation index](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/README.md) |
 
-## Visual tour
+## Score history demo
 
-<details>
-<summary>Setup, workflow and history demos</summary>
+![Illustrative score history showing the date, score, change, and commit for each snapshot](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif)
 
-![Setup](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif)
-
-![Workflow](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg)
-
-![History](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif)
-
-</details>
+This example shows how recorded scores and commit IDs appear together in
+`agent-config-score history`. [Set up the history workflow.](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/score-history.md)
 
 The [visual tour](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/visual-tour.md)
 explains each demo. Choose [简体中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.simplified.md)
