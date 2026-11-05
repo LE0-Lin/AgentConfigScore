@@ -3,7 +3,7 @@
 English | [简体中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.simplified.md) | [繁體中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.traditional.md)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score.svg" alt="AgentConfigScore logo" />
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score.svg?v=0.24.0" alt="AgentConfigScore compares baseline and candidate coding-agent instructions" width="100%" />
 </p>
 
 <p align="center"><strong>Catch known regressions in coding-agent instructions before merging.</strong></p>
@@ -23,10 +23,14 @@ reports rule-defined regressions, and uses reviewed baseline policies for CI
 decisions. No model API or runtime dependencies are needed.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif" alt="A known instruction regression is reported and blocked in CI" width="100%" />
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif?v=0.24.0" alt="Both snapshots score 100, but moving the instruction file triggers review and exit 1" width="100%" />
 </p>
 
 [Setup demo](#quick-start) · [Workflow diagram](#what-it-helps-you-review) · [Score history demo](#score-history-demo) · [Visual gallery](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/visual-tour.md)
+
+The demo replays a change drawn from a merged PR. An instruction file moves to
+the root with identical text. Both scans score 100, and the comparison flags
+the original path for review. [Reproduce the reduced case](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/instruction-move/README.md).
 
 **A 100 means no active deterministic rule matched.** It does not certify
 instruction usefulness, semantic correctness or safety.
@@ -45,7 +49,7 @@ Existing repositories can adopt the gate without first reaching 100.
 `init` enables new-error blocking and no score decrease; a passing comparison
 means no regression under the selected rules and policy.
 
-![Workflow diagram showing repository setup, PR checks against a baseline, and retained reports](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg)
+![Workflow diagram showing repository setup, PR checks against a baseline, and retained reports](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg?v=0.24.0)
 
 ## Quick start
 
@@ -69,9 +73,9 @@ without fetching; use `agent-config-score diff origin/main` when you want an
 explicit ref. The [user guide](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/user-guide.md)
 covers setup, exits and troubleshooting.
 
-![Terminal demo showing package installation, init, and doctor](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif)
+![Terminal demo showing package installation, init, and doctor](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif?v=0.24.0)
 
-*The v0.18 demo illustrates the install, initialize, and verify steps. Use the commands above for the current setup.*
+*The v0.24.0 demo shows setup and selected checks from `doctor` in a local fixture.*
 
 ## Release and source status
 
@@ -191,9 +195,9 @@ and [privacy-minimized feedback drafts](https://github.com/LE0-Lin/AgentConfigSc
 
 ## Score history demo
 
-![Illustrative score history showing the date, score, change, and commit for each snapshot](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif)
+![Recorded fixture scores fall from 100 to 82 after a risk is added, then recover to 100 when it is removed](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=0.24.0)
 
-This example shows how recorded scores and commit IDs appear together in
+The chart shows three locally recorded fixture scores read by
 `agent-config-score history`. [Set up the history workflow.](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/score-history.md)
 
 The [visual tour](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/visual-tour.md)

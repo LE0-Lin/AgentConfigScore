@@ -1,423 +1,232 @@
 #!/usr/bin/env python3
-"""Render the README terminal demo as a deterministic animated GIF.
-
-This is a maintainer tool, not a runtime dependency. Install Pillow before
-running it: ``python -m pip install pillow``.
-"""
+"""Render the gallery from the installed release and local fixtures."""
 
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
+import shutil
+import subprocess
+import sys
+from tempfile import TemporaryDirectory
 
 from PIL import Image, ImageDraw, ImageFont
 
-
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT = ROOT / "assets" / "agent-config-score-demo.gif"
-SETUP_OUTPUT = ROOT / "assets" / "agent-config-score-setup.gif"
-HISTORY_OUTPUT = ROOT / "assets" / "agent-config-score-history.gif"
-SOCIAL_OUTPUT = ROOT / "assets" / "agent-config-score-social-preview.png"
-WIDTH = 1200
-HEIGHT = 675
-
-COLORS = {
-    "page": "#07111F",
-    "glow": "#102A43",
-    "window": "#0D1626",
-    "chrome": "#162235",
-    "border": "#2C3E55",
-    "text": "#E6EDF3",
-    "muted": "#8FA3B8",
-    "green": "#7EE787",
-    "cyan": "#79C0FF",
-    "red": "#FF7B72",
-    "amber": "#E3B341",
-}
+ASSETS = ROOT / "assets"
+FIXTURES = ROOT / "tests" / "fixtures" / "contracts" / "regression"
+MOVE = FIXTURES / "instruction-move"
+SHELL = FIXTURES / "unsafe-shell"
+RELEASE = "0.24.0"
+WIDTH, HEIGHT = 1200, 675
+INK = "#0B1422"
+PANEL = "#111E2D"
+EDGE = "#304457"
+WHITE = "#ECF3F8"
+SOFT = "#A9BED0"
+MINT = "#76E5C1"
+CORAL = "#FFAD9D"
 
 
-def _font(size: int, *, bold: bool = False, mono: bool = False) -> ImageFont.FreeTypeFont:
+def font(size: int, *, bold: bool = False, mono: bool = False):
     windows = Path("C:/Windows/Fonts")
-    candidates = (
-        [windows / ("consolab.ttf" if bold else "consola.ttf")]
-        if mono
-        else [windows / ("segoeuib.ttf" if bold else "segoeui.ttf")]
+    win = ("consolab.ttf" if bold else "consola.ttf") if mono else ("segoeuib.ttf" if bold else "segoeui.ttf")
+    linux = "DejaVuSansMono" if mono else "DejaVuSans"
+    paths = (
+        windows / win,
+        Path("/usr/share/fonts/truetype/dejavu") / (linux + ("-Bold.ttf" if bold else ".ttf")),
+        Path("/System/Library/Fonts/SFNSMono.ttf" if mono else "/System/Library/Fonts/SFNS.ttf"),
     )
-    candidates.extend(
-        [
-            Path("/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf" if mono and bold else
-                 "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf" if mono else
-                 "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else
-                 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
-            Path("/System/Library/Fonts/SFNSMono.ttf" if mono else "/System/Library/Fonts/SFNS.ttf"),
-        ]
-    )
-    for candidate in candidates:
-        if candidate.exists():
-            return ImageFont.truetype(str(candidate), size=size)
+    for path in paths:
+        if path.is_file():
+            return ImageFont.truetype(str(path), size)
     return ImageFont.load_default(size=size)
 
 
-TITLE = _font(34, bold=True)
-SUBTITLE = _font(18)
-BADGE = _font(14, bold=True)
-MONO = _font(22, mono=True)
-MONO_BOLD = _font(22, mono=True, bold=True)
-MONO_SMALL = _font(19, mono=True)
-FOOTER = _font(17)
-SOCIAL_TITLE = _font(58, bold=True)
-SOCIAL_TAGLINE = _font(29, bold=True)
-SOCIAL_SCORE = _font(72, bold=True)
-SOCIAL_SCORE_LABEL = _font(20, bold=True)
+TITLE = font(44, bold=True)
+HEADING = font(30, bold=True)
+TEXT = font(23)
+LABEL = font(17, bold=True)
+MONO = font(23, mono=True)
+SCORE = font(52, bold=True)
 
 
-OUTPUT_LINES = [
-    [("AgentConfigScore regression  ", "text"), ("A 100", "green"), (" → ", "muted"), ("B 82 (-18)", "amber")],
-    [("New findings: 2", "text"), ("   Resolved: 0   Suppressed: 0", "muted")],
-    [],
-    [("+ ERROR   ", "red"), ("curl-pipe-shell", "text"), ("   Remote script piped directly to a shell", "muted")],
-    [("          .github/copilot-instructions.md:12", "muted")],
-    [("+ WARNING ", "amber"), ("dead-path", "text"), ("          Referenced path does not exist: src/legacy_auth.py", "muted")],
-    [("          AGENTS.md:31", "muted")],
-    [],
-    [("POLICY RESULT: BLOCKED", "red")],
-]
+def cli(*args: str, cwd: Path, expected: int = 0) -> str:
+    result = subprocess.run(
+        [sys.executable, "-m", "agent_config_score", *args],
+        cwd=cwd,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=20,
+    )
+    if result.returncode != expected:
+        raise RuntimeError(f"Expected exit {expected} for {args}, got {result.returncode}: {result.stderr.strip()}")
+    return result.stdout
 
 
-def _text_segments(draw: ImageDraw.ImageDraw, x: int, y: int, segments: list[tuple[str, str]]) -> None:
-    cursor = x
-    for text, color in segments:
-        font = MONO_BOLD if color in {"red", "amber", "green"} else MONO
-        draw.text((cursor, y), text, fill=COLORS[color], font=font)
-        cursor += int(draw.textlength(text, font=font))
+def comparison() -> dict:
+    report = json.loads(cli("compare", "base", "head", "--json", cwd=MOVE, expected=1))
+    if [item["code"] for item in report["new_findings"]] != ["instruction-file-removed"]:
+        raise RuntimeError("Instruction-move demo output changed. Review the gallery before regenerating it.")
+    return report
 
 
-def _frame(command_chars: int, visible_lines: int, *, cursor: bool = True) -> Image.Image:
-    image = Image.new("RGB", (WIDTH, HEIGHT), COLORS["page"])
+def setup_checks() -> list[tuple[str, str]]:
+    with TemporaryDirectory(prefix="acs-gallery-") as directory:
+        root = Path(directory)
+        shutil.copyfile(SHELL / "base" / "AGENTS.md", root / "AGENTS.md")
+        subprocess.run(["git", "init", "-q", "--template=", "-b", "main"], cwd=root, check=True)
+        cli("init", cwd=root)
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(
+            ["git", "-c", "user.name=Gallery Fixture", "-c", "user.email=gallery@example.invalid",
+             "-c", "core.hooksPath=.git/no-hooks", "-c", "commit.gpgsign=false",
+             "commit", "-qm", "Initialize demo repository"],
+            cwd=root, check=True,
+        )
+        subprocess.run(["git", "update-ref", "refs/remotes/origin/main", "HEAD"], cwd=root, check=True)
+        report = json.loads(cli("doctor", "--json", cwd=root))
+        selected = {"config", "instructions", "baseline", "workflow"}
+        checks = [(item["name"], item["status"]) for item in report["checks"] if item["name"] in selected]
+        if len(checks) != len(selected) or any(status != "pass" for _, status in checks):
+            raise RuntimeError(f"Unexpected doctor results: {checks}")
+        return checks
+
+
+def history_scores() -> list[int]:
+    from agent_config_score.history import append_snapshot
+
+    with TemporaryDirectory(prefix="acs-history-gallery-") as directory:
+        root = Path(directory)
+        for side in ("base", "head", "base"):
+            report = json.loads(cli(str(SHELL / side), "--json", cwd=root))
+            append_snapshot(root, {"score": report["score"], "grade": report["grade"]})
+        recorded = json.loads(cli("history", "--json", cwd=root))
+        return [row["score"] for row in recorded["history"]]
+
+
+def canvas(section: str, headline: str, detail: str) -> tuple[Image.Image, ImageDraw.ImageDraw]:
+    image = Image.new("RGB", (WIDTH, HEIGHT), INK)
     draw = ImageDraw.Draw(image)
-
-    draw.ellipse((740, -250, 1320, 330), fill=COLORS["glow"])
-    draw.text((62, 35), "AgentConfigScore", fill=COLORS["text"], font=TITLE)
-    draw.text((390, 49), "PR regression gate for coding-agent instructions", fill=COLORS["muted"], font=SUBTITLE)
-
-    badge = "DETERMINISTIC  •  ZERO RUNTIME DEPS"
-    badge_width = int(draw.textlength(badge, font=BADGE)) + 30
-    draw.rounded_rectangle((WIDTH - badge_width - 60, 38, WIDTH - 60, 72), radius=17, fill="#123B32", outline="#286B57")
-    draw.text((WIDTH - badge_width - 45, 47), badge, fill=COLORS["green"], font=BADGE)
-
-    left, top, right, bottom = 55, 98, WIDTH - 55, 608
-    draw.rounded_rectangle((left, top, right, bottom), radius=16, fill=COLORS["window"], outline=COLORS["border"], width=2)
-    draw.rounded_rectangle((left, top, right, top + 52), radius=16, fill=COLORS["chrome"])
-    draw.rectangle((left, top + 36, right, top + 52), fill=COLORS["chrome"])
-    for index, color in enumerate(("#FF5F57", "#FEBC2E", "#28C840")):
-        x = left + 25 + index * 26
-        draw.ellipse((x, top + 19, x + 13, top + 32), fill=color)
-    draw.text((left + 475, top + 16), "pull request check", fill=COLORS["muted"], font=SUBTITLE)
-
-    command = "agent-config-score diff origin/main"
-    prompt_x, prompt_y = left + 32, top + 79
-    draw.text((prompt_x, prompt_y), "$", fill=COLORS["green"], font=MONO_BOLD)
-    shown = command[:command_chars]
-    draw.text((prompt_x + 27, prompt_y), shown, fill=COLORS["text"], font=MONO)
-    if cursor:
-        cursor_x = prompt_x + 27 + int(draw.textlength(shown, font=MONO)) + 2
-        draw.rectangle((cursor_x, prompt_y + 4, cursor_x + 11, prompt_y + 28), fill=COLORS["cyan"])
-
-    output_y = prompt_y + 54
-    for index, line in enumerate(OUTPUT_LINES[:visible_lines]):
-        _text_segments(draw, prompt_x, output_y + index * 34, line)
-
-    if visible_lines == len(OUTPUT_LINES):
-        draw.rounded_rectangle((left + 27, bottom - 58, right - 27, bottom - 18), radius=8, fill="#291B20", outline="#71333A")
-        draw.text((left + 47, bottom - 48), "BASELINE POLICY STAYED IN CONTROL — THIS REGRESSION CANNOT MERGE", fill="#FFB4AC", font=FOOTER)
-
-    draw.text((60, 632), "A pull request can change the instructions. It cannot weaken the policy judging itself.", fill=COLORS["muted"], font=FOOTER)
-    draw.text((1055, 632), "v0.18", fill=COLORS["cyan"], font=FOOTER)
-    return image
+    draw.rectangle((0, 0, WIDTH, 7), fill=MINT)
+    draw.text((58, 39), "AGENTCONFIGSCORE  /  " + section, font=LABEL, fill=MINT)
+    draw.text((1142, 39), "v" + RELEASE, anchor="ra", font=LABEL, fill=SOFT)
+    draw.text((56, 81), headline, font=TITLE, fill=WHITE)
+    draw.text((58, 146), detail, font=TEXT, fill=SOFT)
+    return image, draw
 
 
-def render(output: Path) -> None:
-    frames: list[Image.Image] = []
-    durations: list[int] = []
+def card(draw: ImageDraw.ImageDraw, bounds: tuple[int, int, int, int]) -> None:
+    draw.rounded_rectangle(bounds, radius=18, fill=PANEL, outline=EDGE, width=2)
 
-    frames.append(_frame(0, 0))
-    durations.append(650)
-    command_length = len("agent-config-score diff origin/main")
-    for count in range(1, command_length + 1, 2):
-        frames.append(_frame(min(count, command_length), 0))
-        durations.append(65)
-    frames.append(_frame(command_length, 0, cursor=False))
-    durations.append(550)
 
-    for visible in range(1, len(OUTPUT_LINES) + 1):
-        frames.append(_frame(command_length, visible, cursor=False))
-        durations.append(260 if OUTPUT_LINES[visible - 1] else 120)
-    frames.append(_frame(command_length, len(OUTPUT_LINES), cursor=False))
-    durations.append(3600)
-
+def save_gif(frames: list[Image.Image], durations: list[int], output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
-    palette_frames = [frame.quantize(colors=128, method=Image.Quantize.MEDIANCUT) for frame in frames]
-    palette_frames[0].save(
-        output,
-        save_all=True,
-        append_images=palette_frames[1:],
-        duration=durations,
-        loop=0,
-        disposal=2,
-        optimize=True,
-    )
+    palette = [frame.quantize(colors=128) for frame in frames]
+    palette[0].save(output, save_all=True, append_images=palette[1:], duration=durations, loop=0, disposal=2, optimize=True)
 
 
-SETUP_LINES = [
-    [("$ ", "green"), ("python -m pip install agent-config-score", "text")],
-    [("  Installed agent-config-score 0.18.0", "muted")],
-    [],
-    [("$ ", "green"), ("agent-config-score init", "text")],
-    [("  CREATED  ", "cyan"), (".agentconfigscore.json", "text")],
-    [("  CREATED  ", "cyan"), (".github/workflows/agent-config-score.yml", "text")],
-    [],
-    [("$ ", "green"), ("agent-config-score doctor", "text")],
-    [("  PASS  ", "green"), ("config", "text"), ("        Policy and schema are valid", "muted")],
-    [("  PASS  ", "green"), ("instructions", "text"), ("  4 supported files found", "muted")],
-    [("  PASS  ", "green"), ("baseline", "text"), ("      Automatic diff baseline: origin/main", "muted")],
-    [("  PASS  ", "green"), ("workflow", "text"), ("      Pull-request gate is installed", "muted")],
-]
-
-
-def _shell_frame(title: str, subtitle: str, badge: str) -> tuple[Image.Image, ImageDraw.ImageDraw, tuple[int, int, int, int]]:
-    image = Image.new("RGB", (WIDTH, HEIGHT), COLORS["page"])
-    draw = ImageDraw.Draw(image)
-    draw.ellipse((740, -250, 1320, 330), fill=COLORS["glow"])
-    draw.text((62, 35), title, fill=COLORS["text"], font=TITLE)
-    draw.text((390, 49), subtitle, fill=COLORS["muted"], font=SUBTITLE)
-
-    badge_width = int(draw.textlength(badge, font=BADGE)) + 30
-    draw.rounded_rectangle(
-        (WIDTH - badge_width - 60, 38, WIDTH - 60, 72),
-        radius=17,
-        fill="#123B32",
-        outline="#286B57",
-    )
-    draw.text((WIDTH - badge_width - 45, 47), badge, fill=COLORS["green"], font=BADGE)
-
-    window = (55, 98, WIDTH - 55, 608)
-    left, top, right, bottom = window
-    draw.rounded_rectangle(window, radius=16, fill=COLORS["window"], outline=COLORS["border"], width=2)
-    draw.rounded_rectangle((left, top, right, top + 52), radius=16, fill=COLORS["chrome"])
-    draw.rectangle((left, top + 36, right, top + 52), fill=COLORS["chrome"])
-    for index, color in enumerate(("#FF5F57", "#FEBC2E", "#28C840")):
-        x = left + 25 + index * 26
-        draw.ellipse((x, top + 19, x + 13, top + 32), fill=color)
-    draw.text((left + 475, top + 16), "terminal", fill=COLORS["muted"], font=SUBTITLE)
-    return image, draw, window
-
-
-def _setup_frame(visible_lines: int) -> Image.Image:
-    image, draw, window = _shell_frame(
-        "AgentConfigScore",
-        "from install to protected pull requests",
-        "30-SECOND SETUP",
-    )
-    left, top, right, bottom = window
-    start_y = top + 76
-    for index, line in enumerate(SETUP_LINES[:visible_lines]):
-        _text_segments(draw, left + 32, start_y + index * 32, line)
-
-    if visible_lines == len(SETUP_LINES):
-        draw.rounded_rectangle((left + 27, bottom - 54, right - 27, bottom - 14), radius=8, fill="#123B32", outline="#286B57")
-        draw.text((left + 47, bottom - 44), "READY — EVERY PULL REQUEST IS NOW PROTECTED", fill=COLORS["green"], font=FOOTER)
-
-    draw.text((60, 632), "Install. Initialize. Verify. No service account and no runtime dependencies.", fill=COLORS["muted"], font=FOOTER)
-    draw.text((1055, 632), "v0.18", fill=COLORS["cyan"], font=FOOTER)
-    return image
+def render_regression(output: Path, report: dict) -> None:
+    finding = report["new_findings"][0]
+    frames = []
+    for step in range(3):
+        image, draw = canvas("REGRESSION REVIEW", "Same score. New finding.", "An instruction file moves to the repository root.")
+        for x, name, path, score in (
+            (58, "REVIEWED BASELINE", "docs/AGENTS.md", report["base"]["score"]),
+            (616, "PROPOSED CHANGE", "AGENTS.md", report["head"]["score"]),
+        ):
+            card(draw, (x, 205, x + 526, 369))
+            draw.text((x + 24, 226), name, font=LABEL, fill=SOFT)
+            draw.text((x + 24, 282), path, font=MONO, fill=WHITE)
+            if step >= 1:
+                draw.text((x + 496, 300), str(score), anchor="rm", font=SCORE, fill=MINT)
+        card(draw, (58, 396, 1142, 584))
+        draw.text((82, 416), "$ agent-config-score compare base head", font=MONO, fill=WHITE)
+        if step == 2:
+            draw.text((82, 471), finding["code"], font=HEADING, fill=CORAL)
+            draw.text((82, 524), "Former path  " + finding["file"], font=TEXT, fill=SOFT)
+            draw.text((1115, 524), "REVIEW REQUIRED  /  EXIT 1", anchor="ra", font=LABEL, fill=CORAL)
+        draw.text((58, 620), "Reduced example from a merged PR  •  Identical instruction bytes", font=LABEL, fill=SOFT)
+        frames.append(image)
+    save_gif(frames, [1050, 1300, 4500], output)
 
 
 def render_setup(output: Path) -> None:
-    frames = [_setup_frame(0)]
-    durations = [600]
-    for visible in range(1, len(SETUP_LINES) + 1):
-        frames.append(_setup_frame(visible))
-        durations.append(220 if SETUP_LINES[visible - 1] else 120)
-    frames.append(_setup_frame(len(SETUP_LINES)))
-    durations.append(3200)
-    _save_gif(frames, durations, output)
-
-
-HISTORY_ROWS = [
-    ("2026-08-28", 82, "B", "-", "8f13c42"),
-    ("2026-08-29", 88, "B", "+6", "2b94a10"),
-    ("2026-08-30", 94, "A", "+6", "a73e5cf"),
-    ("2026-09-01", 100, "A", "+6", "5b283e5"),
-]
-
-
-def _history_frame(visible_rows: int) -> Image.Image:
-    image = Image.new("RGB", (WIDTH, HEIGHT), COLORS["page"])
-    draw = ImageDraw.Draw(image)
-    draw.ellipse((720, -260, 1320, 340), fill=COLORS["glow"])
-    draw.text((62, 35), "AgentConfigScore", fill=COLORS["text"], font=TITLE)
-    draw.text((390, 49), "instruction quality, visible over time", fill=COLORS["muted"], font=SUBTITLE)
-
-    badge = "AUDITABLE HISTORY"
-    badge_width = int(draw.textlength(badge, font=BADGE)) + 30
-    draw.rounded_rectangle((WIDTH - badge_width - 60, 38, WIDTH - 60, 72), radius=17, fill="#17344F", outline="#2B6190")
-    draw.text((WIDTH - badge_width - 45, 47), badge, fill=COLORS["cyan"], font=BADGE)
-
-    left, top, right, bottom = 55, 98, WIDTH - 55, 608
-    draw.rounded_rectangle((left, top, right, bottom), radius=16, fill=COLORS["window"], outline=COLORS["border"], width=2)
-    split = 685
-    draw.line((split, top + 28, split, bottom - 28), fill=COLORS["border"], width=2)
-
-    draw.text((left + 30, top + 27), "$ agent-config-score history", fill=COLORS["text"], font=MONO)
-    draw.text((left + 30, top + 83), "DATE         SCORE  GRADE  CHANGE   COMMIT", fill=COLORS["muted"], font=BADGE)
-    for index, (date, score, grade, change, commit) in enumerate(HISTORY_ROWS[:visible_rows]):
-        y = top + 126 + index * 58
-        score_color = COLORS["green"] if grade == "A" else COLORS["amber"]
-        draw.text((left + 30, y), date, fill=COLORS["text"], font=MONO_SMALL)
-        draw.text((left + 245, y), f"{score:>3}", fill=score_color, font=MONO_BOLD)
-        draw.text((left + 340, y), grade, fill=score_color, font=MONO_BOLD)
-        draw.text((left + 410, y), f"{change:>3}", fill=COLORS["green"] if change != "-" else COLORS["muted"], font=MONO_SMALL)
-        draw.line((left + 485, y - 3, left + 485, y + 25), fill=COLORS["border"], width=1)
-        draw.text((left + 505, y), commit, fill=COLORS["muted"], font=MONO_SMALL)
-
-    chart_left, chart_top, chart_right, chart_bottom = split + 65, top + 92, right - 45, bottom - 96
-    draw.text((split + 45, top + 28), "Score trend", fill=COLORS["text"], font=MONO_BOLD)
-    for score in (80, 90, 100):
-        y = chart_bottom - int((score - 80) / 20 * (chart_bottom - chart_top))
-        draw.line((chart_left, y, chart_right, y), fill="#26384E", width=1)
-        draw.text((chart_left - 40, y - 10), str(score), fill=COLORS["muted"], font=BADGE)
-
-    points: list[tuple[int, int]] = []
-    for index, (_, score, _, _, _) in enumerate(HISTORY_ROWS[:visible_rows]):
-        x = chart_left + int(index * (chart_right - chart_left) / (len(HISTORY_ROWS) - 1))
-        y = chart_bottom - int((score - 80) / 20 * (chart_bottom - chart_top))
-        points.append((x, y))
-    if len(points) > 1:
-        draw.line(points, fill=COLORS["cyan"], width=5, joint="curve")
-    for index, (x, y) in enumerate(points):
-        draw.ellipse((x - 8, y - 8, x + 8, y + 8), fill=COLORS["green"], outline="#D7FFE0", width=2)
-        draw.text((x - 12, chart_bottom + 20), f"#{index + 1}", fill=COLORS["muted"], font=BADGE)
-
-    if visible_rows == len(HISTORY_ROWS):
-        draw.rounded_rectangle((left + 27, bottom - 57, right - 27, bottom - 17), radius=8, fill="#123B32", outline="#286B57")
-        draw.text((left + 47, bottom - 47), "TREND: +18 OVERALL — EVERY CHANGE HAS EVIDENCE", fill=COLORS["green"], font=FOOTER)
-
-    draw.text((60, 632), "Turn instruction quality from a one-time score into a reviewable engineering signal.", fill=COLORS["muted"], font=FOOTER)
-    draw.text((1055, 632), "v0.18", fill=COLORS["cyan"], font=FOOTER)
-    return image
+    checks = setup_checks()
+    frames = []
+    for step in range(3):
+        image, draw = canvas("QUICK START", "Install. Initialize. Verify.", "A local check confirms the files, policy, and Git baseline.")
+        card(draw, (58, 205, 1142, 586))
+        draw.text((82, 231), "$ python -m pip install agent-config-score==" + RELEASE, font=MONO, fill=WHITE)
+        if step >= 1:
+            draw.text((82, 295), "$ agent-config-score init", font=MONO, fill=WHITE)
+            draw.text((82, 337), ".agentconfigscore.json  +  GitHub workflow", font=TEXT, fill=MINT)
+        if step >= 2:
+            draw.text((82, 399), "$ agent-config-score doctor", font=MONO, fill=WHITE)
+            for index, (name, status) in enumerate(checks):
+                column, row = divmod(index, 2)
+                draw.text((82 + 485 * column, 461 + 47 * row), f"{status.upper()}  {name}", font=MONO, fill=MINT)
+        draw.text((58, 620), "Commit the generated policy and workflow to enable the PR check.", font=LABEL, fill=SOFT)
+        frames.append(image)
+    save_gif(frames, [1200, 1450, 4200], output)
 
 
 def render_history(output: Path) -> None:
-    frames = [_history_frame(0)]
-    durations = [800]
-    for visible in range(1, len(HISTORY_ROWS) + 1):
-        frames.append(_history_frame(visible))
-        durations.append(650)
-    frames.append(_history_frame(len(HISTORY_ROWS)))
-    durations.append(3600)
-    _save_gif(frames, durations, output)
+    scores = history_scores()
+    if len(scores) != 3:
+        raise RuntimeError(f"Expected three recorded scores, got {scores}")
+    frames = []
+    for visible in range(1, len(scores) + 1):
+        image, draw = canvas("SCORE HISTORY", "Follow the change over time.", "$ agent-config-score history")
+        card(draw, (58, 206, 1142, 586))
+        points = [(224 + 376 * i, 352 + (max(scores) - score) * 6) for i, score in enumerate(scores)]
+        if visible > 1:
+            draw.line(points[:visible], fill=MINT, width=4)
+        for index, (x, y) in enumerate(points[:visible]):
+            draw.ellipse((x - 8, y - 8, x + 8, y + 8), fill=MINT if index != 1 else CORAL)
+            draw.text((x, y - 66), str(scores[index]), anchor="ma", font=SCORE, fill=WHITE)
+        for index, label in enumerate(("Baseline", "Risk added", "Risk resolved")):
+            draw.text((224 + 376 * index, 526), label, anchor="ma", font=TEXT, fill=SOFT)
+        draw.text((58, 620), "Three recorded scores from the local regression fixture", font=LABEL, fill=SOFT)
+        frames.append(image)
+    save_gif(frames, [900, 1150, 4000], output)
 
 
-def _save_gif(frames: list[Image.Image], durations: list[int], output: Path) -> None:
-    output.parent.mkdir(parents=True, exist_ok=True)
-    palette_frames = [frame.quantize(colors=128, method=Image.Quantize.MEDIANCUT) for frame in frames]
-    palette_frames[0].save(
-        output,
-        save_all=True,
-        append_images=palette_frames[1:],
-        duration=durations,
-        loop=0,
-        disposal=2,
-        optimize=True,
-    )
-
-
-def render_social_preview(output: Path) -> None:
-    width, height = 1280, 640
-    image = Image.new("RGB", (width, height), COLORS["page"])
+def render_social(output: Path, report: dict) -> None:
+    image = Image.new("RGB", (1280, 640), INK)
     draw = ImageDraw.Draw(image)
-
-    for y in range(height):
-        ratio = y / (height - 1)
-        start = (7, 17, 31)
-        end = (12, 31, 52)
-        color = tuple(round(start[channel] * (1 - ratio) + end[channel] * ratio) for channel in range(3))
-        draw.line((0, y, width, y), fill=color)
-    draw.ellipse((790, -320, 1450, 340), fill="#12314B")
-    draw.ellipse((990, 330, 1390, 730), fill="#0E3A35")
-
-    draw.text((74, 60), "AgentConfigScore", fill=COLORS["text"], font=SOCIAL_TITLE)
-    draw.text(
-        (78, 137),
-        "Stop AI-agent instruction regressions before they merge.",
-        fill=COLORS["text"],
-        font=SOCIAL_TAGLINE,
-    )
-    draw.text(
-        (79, 184),
-        "A tamper-resistant regression gate for AGENTS.md, CLAUDE.md, Cursor, Copilot, and Gemini.",
-        fill=COLORS["muted"],
-        font=SUBTITLE,
-    )
-
-    chips = ("AGENTS.md", "CLAUDE.md", "CURSOR", "COPILOT", "GEMINI")
-    chip_x = 79
-    for chip in chips:
-        chip_width = int(draw.textlength(chip, font=BADGE)) + 30
-        draw.rounded_rectangle(
-            (chip_x, 227, chip_x + chip_width, 263),
-            radius=18,
-            fill="#162A40",
-            outline="#31506E",
-        )
-        draw.text((chip_x + 15, 237), chip, fill=COLORS["cyan"], font=BADGE)
-        chip_x += chip_width + 12
-
-    card = (74, 310, 866, 552)
-    draw.rounded_rectangle(card, radius=18, fill=COLORS["window"], outline=COLORS["border"], width=2)
-    draw.rounded_rectangle((74, 310, 866, 356), radius=18, fill=COLORS["chrome"])
-    draw.rectangle((74, 340, 866, 356), fill=COLORS["chrome"])
-    for index, color in enumerate(("#FF5F57", "#FEBC2E", "#28C840")):
-        x = 98 + index * 25
-        draw.ellipse((x, 327, x + 12, 339), fill=color)
-    draw.text((286, 324), "pull request check", fill=COLORS["muted"], font=BADGE)
-    draw.text((105, 383), "$ agent-config-score diff origin/main", fill=COLORS["text"], font=MONO)
-    draw.text((105, 430), "A 100", fill=COLORS["green"], font=MONO_BOLD)
-    draw.text((175, 430), "→", fill=COLORS["muted"], font=MONO)
-    draw.text((213, 430), "B 82 (-18)", fill=COLORS["amber"], font=MONO_BOLD)
-    draw.rounded_rectangle((105, 478, 835, 524), radius=9, fill="#291B20", outline="#71333A")
-    draw.text((128, 490), "POLICY RESULT: BLOCKED", fill=COLORS["red"], font=MONO_BOLD)
-
-    score_center = (1050, 360)
-    draw.ellipse((922, 232, 1178, 488), fill="#10283B", outline="#286B57", width=4)
-    draw.text((score_center[0], 274), "SELF-SCAN", anchor="mm", fill=COLORS["muted"], font=SOCIAL_SCORE_LABEL)
-    draw.text((score_center[0], 367), "A 100", anchor="mm", fill=COLORS["green"], font=SOCIAL_SCORE)
-    draw.text((score_center[0], 429), "DETERMINISTIC", anchor="mm", fill=COLORS["cyan"], font=SOCIAL_SCORE_LABEL)
-
-    draw.text((78, 586), "github.com/LE0-Lin/AgentConfigScore", fill=COLORS["cyan"], font=FOOTER)
-    draw.text((931, 586), "PYTHON 3.10+  ·  ZERO RUNTIME DEPS", fill=COLORS["muted"], font=BADGE)
-
-    output.parent.mkdir(parents=True, exist_ok=True)
+    draw.rectangle((0, 0, 1280, 7), fill=MINT)
+    draw.text((66, 52), "AGENT CONFIG REVIEW   /   LOCAL STATIC ANALYSIS", font=LABEL, fill=MINT)
+    draw.text((62, 96), "AgentConfigScore", font=font(70, bold=True), fill=WHITE)
+    draw.text((66, 200), "Same score. New review finding.", font=HEADING, fill=SOFT)
+    card(draw, (66, 280, 1214, 534))
+    draw.text((94, 310), "REVIEWED BASELINE", font=LABEL, fill=SOFT)
+    draw.text((690, 310), "PROPOSED CHANGE", font=LABEL, fill=SOFT)
+    draw.text((94, 353), f"docs/AGENTS.md   {report['base']['score']}", font=MONO, fill=WHITE)
+    draw.text((690, 353), f"AGENTS.md   {report['head']['score']}", font=MONO, fill=WHITE)
+    draw.line((94, 410, 1186, 410), fill=EDGE, width=2)
+    draw.text((94, 443), report["new_findings"][0]["code"], font=HEADING, fill=CORAL)
+    draw.text((1186, 455), "EXIT 1", anchor="ra", font=LABEL, fill=CORAL)
+    draw.text((66, 576), "BASELINE POLICY  /  SOURCE-LOCATED FINDINGS  /  CI REVIEW", font=LABEL, fill=SOFT)
+    draw.text((1214, 576), "v" + RELEASE, anchor="ra", font=LABEL, fill=MINT)
     image.save(output, format="PNG", optimize=True)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--all", action="store_true", help="Render the complete visual demo gallery")
+    parser.add_argument("--output", type=Path, default=ASSETS / "agent-config-score-demo.gif")
+    parser.add_argument("--all", action="store_true", help="Render all GIFs and the share card")
     args = parser.parse_args()
-    outputs = [(render, args.output)]
+    if cli("--version", cwd=ROOT).strip() != f"AgentConfigScore {RELEASE}":
+        parser.error(f"Install agent-config-score=={RELEASE} in the rendering environment")
+    report = comparison()
+    render_regression(args.output, report)
     if args.all:
-        outputs.extend(
-            [
-                (render_setup, SETUP_OUTPUT),
-                (render_history, HISTORY_OUTPUT),
-                (render_social_preview, SOCIAL_OUTPUT),
-            ]
-        )
-    for renderer, output in outputs:
-        renderer(output)
-        print(f"wrote {output} ({output.stat().st_size:,} bytes)")
+        render_setup(ASSETS / "agent-config-score-setup.gif")
+        render_history(ASSETS / "agent-config-score-history.gif")
+        render_social(ASSETS / "agent-config-score-social-preview.png", report)
 
 
 if __name__ == "__main__":
