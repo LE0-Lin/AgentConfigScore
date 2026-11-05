@@ -1,9 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="146" height="20" role="img" aria-label="agent config: A 100">
-  <linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
-  <clipPath id="r"><rect width="146" height="20" rx="3" fill="#fff"/></clipPath>
-  <g clip-path="url(#r)"><rect width="88" height="20" fill="#555"/><rect x="88" width="58" height="20" fill="#4c1"/><rect width="146" height="20" fill="url(#s)"/></g>
-  <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
-    <text x="44.0" y="15" fill="#010101" fill-opacity=".3">agent config</text><text x="44.0" y="14">agent config</text>
-    <text x="117.0" y="15" fill="#010101" fill-opacity=".3">A 100</text><text x="117.0" y="14">A 100</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="244" viewBox="0 0 1200 244" role="img" aria-labelledby="title desc">
+  <title id="title">AgentConfigScore</title>
+  <desc id="desc">Local regression review for coding-agent instructions</desc>
+  <defs>
+    <linearGradient id="panel" x2="1" y2="1"><stop stop-color="#0B1422"/><stop offset="1" stop-color="#172C39"/></linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0v28" fill="none" stroke="#426277" stroke-opacity=".28"/></pattern>
+  </defs>
+  <rect width="1200" height="244" rx="22" fill="url(#panel)"/>
+  <rect x="811" y="18" width="371" height="208" rx="14" fill="url(#grid)"/>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="57" y="62" fill="#76E5C1" font-size="17" font-weight="700" letter-spacing="2">CODING AGENT INSTRUCTION REVIEW</text>
+    <text x="53" y="132" fill="#ECF3F8" font-size="63" font-weight="700">AgentConfigScore</text>
+    <text x="57" y="181" fill="#A9BED0" font-size="23">Baseline policies, actionable findings, and local analysis.</text>
+    <rect x="850" y="63" width="110" height="115" rx="12" fill="#111E2D" stroke="#587184"/>
+    <rect x="1008" y="63" width="110" height="115" rx="12" fill="#111E2D" stroke="#76E5C1"/>
+    <path d="M960 120h46m-10-8 10 8-10 8" fill="none" stroke="#76E5C1" stroke-width="3"/>
+    <path d="M873 100h64m-64 21h53m-53 21h61m97-42h62m-62 21h48m-48 21h63" fill="none" stroke="#A9BED0" stroke-width="4" stroke-linecap="round"/>
+    <text x="905" y="202" text-anchor="middle" fill="#A9BED0" font-size="14" font-weight="700">BASELINE</text>
+    <text x="1063" y="202" text-anchor="middle" fill="#76E5C1" font-size="14" font-weight="700">CANDIDATE</text>
   </g>
 </svg>

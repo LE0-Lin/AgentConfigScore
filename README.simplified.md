@@ -4,9 +4,11 @@
 
 在合并前发现 AI 编程助手指令中的已知退化。
 
-![AgentConfigScore 演示](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif)
+![两次扫描都是 100 分，指令文件移动触发复核，比较返回 1](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif?v=0.24.0)
 
 [安装演示](#快速开始) · [分数历史演示](#分数历史演示) · [完整演示图集](docs/visual-tour.md)
+
+演示基于一条已合并的 PR。指令文件原样移到仓库根目录，前后都得 100 分，比较结果仍指出需要复核的旧路径。[复跑精简案例](examples/instruction-move/README.md)。
 
 AgentConfigScore 检查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini 等配置，并比较改动前后的基线，回答一个具体问题：**这次改动是否引入了已知规则能检测到的风险？**
 
@@ -17,7 +19,7 @@ AgentConfigScore 检查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini �
 | PR 放宽自己的阈值或增加豁免 | 正常比较仍使用基线策略；调用方的显式覆盖需单独审核 |
 | 接受已知例外 | 必须填写原因和到期日期，并保留审计记录 |
 
-![工作流程图，展示仓库初始化、基线回归检查与报告留存](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg)
+![工作流程图，展示仓库初始化、基线回归检查与报告留存](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg?v=0.24.0)
 
 它是确定性检查器，不是 AI 评委。**A 100 只表示没有命中生效的规则，不表示指令有用、语义完美或安全无误。** 中文文档也不意味着检测器已经能够理解任意中文指令。
 
@@ -37,9 +39,9 @@ agent-config-score diff
 
 `acs` 是短命令别名。v0.23.0+ 还可以使用 `python -m agent_config_score`，避免终端 PATH 没有找到命令的问题。
 
-![终端演示，展示安装、初始化与 doctor 检查](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif)
+![终端演示，展示安装、初始化与 doctor 检查](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif?v=0.24.0)
 
-*动图以 v0.18 为例展示接入步骤。当前版本请按上方命令安装。*
+*动图使用 v0.24.0 展示本地样例的接入步骤和部分 `doctor` 检查结果。*
 
 - [简体中文使用指南](docs/simplified/user-guide.md)：安装、基线、报告、退出码与排错。
 - [分数含义与限制](docs/simplified/limitations.md)：先了解什么能检出、什么仍可能漏掉。
@@ -155,8 +157,8 @@ jobs:
 
 ## 分数历史演示
 
-![分数历史示例，逐条显示日期、分数、变化与提交](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif)
+![本地样例记录的分数从 100 降至 82，移除风险后回到 100](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=0.24.0)
 
-示例展示 `agent-config-score history` 如何把每次评分和对应提交放在一起。[历史工作流（英文）](docs/score-history.md)
+图中的三次评分由 `agent-config-score history` 读取。[历史工作流（英文）](docs/score-history.md)
 
 项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.24.0.md)目前为英文。

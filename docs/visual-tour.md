@@ -1,6 +1,6 @@
 # Visual tour
 
-AgentConfigScore turns deterministic coding-agent instruction risks into something a team can see, review, and enforce. It does not certify semantic prompt quality; see the [score contract](limitations.md). These demos use representative CLI output and map directly to shipped commands.
+The gallery visualizes findings, setup checks, and recorded scores from v0.24.0 on local fixtures. The animations condense the CLI results into review cards. [Read the score contract](limitations.md).
 
 ## Shareable project card
 
@@ -10,11 +10,11 @@ The solid-background 1280×640 project card is optimized for GitHub link preview
 
 ## Catch a regression before merge
 
-![AgentConfigScore detects an instruction regression and blocks the pull request](../assets/agent-config-score-demo.gif)
+![Both snapshots score 100, but the instruction-file-removed finding requests review](../assets/agent-config-score-demo.gif)
 
-`agent-config-score diff` compares the candidate with a safe baseline. A new error or disallowed score drop blocks the pull request without letting the candidate weaken its own policy.
+This `compare` run checks a byte-identical instruction moved across directories. The baseline policy gates the new finding, so the run returns exit 1 even though the scores match. [Reproduce the anonymized fixture](../examples/instruction-move/README.md).
 
-## Protect a repository in three commands
+## Set up a repository
 
 ![Install AgentConfigScore, initialize a repository, and verify the integration](../assets/agent-config-score-setup.gif)
 
@@ -22,9 +22,9 @@ The normal setup path is intentionally small: install from PyPI, run `init`, the
 
 ## Make known-risk changes visible over time
 
-![AgentConfigScore history improves from 82 to 100](../assets/agent-config-score-history.gif)
+![Three recorded scores from a local unsafe-shell fixture](../assets/agent-config-score-history.gif)
 
-Local history provides a human-readable trend. The reusable score-history workflow can also preserve immutable JSON, HTML, and badge artifacts for default-branch commits.
+The chart shows the stored scores for baseline, risk added, and risk resolved. The reusable score-history workflow can preserve JSON, HTML, and badge artifacts for default-branch commits.
 
 ## How the pieces fit
 
@@ -34,10 +34,10 @@ The regression gate answers whether a pull request introduced a detected regress
 
 ## Regenerate the gallery
 
-The GIFs and social preview are generated from a source-controlled Pillow renderer rather than recorded from a particular operating system or shell:
+Run the renderer in a Python 3.12 environment with Git available. It reads the installed release's CLI results, including the regression exit and selected `doctor` checks from a disposable Git repository. Font selection depends on the rendering host.
 
 ```bash
-python -m pip install pillow
+python -m pip install agent-config-score==0.24.0 pillow==12.3.0
 python scripts/render_demo_gif.py --all
 ```
 
