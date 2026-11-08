@@ -1,6 +1,6 @@
 # Visual tour
 
-The gallery visualizes findings, setup checks, and recorded scores from v0.24.0 on local fixtures. The animations condense the CLI results into review cards. [Read the score contract](limitations.md).
+The gallery visualizes findings, setup checks, and recorded scores from v0.24.0 on local fixtures. The terminal animations use condensed CLI results, with typing and timing added for presentation. [Read the score contract](limitations.md).
 
 ## Shareable project card
 
@@ -10,9 +10,22 @@ The solid-background 1280×640 project card is optimized for GitHub link preview
 
 ## Catch a regression before merge
 
-![Both snapshots score 100, but the instruction-file-removed finding requests review](../assets/agent-config-score-demo.gif)
+![A remote-shell instruction lowers the score from 100 to 82 and fails the new-error gate](../assets/agent-config-score-demo.gif)
 
-This `compare` run checks a byte-identical instruction moved across directories. The baseline policy gates the new finding, so the run returns exit 1 even though the scores match. [Reproduce the anonymized fixture](../examples/instruction-move/README.md).
+Adding a remote-shell instruction produces `curl-pipe-shell` at `AGENTS.md:5`. The scores, grade, finding, and exit are read from the installed release. From a checkout, reproduce the comparison with the following commands. Exit 1 is expected.
+
+```bash
+cd tests/fixtures/contracts/regression/unsafe-shell
+agent-config-score compare base head --fail-on-new-errors --max-drop 0
+```
+
+The fixture contains the remote-shell command as instruction text. The renderer scans that text without executing it.
+
+## Review a scope move with an unchanged score
+
+![Both snapshots score 100, but the instruction-file-removed finding requests review](../assets/agent-config-score-instruction-move.gif)
+
+This additional `compare` run checks a byte-identical instruction moved across directories. The baseline policy gates the new finding, so the run returns exit 1 even though the scores match. [Reproduce the anonymized PR fixture](../examples/instruction-move/README.md).
 
 ## Set up a repository
 
@@ -24,7 +37,7 @@ The normal setup path is intentionally small: install from PyPI, run `init`, the
 
 ![Three recorded scores from a local unsafe-shell fixture](../assets/agent-config-score-history.gif)
 
-The chart shows the stored scores for baseline, risk added, and risk resolved. The reusable score-history workflow can preserve JSON, HTML, and badge artifacts for default-branch commits.
+The table and chart show three local fixture snapshots for baseline, risk added, and risk resolved. They use the stored scores and grades read back with `history --json`. The reusable score-history workflow can preserve JSON, HTML, and badge artifacts for default-branch commits.
 
 ## How the pieces fit
 

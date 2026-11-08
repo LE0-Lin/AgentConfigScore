@@ -23,14 +23,16 @@ reports rule-defined regressions, and uses reviewed baseline policies for CI
 decisions. No model API or runtime dependencies are needed.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif?v=0.24.0" alt="Both snapshots score 100, but moving the instruction file triggers review and exit 1" width="100%" />
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif?v=terminal-024" alt="A remote-shell instruction lowers the fixture score from 100 to 82 and the new-error gate returns exit 1" width="100%" />
 </p>
 
 [Setup demo](#quick-start) · [Workflow diagram](#what-it-helps-you-review) · [Score history demo](#score-history-demo) · [Visual gallery](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/visual-tour.md)
 
-The demo replays a change drawn from a merged PR. An instruction file moves to
-the root with identical text. Both scans score 100, and the comparison flags
-the original path for review. [Reproduce the reduced case](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/instruction-move/README.md).
+The demo uses v0.24.0 on a local fixture. Adding a remote-shell instruction
+lowers the score from 100 to 82, identifies `AGENTS.md:5`, and fails the
+new-error gate. The gallery also includes an instruction move drawn from a
+merged PR, where both scores stay 100.
+[Reproduce the reduced PR case](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/instruction-move/README.md).
 
 **A 100 means no active deterministic rule matched.** It does not certify
 instruction usefulness, semantic correctness or safety.
@@ -73,7 +75,7 @@ without fetching; use `agent-config-score diff origin/main` when you want an
 explicit ref. The [user guide](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/user-guide.md)
 covers setup, exits and troubleshooting.
 
-![Terminal demo showing package installation, init, and doctor](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif?v=0.24.0)
+![Terminal demo showing package installation, init, and doctor](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif?v=terminal-024)
 
 *The v0.24.0 demo shows setup and selected checks from `doctor` in a local fixture.*
 
@@ -195,7 +197,7 @@ and [privacy-minimized feedback drafts](https://github.com/LE0-Lin/AgentConfigSc
 
 ## Score history demo
 
-![Recorded fixture scores fall from 100 to 82 after a risk is added, then recover to 100 when it is removed](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=0.24.0)
+![Recorded fixture scores fall from 100 to 82 after a risk is added, then recover to 100 when it is removed](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=terminal-024)
 
 The chart shows three locally recorded fixture scores read by
 `agent-config-score history`. [Set up the history workflow.](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/score-history.md)

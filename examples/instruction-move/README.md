@@ -1,5 +1,7 @@
 # An instruction moves to a new scope
 
+![An instruction move requests review while both scores stay 100](../../assets/agent-config-score-instruction-move.gif)
+
 A merged public PR moved `docs/AGENTS.md` to the repository root with an identical Git blob. Replaying its full before and after trees with v0.24.0 produced 100 on both sides. With new errors gated, the comparison reported `instruction-file-removed` for the former path and exited 1. The PR described the move as intentional so agents could discover the file at the root. The finding identifies the original path to review when approving the migration.
 
 This reduced example uses original sample wording and adds a repository policy so the result can be reproduced offline from a checkout. Its input captures the same path change and preserves identical instruction bytes. Project and contributor identities are omitted.
