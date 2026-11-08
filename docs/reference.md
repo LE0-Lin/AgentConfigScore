@@ -193,7 +193,7 @@ Without a policy file, the Action preserves its conservative compatibility defau
 Optionally record a read-only score snapshot whenever your default branch changes:
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=0.24.0" alt="Recorded scores for baseline, risk added, and risk resolved" width="100%" />
+  <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=terminal-024" alt="Recorded scores for baseline, risk added, and risk resolved" width="100%" />
 </p>
 
 ```yaml

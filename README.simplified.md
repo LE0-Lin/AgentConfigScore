@@ -4,11 +4,11 @@
 
 在合并前发现 AI 编程助手指令中的已知退化。
 
-![两次扫描都是 100 分，指令文件移动触发复核，比较返回 1](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif?v=0.24.0)
+![远程脚本指令使样例分数从 100 降至 82，新增错误门禁返回 1](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif?v=terminal-024)
 
 [安装演示](#快速开始) · [分数历史演示](#分数历史演示) · [完整演示图集](docs/visual-tour.md)
 
-演示基于一条已合并的 PR。指令文件原样移到仓库根目录，前后都得 100 分，比较结果仍指出需要复核的旧路径。[复跑精简案例](examples/instruction-move/README.md)。
+演示使用 v0.24.0 扫描本地样例。新增远程脚本指令后，分数从 100 降到 82，工具定位到 `AGENTS.md:5`，新增错误门禁返回 1。图集还保留了取材自已合并 PR 的文件迁移演示，展示前后同为 100 分时的路径复核。[复跑精简 PR 案例](examples/instruction-move/README.md)。
 
 AgentConfigScore 检查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini 等配置，并比较改动前后的基线，回答一个具体问题：**这次改动是否引入了已知规则能检测到的风险？**
 
@@ -39,7 +39,7 @@ agent-config-score diff
 
 `acs` 是短命令别名。v0.23.0+ 还可以使用 `python -m agent_config_score`，避免终端 PATH 没有找到命令的问题。
 
-![终端演示，展示安装、初始化与 doctor 检查](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif?v=0.24.0)
+![终端演示，展示安装、初始化与 doctor 检查](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-setup.gif?v=terminal-024)
 
 *动图使用 v0.24.0 展示本地样例的接入步骤和部分 `doctor` 检查结果。*
 
@@ -157,7 +157,7 @@ jobs:
 
 ## 分数历史演示
 
-![本地样例记录的分数从 100 降至 82，移除风险后回到 100](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=0.24.0)
+![本地样例记录的分数从 100 降至 82，移除风险后回到 100](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-history.gif?v=terminal-024)
 
 图中的三次评分由 `agent-config-score history` 读取。[历史工作流（英文）](docs/score-history.md)
 

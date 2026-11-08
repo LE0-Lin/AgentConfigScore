@@ -14,6 +14,7 @@ class VisualAssetContractTests(unittest.TestCase):
             "agent-config-score-demo.gif",
             "agent-config-score-setup.gif",
             "agent-config-score-history.gif",
+            "agent-config-score-instruction-move.gif",
         ):
             path = ASSETS / name
             data = path.read_bytes()
@@ -56,6 +57,7 @@ class VisualAssetContractTests(unittest.TestCase):
             "agent-config-score-demo.gif",
             "agent-config-score-setup.gif",
             "agent-config-score-history.gif",
+            "agent-config-score-instruction-move.gif",
             "agent-config-score-workflow.svg",
             "agent-config-score-social-preview.png",
         ):
