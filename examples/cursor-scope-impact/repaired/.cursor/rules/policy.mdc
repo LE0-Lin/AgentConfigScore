@@ -1,0 +1,5 @@
+---
+globs: "src/api/**, src/web/**"
+alwaysApply: false
+---
+Never delete files without approval.

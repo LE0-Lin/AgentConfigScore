@@ -19,7 +19,7 @@ from urllib.parse import unquote, urlsplit
 from .config import Suppression
 from .provenance import ToolIdentity, capture_tool_identity
 from .rules import CATEGORY_CAPS, PATTERN_RULES, RULES_BY_CODE
-from .scopes import PROFILE as CURSOR_SCOPE_PROFILE, normalize_targets, parse_cursor_rule
+from .scopes import PROFILE as CURSOR_SCOPE_PROFILE, CursorRuleModel, ScopeInputError, normalize_targets, parse_cursor_rule
 
 AGENTS_FILENAMES = {"AGENTS.md", "AGENTS.override.md"}
 AGENTS_FILENAMES_CASEFOLD = {name.casefold() for name in AGENTS_FILENAMES}
@@ -1331,6 +1331,25 @@ def analyze_cursor_scope(root: Path, targets: list[str]) -> dict:
 
 def _cursor_scope_snapshot(root: Path, target_paths: tuple[str, ...]) -> tuple[dict, dict]:
     """Capture each source once for both activation and directive evidence."""
+    return _evaluate_cursor_scope(_capture_cursor_scope(root), target_paths)
+
+
+@dataclass(frozen=True)
+class _CapturedCursorRule:
+    model: CursorRuleModel
+    source_sha256: str | None
+    interpretable: bool
+    directives: tuple[tuple[str, str, int], ...]
+
+
+@dataclass(frozen=True)
+class _CapturedCursorScope:
+    identity: ToolIdentity
+    other_supported_sources: int
+    rules: tuple[_CapturedCursorRule, ...]
+
+
+def _capture_cursor_scope(root: Path) -> _CapturedCursorScope:
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise OSError(errno.ENOTDIR, "Scope repository must be a directory")
@@ -1338,8 +1357,6 @@ def _cursor_scope_snapshot(root: Path, target_paths: tuple[str, ...]) -> tuple[d
     discovered = discover(root)
     sources = [path for path in discovered if path.relative_to(root).as_posix().startswith(".cursor/rules/")]
     rules = []
-    directives = defaultdict(lambda: {"pos": [], "neg": []})
-    directive_index = defaultdict(list)
     for path in sources:
         file = path.relative_to(root).as_posix()
         text = ""
@@ -1352,28 +1369,40 @@ def _cursor_scope_snapshot(root: Path, target_paths: tuple[str, ...]) -> tuple[d
             except OSError as exc:
                 raise OSError(exc.errno, "Unable to read Cursor scope source") from exc
         model = parse_cursor_rule(file, text)
-        activation = model.activate(target_paths)
-        activation["source_sha256"] = (hashlib.sha256(text.encode("utf-8")).hexdigest()
-                                       if path.suffix == ".mdc" else None)
+        digest = hashlib.sha256(text.encode("utf-8")).hexdigest() if path.suffix == ".mdc" else None
         if model.body_line is None:
             candidates, interpretable = [], False
         else:
             body = "\n".join(text.lstrip("\ufeff").splitlines()[model.body_line - 1:])
             candidates, open_example = _guardrail_policy_context(body)
             interpretable = not open_example and re.search(r"</?[A-Za-z]", body) is None
-        activation["directive_analysis"] = "bounded_prose" if interpretable else "not_interpreted"
+        captured = []
+        if interpretable:
+            for number, line in candidates:
+                for polarity, body, _ in _directives(line):
+                    key = hashlib.sha256(body.encode("utf-8")).hexdigest()
+                    captured.append((polarity, key, model.body_line + number - 1))
+        rules.append(_CapturedCursorRule(model, digest, interpretable, tuple(captured)))
+    return _CapturedCursorScope(identity, len(discovered) - len(sources), tuple(rules))
+
+
+def _evaluate_cursor_scope(capture: _CapturedCursorScope, target_paths: tuple[str, ...]) -> tuple[dict, dict]:
+    """Evaluate captured metadata repeatedly without reopening instruction files."""
+    rules = []
+    directives = defaultdict(lambda: {"pos": [], "neg": []})
+    directive_index = defaultdict(list)
+    for captured in capture.rules:
+        activation = captured.model.activate(target_paths)
+        activation["source_sha256"] = captured.source_sha256
+        activation["directive_analysis"] = "bounded_prose" if captured.interpretable else "not_interpreted"
         activation["recognized_directives"] = 0
         rules.append(activation)
-        if not interpretable:
-            continue
-        for number, line in candidates:
-            for polarity, body, _ in _directives(line):
-                key = hashlib.sha256(body.encode("utf-8")).hexdigest()
-                source = {"file": file, "line": model.body_line + number - 1, "polarity": polarity}
-                directive_index[(polarity, key)].append(source)
-                if activation["activation"] != "inactive":
-                    activation["recognized_directives"] += 1
-                    directives[key][polarity].append(source)
+        for polarity, key, number in captured.directives:
+            source = {"file": captured.model.file, "line": number, "polarity": polarity}
+            directive_index[(polarity, key)].append(source)
+            if activation["activation"] != "inactive":
+                activation["recognized_directives"] += 1
+                directives[key][polarity].append(source)
     by_file = {rule["file"]: rule for rule in rules}
     pairs = sum(len(rows["pos"]) * len(rows["neg"]) for rows in directives.values())
     if pairs > 10000:
@@ -1391,13 +1420,13 @@ def _cursor_scope_snapshot(root: Path, target_paths: tuple[str, ...]) -> tuple[d
     signals.sort(key=lambda row: (row["sources"][0]["file"], row["sources"][0]["line"],
                                  row["sources"][1]["file"], row["sources"][1]["line"], row["directive_sha256"]))
     report = {"schema_version": 1, "analysis": "cursor_file_context", "profile": CURSOR_SCOPE_PROFILE,
-            "tool": identity.to_dict(), "status": "completed", "scored": False,
+            "tool": capture.identity.to_dict(), "status": "completed", "scored": False,
             "targets": list(target_paths), "targets_existence_checked": False,
             "observed_agent_context": False, "activation_inputs": "declared_file_paths_only",
             "unmodelled_inputs": ["manual_mentions", "model_selection", "user_team_rules", "runtime_settings", "other_instruction_formats"],
             "rules": rules, "opposing_directives": signals,
             "summary": {"rules": len(rules),
-                        "other_supported_sources": len(discovered) - len(sources),
+                        "other_supported_sources": capture.other_supported_sources,
                         **{state: sum(rule["activation"] == state for rule in rules) for state in ("active", "inactive", "unknown")},
                         "uninterpreted_bodies": sum(rule["directive_analysis"] == "not_interpreted" for rule in rules),
                         "active_signals": sum(row["activation"] == "active" for row in signals),
@@ -1432,6 +1461,11 @@ def compare_cursor_scope(base_root: Path, head_root: Path, targets: list[str]) -
     target_paths = normalize_targets(targets)
     base, base_index = _cursor_scope_snapshot(base_root, target_paths)
     head, head_index = _cursor_scope_snapshot(head_root, target_paths)
+    return _compare_cursor_scope_reports(base, base_index, head, head_index, target_paths)
+
+
+def _compare_cursor_scope_reports(base: dict, base_index: dict, head: dict, head_index: dict,
+                                 target_paths: tuple[str, ...]) -> dict:
     if base["tool"] != head["tool"]:
         raise OSError(errno.EAGAIN, "Tool identity changed during Cursor scope comparison")
     base_rules = {row["file"]: row for row in base["rules"]}
@@ -1486,6 +1520,146 @@ def compare_cursor_scope(base_root: Path, head_root: Path, targets: list[str]) -
                         "uncertain_directives": uncertain, "unknown_rules": unknown_rules,
                         "uninterpreted_noninactive_bodies": opaque_bodies,
                         "has_unknown": bool(unknown_rules or opaque_bodies)}}
+
+
+MAX_COVERAGE_FILES = 2048
+MAX_COVERAGE_UNITS = 100000
+
+
+def normalize_coverage_roots(values: list[str] | None) -> tuple[str, ...]:
+    values = ["."] if values is None else values
+    if not values or len(values) > 64:
+        raise ScopeInputError("coverage requires 1 to 64 relative directory prefixes")
+    roots = set()
+    for value in values:
+        roots.add("." if value == "." else normalize_targets([value])[0])
+    return (".",) if "." in roots else tuple(sorted(roots))
+
+
+def _cursor_coverage_inventory(root: Path, prefixes: tuple[str, ...]) -> tuple[set[str], dict]:
+    """Inventory names of regular files, without reading their contents."""
+    root = root.resolve(strict=True)
+    files = set()
+    excluded = {"directory_aliases": 0, "file_aliases": 0, "nonregular_files": 0,
+                "dependency_admin_directories": 0}
+
+    def relevant(rel: str, *, ancestor: bool = False) -> bool:
+        return any(prefix == "." or rel.startswith(prefix + "/") or (
+            ancestor and (prefix == rel or prefix.startswith(rel + "/"))) for prefix in prefixes)
+
+    for directory, dirs, names in os.walk(root, followlinks=False, onerror=_path_index_error):
+        descend = []
+        for name in dirs:
+            path = Path(directory) / name
+            if not relevant(path.relative_to(root).as_posix(), ancestor=True):
+                continue
+            if name in PATH_INDEX_SKIP_DIRS:
+                excluded["dependency_admin_directories"] += 1
+                continue
+            info = path.lstat()
+            if stat.S_ISLNK(info.st_mode) or (getattr(info, "st_file_attributes", 0)
+                                              & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)):
+                excluded["directory_aliases"] += 1
+                continue
+            descend.append(name)
+        dirs[:] = descend
+        for name in names:
+            path = Path(directory) / name
+            rel = path.relative_to(root).as_posix()
+            if not relevant(rel):
+                continue
+            info = path.lstat()
+            if stat.S_ISLNK(info.st_mode) or (getattr(info, "st_file_attributes", 0)
+                                              & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)):
+                excluded["file_aliases"] += 1
+                continue
+            if not stat.S_ISREG(info.st_mode):
+                excluded["nonregular_files"] += 1
+                continue
+            normalized = normalize_targets([rel])[0]
+            if normalized != rel:
+                raise ScopeInputError("coverage file name is outside the portable path profile")
+            files.add(rel)
+            if len(files) > MAX_COVERAGE_FILES:
+                raise ScopeInputError("coverage file limit exceeded; narrow --under prefixes")
+    return files, {"regular_files": len(files), "excluded": excluded}
+
+
+def compare_cursor_coverage(base_root: Path, head_root: Path, *, under: list[str] | None = None) -> dict:
+    """Compare each inventoried path as a separate single-file context.
+
+    This does not observe Cursor, infer multi-file task contexts or read target
+    contents. Rule metadata/directives are captured exactly once per tree.
+    """
+    prefixes = normalize_coverage_roots(under)
+    try:
+        base_capture, head_capture = _capture_cursor_scope(base_root), _capture_cursor_scope(head_root)
+        base_files, base_inventory = _cursor_coverage_inventory(base_root, prefixes)
+        head_files, head_inventory = _cursor_coverage_inventory(head_root, prefixes)
+    except OSError as exc:
+        raise OSError(exc.errno, "Unable to read Cursor coverage sources or file inventory") from exc
+    if base_capture.identity != head_capture.identity:
+        raise OSError(errno.EAGAIN, "Tool identity changed during Cursor coverage comparison")
+    targets = sorted(base_files | head_files)
+    if not targets:
+        raise ScopeInputError("coverage selected no regular files; choose existing directory prefixes")
+    if len(targets) > MAX_COVERAGE_FILES:
+        raise ScopeInputError("coverage union file limit exceeded; narrow --under prefixes")
+    units = 0
+    for capture in (base_capture, head_capture):
+        counts = defaultdict(Counter)
+        for rule in capture.rules:
+            units += 1 + len(rule.directives)
+            for polarity, key, _ in rule.directives:
+                counts[key][polarity] += 1
+        units += sum(count["pos"] * count["neg"] for count in counts.values())
+    if len(targets) * units > MAX_COVERAGE_UNITS:
+        raise ScopeInputError("coverage evaluation limit exceeded; narrow --under prefixes")
+    contexts = []
+    for target in targets:
+        base, base_index = _evaluate_cursor_scope(base_capture, (target,))
+        head, head_index = _evaluate_cursor_scope(head_capture, (target,))
+        comparison = _compare_cursor_scope_reports(base, base_index, head, head_index, (target,))
+        summary = comparison["summary"]
+        unknown = {side: [row["file"] for row in report["rules"] if row["activation"] == "unknown" or (
+            row["activation"] != "inactive" and row["directive_analysis"] == "not_interpreted")]
+                   for side, report in (("base", base), ("head", head))}
+        contexts.append({"target": target, "present_in_base": target in base_files,
+                         "present_in_head": target in head_files,
+                         "baseline_active_directives": summary["baseline_active_directives"],
+                         "retained_active_directives": summary["retained_active_directives"],
+                         "recognized_active_losses": summary["recognized_active_losses"],
+                         "recognized_active_gains": summary["recognized_active_gains"],
+                         "has_unknown": summary["has_unknown"], "unknown_sources": unknown,
+                         "automatic_attachment_losses": [row["file"] for row in comparison["rule_changes"]
+                                                         if row["automatic_attachment_lost"]],
+                         "lost_directives": [row for row in comparison["directive_changes"]
+                                             if row["recognized_active_lost"]]})
+
+    def manifest(capture):
+        return [{"file": row.model.file, "source_sha256": row.source_sha256,
+                 "mode": row.model.mode, "reason": row.model.reason, "metadata_lines": dict(row.model.metadata_lines),
+                 "body_line": row.model.body_line,
+                 "directive_analysis": "bounded_prose" if row.interpretable else "not_interpreted"}
+                for row in capture.rules]
+
+    return {"schema_version": 1, "analysis": "cursor_single_file_coverage_comparison",
+            "profile": CURSOR_SCOPE_PROFILE, "coverage_profile": "cursor-single-file-coverage-v1",
+            "tool": base_capture.identity.to_dict(), "status": "completed", "scored": False,
+            "observed_agent_context": False, "context_model": "each_file_independently",
+            "under": list(prefixes), "comparison_inputs": {"base": "supplied_tree", "head": "supplied_tree"},
+            "file_inventory": {"base": base_inventory, "head": head_inventory, "tracked_only": False,
+                               "selection": "union_of_regular_nonalias_files", "contents_read": False,
+                               "skipped_directory_names": sorted(PATH_INDEX_SKIP_DIRS)},
+            "sources": {"base": manifest(base_capture), "head": manifest(head_capture)},
+            "contexts": contexts,
+            "summary": {"files": len(contexts),
+                        "baseline_covered_files": sum(row["baseline_active_directives"] > 0 for row in contexts),
+                        "files_without_recognized_baseline": sum(row["baseline_active_directives"] == 0 for row in contexts),
+                        "files_with_losses": sum(row["recognized_active_losses"] > 0 for row in contexts),
+                        "recognized_active_losses": sum(row["recognized_active_losses"] for row in contexts),
+                        "files_with_unknown": sum(row["has_unknown"] for row in contexts),
+                        "has_unknown": any(row["has_unknown"] for row in contexts)}}
 
 
 def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...]) -> Suppression | None:

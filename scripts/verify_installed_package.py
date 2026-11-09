@@ -105,6 +105,10 @@ def verify_cursor_scope_impact(commands: list[list[str]], workspace: Path) -> No
     base, head = workspace / "scope base", workspace / "scope head"
     for root in (base, head):
         (root / ".cursor/rules").mkdir(parents=True)
+        for rel in ("src/api/service.py", "src/web/app.ts"):
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("synthetic-target-content-not-read\n", encoding="utf-8")
 
     def text(pattern):
         return f'---\nglobs: "{pattern}"\nalwaysApply: false\n---\nNever expose synthetic-private-invariant-value.\n'
@@ -133,6 +137,19 @@ def verify_cursor_scope_impact(commands: list[list[str]], workspace: Path) -> No
                 and multi["summary"]["retained_active_directives"] == 1,
                 "Remaining multi-file trigger did not preserve attachment")
     require((baseline.read_bytes(), candidate.read_bytes()) == original, "Scope comparison modified input files")
+    for command in commands:
+        coverage_text = run([*command, "scope", "coverage", str(base), str(head), "--under", "src", *strict],
+                            workspace, expected=1)
+        coverage = json.loads(coverage_text)
+        require(coverage["summary"]["files"] == 2 and coverage["summary"]["files_with_losses"] == 1
+                and coverage["contexts"][0]["target"] == "src/api/service.py"
+                and coverage["contexts"][1]["retained_active_directives"] == 1,
+                "Per-file coverage masked a loss with another file's matching trigger")
+        require(coverage["file_inventory"]["contents_read"] is False
+                and coverage["observed_agent_context"] is False and "synthetic-private" not in coverage_text,
+                "Coverage exported private source values or claimed native execution")
+        require(run([*command, "scope", "coverage", str(base), str(head), "--under", "missing", "--json"],
+                    workspace, expected=2) == "", "An empty coverage selection became a passing report")
     candidate.rename(candidate.with_name("renamed.mdc"))
     candidate = candidate.with_name("renamed.mdc")
     candidate.write_bytes(baseline.read_bytes())
@@ -157,8 +174,16 @@ def verify_cursor_scope_impact(commands: list[list[str]], workspace: Path) -> No
         diff = json.loads(run([*command, *git_args], workspace, expected=1))
         require(diff["comparison_inputs"]["base_commit"] == sha and diff["summary"]["recognized_active_losses"] == 1,
                 "Installed Git scope comparison lost baseline identity or change")
+        coverage = json.loads(run([*command, "scope", "coverage", "--base-ref", "HEAD", "--path", str(base),
+                                   "--under", "src", *strict], workspace, expected=1))
+        require(coverage["comparison_inputs"]["base_commit"] == sha
+                and coverage["summary"]["files_with_losses"] == 1,
+                "Installed coverage lost the Git baseline or per-file loss")
     baseline.write_bytes(b"private-invalid-utf8-\xff")
     require(run([*commands[0], *git_args], workspace, expected=2) == "", "Git scope source error emitted partial JSON")
+    require(run([*commands[0], "scope", "coverage", "--base-ref", "HEAD", "--path", str(base),
+                 "--under", "src", "--json"], workspace, expected=2) == "",
+            "Git coverage source error emitted partial JSON")
     worktrees = run(["git", "worktree", "list", "--porcelain"], base)
     require(sum(line.startswith("worktree ") for line in worktrees.splitlines()) == 1,
             "Git scope comparison leaked a baseline worktree")
@@ -197,6 +222,7 @@ def verify(python: Path, expected_version: str) -> list[str]:
         checks.append("Cursor declared-file activation, multi-file opposition, unknown metadata, line evidence and read-only aliases")
         verify_cursor_scope_impact(commands, workspace)
         checks.append("Cursor compare/Git change gate across aliases, retained triggers/renames, unknowns, source privacy and cleanup")
+        checks.append("Cursor per-file coverage across aliases, masked-loss detection, empty selections and pinned Git baseline cleanup")
 
         run([*cli, "init", "--dry-run"], repo)
         require(list(repo.iterdir()) == [], "Dry-run wrote files")

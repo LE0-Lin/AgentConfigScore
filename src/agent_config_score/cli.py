@@ -15,7 +15,8 @@ from .initializer import InitError, WORKFLOW_ACTION_REF, initialize_repository
 from .regression import compare, markdown_report
 from .rules import RULES, get_rule, rule_guidance
 from .sarif import sarif_report
-from .scanner import analyze, analyze_cursor_scope, compare_cursor_scope, badge_svg, html_report
+from .scanner import (analyze, analyze_cursor_scope, compare_cursor_scope, compare_cursor_coverage,
+                      normalize_coverage_roots, badge_svg, html_report)
 from .scopes import ScopeInputError, normalize_targets
 
 RESET = "\033[0m"
@@ -33,6 +34,8 @@ TOP_LEVEL_HELP = """usage:
   agent-config-score scope [PATH] --target FILE [options]
   agent-config-score scope compare BASE HEAD --target FILE [options]
   agent-config-score scope diff [BASE_REF] --target FILE [options]
+  agent-config-score scope coverage BASE HEAD [--under DIRECTORY] [options]
+  agent-config-score scope coverage --base-ref REF [--path PATH] [options]
   agent-config-score diff BASE_REF [options]
   agent-config-score compare BASE HEAD [options]
 
@@ -460,10 +463,12 @@ def _main_guardrails(argv: list[str]) -> int:
 
 
 def _main_scope(argv: list[str]) -> int:
+    if argv and argv[0] == "coverage":
+        return _main_scope_coverage(argv[1:])
     if argv and argv[0] in {"compare", "diff"}:
         return _main_scope_comparison(argv[0], argv[1:])
     parser = argparse.ArgumentParser(prog="agent-config-score scope", description=(
-        "Unscored Cursor rule activation prediction. Use scope compare or scope diff for change impact; not an observed agent run."))
+        "Unscored Cursor activation prediction. Use scope compare/diff for declared contexts, or scope coverage for inventoried single-file contexts."))
     parser.add_argument("path", nargs="?", default=".", help="Repository directory")
     parser.add_argument("--target", action="append", required=True, metavar="FILE",
                         help="Repository-relative file assumed in context; repeat for multi-file context; existence is not checked")
@@ -558,6 +563,65 @@ def _main_scope_comparison(command: str, argv: list[str]) -> int:
             print("Baseline contains no recognized active directives to preserve.")
         print("Review gate: " + ("FAILED (" + ", ".join(reasons) + ")" if reasons else "not triggered"))
         print("Exact recognition and predicted attachment only; no semantic-equivalence, agent-behavior or safety verdict.")
+    return 1 if reasons else 0
+
+
+def _main_scope_coverage(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="agent-config-score scope coverage", description=(
+        "Compare each regular file as an independent Cursor context. Predicted attachment, not observed agent behavior."))
+    parser.add_argument("base", nargs="?", help="Baseline repository tree")
+    parser.add_argument("head", nargs="?", help="Candidate repository tree")
+    parser.add_argument("--base-ref", help="Compare this local Git ref with the working tree instead of supplying trees")
+    parser.add_argument("--path", default=None, help="Git repository directory for --base-ref (default current directory)")
+    parser.add_argument("--under", action="append", metavar="DIRECTORY",
+                        help="Repository-relative directory prefix to inventory; repeat as needed (default filtered whole tree)")
+    parser.add_argument("--fail-on-lost-directives", action="store_true", help="Exit 1 on a recognized active loss in any file context")
+    parser.add_argument("--fail-on-unknown", action="store_true", help="Exit 1 on uncertain activation/body in any file context")
+    parser.add_argument("--json", action="store_true", help="Print file inventory, source manifests and per-file evidence")
+    args = parser.parse_args(argv)
+    if args.base_ref is not None:
+        if args.base is not None or args.head is not None:
+            parser.error("--base-ref cannot be combined with supplied trees")
+    elif args.base is None or args.head is None or args.path is not None:
+        parser.error("supply BASE HEAD, or use --base-ref REF with optional --path")
+    try:
+        normalize_coverage_roots(args.under)  # Validate before Git mutations or source reads.
+        if args.base_ref is None:
+            report = compare_cursor_coverage(Path(args.base), Path(args.head), under=args.under)
+        else:
+            repo = repository_root(Path(args.path or "."))
+            with baseline_worktree(repo, args.base_ref) as (base, sha):
+                report = compare_cursor_coverage(base, repo, under=args.under)
+            report["comparison_inputs"] = {"base": "git_ref", "base_ref": args.base_ref,
+                                           "base_commit": sha, "head": "working_tree"}
+    except (ScopeInputError, GitError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    summary = report["summary"]
+    reasons = []
+    if args.fail_on_lost_directives and summary["recognized_active_losses"]:
+        reasons.append("recognized_active_directives_lost")
+    if args.fail_on_unknown and summary["has_unknown"]:
+        reasons.append("unknown_scope_or_body")
+    report["review_gate"] = {"fail_on_lost_directives": args.fail_on_lost_directives,
+                             "fail_on_unknown": args.fail_on_unknown, "failed": bool(reasons), "reasons": reasons}
+    if args.json:
+        print(json.dumps(report, indent=2, ensure_ascii=False))
+    else:
+        print(f"Cursor single-file coverage ({report['coverage_profile']}; unscored)")
+        print("Directory prefixes: " + ", ".join(report["under"]))
+        print(f"Inventoried {summary['files']} paths, each checked independently. "
+              f"Baseline recognized directives cover {summary['baseline_covered_files']} file contexts.")
+        for row in report["contexts"]:
+            if row["recognized_active_losses"] or row["has_unknown"]:
+                print(f"Review {row['target']}: {row['recognized_active_losses']} recognized losses, unknown={row['has_unknown']}")
+                for lost in row["lost_directives"]:
+                    origins = ", ".join(f"{source['file']}:{source['line']}" for source in lost["base"]["sources"])
+                    print(f"  {lost['polarity']} {lost['directive_sha256'][:12]} from {origins}: {lost['transition']}")
+        print(f"File contexts with losses: {summary['files_with_losses']}; unknown: {summary['files_with_unknown']}; "
+              f"without recognized baseline directives: {summary['files_without_recognized_baseline']}.")
+        print("Review gate: " + ("FAILED (" + ", ".join(reasons) + ")" if reasons else "not triggered"))
+        print("Filtered regular-file inventory only; aliases/dependency trees are excluded. No observed Cursor run or safety verdict.")
     return 1 if reasons else 0
 
 
