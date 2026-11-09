@@ -1,7 +1,6 @@
 # Cursor file-context example
 
-Requires an unreleased source installation; the published v0.24.0 package does
-not include `scope`. These are synthetic, deliberately opposing formatting
+Requires agent-config-score v0.25.0+. These are synthetic, deliberately opposing formatting
 instructions, not real user evidence or a recommended instruction template.
 
 From the repository root:

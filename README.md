@@ -79,19 +79,14 @@ covers setup, exits and troubleshooting.
 
 *The v0.24.0 demo shows setup and selected checks from `doctor` in a local fixture.*
 
-## Release and source status
+## Release status
 
-| Version | Available capability |
-|---|---|
-| Published v0.24.0 | Local lint, baseline-governed regression gates, auditable exceptions, reports and opt-in deletion-safeguard review |
-| Unreleased source on `main` | Cursor file-context activation and before/after attachment review, plus the fixes listed in the changelog |
+v0.25.0 Beta includes local lint, baseline-governed regression checks, auditable
+exceptions, reports, safeguard review and opt-in Cursor attachment/coverage
+analysis. The Cursor profile is a bounded static prediction with explicit
+unknowns. See the [release and upgrade notes](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/releases/v0.25.0.md).
 
-The PyPI package and rolling `v0` Action do **not** contain the unreleased
-Cursor commands. See [v0.24.0 release notes](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/releases/v0.24.0.md)
-and the [changelog](https://github.com/LE0-Lin/AgentConfigScore/blob/main/CHANGELOG.md)
-before choosing an installation or Action revision.
-
-## Cursor attachment changes — unreleased source
+## Cursor attachment changes
 
 An instruction can stop attaching even when its words and score stay unchanged.
 For a declared API-only task:
@@ -104,10 +99,10 @@ For a declared API-only task:
 | Ordinary scan score | 100 | 100 |
 | Predicted automatic attachment | Active | Inactive |
 
-From a source checkout, run the synthetic example:
+From a repository checkout, install the package and run the synthetic example:
 
 ```bash
-python -m pip install -e .
+python -m pip install --upgrade "agent-config-score==0.25.0"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
@@ -126,7 +121,7 @@ extend the existing baseline score-policy schema.
 Try the [four controls](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/cursor-scope-impact/README.md),
 or use [`scope diff` with a local Git baseline](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/cursor-scope-impact.md).
 
-To find affected files without declaring a task, source builds also provide
+To find affected files without declaring a task, v0.25.0+ also provides
 `scope coverage --base-ref origin/main --under src`. It inventories regular
 files on both sides and checks each as a separate context, keeping an API-only
 loss visible when a frontend file still matches. The
@@ -217,7 +212,7 @@ for the localized overview, guide and limitations; advanced references remain En
 ## Development
 
 ```bash
-python -m pip install -e .
+python -m pip install --upgrade "agent-config-score==0.25.0"
 python -m unittest discover -s tests -v
 agent-config-score . --fail-under 90
 ```

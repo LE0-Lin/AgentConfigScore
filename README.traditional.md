@@ -48,16 +48,11 @@ agent-config-score diff
 - [完整英文文件索引](docs/README.md)：進階介面與研究資料。
 - [詳細參考（英文）](docs/reference.md)：策略、CLI、Action 參數、SARIF 和稽核格式。
 
-## 發布版與原始碼版
+## 發布版本
 
-| 版本 | 可用能力 |
-|---|---|
-| 已發布 v0.24.0 | 本機檢查、基準回歸檢查、可稽核的例外、報告及選用刪除保護審閱 |
-| `main` 上尚未發布的原始碼 | Cursor 檔案上下文載入預測、修改前後載入變化審閱，以及變更紀錄中的修正 |
+v0.25.0 Beta 包含本機檢查、基準回歸檢查、可稽核例外、報告、刪除保護審閱，以及選用的 Cursor 載入與逐檔覆蓋分析。Cursor 功能是具有明確未知狀態的靜態預測。[發布與升級說明（英文）](docs/releases/v0.25.0.md)。
 
-PyPI 套件和滾動 `v0` Action **不包含尚未發布的 Cursor 命令**。安裝及選擇 Action 參照前，請查看[發布說明（英文）](docs/releases/v0.24.0.md)和[變更紀錄（英文）](CHANGELOG.md)。
-
-## Cursor 載入變化審閱——尚未發布的原始碼功能
+## Cursor 載入變化審閱
 
 新增 `scope coverage --base-ref origin/main --under src`，從兩側儲存庫的實際檔案建立獨立的單檔上下文，列出失去已識別約束的具體檔案。提供修復、重新命名、不確定情況及未修改對照，以及安裝後的完整重現。[逐檔覆蓋檢查（英文）](docs/cursor-coverage.md)。
 
@@ -66,7 +61,7 @@ PyPI 套件和滾動 `v0` Action **不包含尚未發布的 Cursor 命令**。�
 在原始碼儲存庫目錄中執行合成範例：
 
 ```bash
-python -m pip install -e .
+python -m pip install --upgrade "agent-config-score==0.25.0"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
@@ -136,10 +131,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: LE0-Lin/AgentConfigScore@v0.24.0
+      - uses: LE0-Lin/AgentConfigScore@v0.25.0
 ```
 
-固定使用 `@v0.24.0` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
+固定使用 `@v0.25.0` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
 
 ## 支援的指令檔
 
@@ -163,4 +158,4 @@ jobs:
 
 圖中的三次評分由 `agent-config-score history` 讀取。[歷史工作流程（英文）](docs/score-history.md)
 
-專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.24.0.md)目前為英文。
+專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.25.0.md)目前為英文。

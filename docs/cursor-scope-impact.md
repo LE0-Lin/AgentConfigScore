@@ -2,7 +2,7 @@
 
 For an inventory of existing file contexts, see [per-file coverage](cursor-coverage.md).
 
-**Unreleased.** Source builds after v0.24.0 extend the [Cursor file-context
+**Available in v0.25.0+.** These commands extend the [Cursor file-context
 profile](cursor-scope.md) with two entrypoints:
 
 ```bash
@@ -91,15 +91,13 @@ directives automatically; side reports retain those separate review signals.
 Full semantic conflicts, harmful unrecognized text and runtime enforcement
 remain outside this gate.
 
-## Source-build GitHub Actions example
+## GitHub Actions example
 
 ```yaml
 name: Cursor attachment review
 on: [pull_request]
 permissions:
   contents: read
-env:
-  ACS_TOOL_REVISION: dd208c9302737f6d61b4f327de87b197479f8d0d
 jobs:
   scope:
     runs-on: ubuntu-latest
@@ -111,16 +109,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - name: Check out the reviewed tool source
-        uses: actions/checkout@v7
-        with:
-          repository: LE0-Lin/AgentConfigScore
-          ref: ${{ env.ACS_TOOL_REVISION }}
-          path: build/agent-config-score-tool
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Install the reviewed tool source
-        run: python -m pip install ./build/agent-config-score-tool
+      - name: Install the reviewed tool release
+        run: python -m pip install --no-deps agent-config-score==0.25.0
       - name: Review declared API-task context
         env:
           BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
@@ -130,14 +120,12 @@ jobs:
           --fail-on-lost-directives --fail-on-unknown
 ```
 
-The recipe pins tool source containing these unreleased commands separately
-from the repository being checked. Installing the published v0.24.0 package or
-using the rolling `v0` Action does not supply them. Choose task files relevant to
-your repository and review each declared context; one context is not
-whole-repository coverage. The workflow uses ordinary read-only PR permissions.
-The separate tool checkout sits under `build/`, which this profile skips during
-instruction-source discovery. A depth-one tool checkout avoids cloning its full
-history; the repository under review still needs its baseline commit available.
+The recipe pins the installed tool separately from the repository being checked
+and uses read-only PR permissions. Choose task files relevant to the repository.
+For independent contexts drawn from existing files, replace the command with
+`agent-config-score scope coverage --base-ref "$BASE_COMMIT" --under src
+--fail-on-lost-directives --fail-on-unknown`. Review each caller workflow and
+its tool revision. A declared task context is not whole-repository coverage.
 
 The profile inherits its bounded metadata/glob/prose grammar, whole-repository
 supported-source preflight, ignore rules and non-atomic filesystem limits.

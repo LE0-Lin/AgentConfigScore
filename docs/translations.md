@@ -189,3 +189,18 @@ Tests verify language-link targets, guide code-block parity, identical config
 and workflow examples between variants, and English as the default package
 README. They cannot verify translation meaning or serve as independent human
 review. Wording and rule interpretation still need review when sources change.
+
+
+## v0.25.0 release synchronization
+
+For the 2026-11-10 v0.25.0 Beta release, prepared from feature revision
+`be1a8e31ef8d6d1831a0b6f9e42063f7a6219ec2`, the English, Simplified and
+Traditional overviews/core guides/limitations identify Cursor commands and
+strict configuration/history behavior as available from v0.25.0. The guides
+share identical executable examples, including per-file coverage. Action
+examples pin v0.25.0. The coverage reference and release notes remain English.
+
+Earlier synchronization records describe availability at their recorded dates.
+They retain their historical wording and frozen-evidence links. This release
+synchronization supplies no native Cursor observation, independent accuracy
+result or localization of CLI messages and instruction semantics.

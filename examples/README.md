@@ -7,7 +7,7 @@ it is not independent accuracy or adoption evidence.
 
 The separate [Cursor file-context example](cursor-scope/README.md) demonstrates
 single-file activation, multi-file co-activation and explicitly unknown model
-selection. It needs an unreleased source build and does not change scoring.
+selection. It requires v0.25.0+ and does not change scoring.
 The [activation-change example](cursor-scope-impact/README.md) then compares
 glob narrowing, retained multi-file triggers, renamed rule sources and manual
 loading uncertainty with an explicitly requested review gate.

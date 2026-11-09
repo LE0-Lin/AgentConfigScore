@@ -130,10 +130,10 @@ rollback is attempted. Alias layouts need manual integration, not `--force`.
 
 ## Coverage is deliberately bounded
 
-Unreleased source builds also check simple `[Guide][setup]` / `[setup][]` links
+v0.25.0+ builds also check simple `[Guide][setup]` / `[setup][]` links
 with single-line definitions. Missing targets point to the definition line you
 can review/edit; restoring the target or correcting that definition can then
-pass recheck. This is not in v0.24.0. Shortcut, container and complex/HTML forms
+pass recheck. This support requires v0.25.0+. Shortcut, container and complex/HTML forms
 still need manual review. See [Markdown link limits](limitations.md#local-markdown-links).
 
 Path checks cover the [documented reference grammar](limitations.md#plain-prose-path-references),

@@ -1,6 +1,6 @@
 # Cursor activation-change example
 
-Requires an unreleased source installation after v0.24.0. These are synthetic
+Requires agent-config-score v0.25.0+. These are synthetic
 development fixtures, not real user cases or accuracy measurements. No agent or
 instruction-file command is executed. The included API/frontend files supply
 actual names for the coverage inventory; explicit `--target` inputs can also be logical paths.
@@ -70,7 +70,7 @@ tree preserves the original instruction body and changes only glob metadata.
 
 The [coverage guide](../../docs/cursor-coverage.md) explains the inventory,
 unknowns, limits and Git-baseline command. To replay all five cases and the
-joint-context control against an installed source build from outside the checkout:
+joint-context control against an installed v0.25.0+ package from outside the checkout:
 
 ```bash
 python scripts/run_cursor_coverage_demo.py --output cursor-coverage-demo.json

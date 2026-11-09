@@ -18,32 +18,32 @@ explicitly unknown, and historic reports are not relabelled.
 
 ## Configuration decoding
 
-Unreleased source builds reject duplicate decoded JSON member names at every
+v0.25.0+ builds reject duplicate decoded JSON member names at every
 configuration depth, non-standard `NaN`/`Infinity` constants and a Boolean format
 `version`. They do not choose the first or last repeated value. Both comparison
 trees must validate; CLI threshold overrides cannot authorize malformed config.
-`doctor` uses one read for policy and schema metadata. These changes are not in
-v0.24.0. See [failure and compatibility details](doctor.md#configuration-decoding).
+`doctor` uses one read for policy and schema metadata. These changes are included from
+v0.25.0. See [failure and compatibility details](doctor.md#configuration-decoding).
 The check does not validate policy adequacy, authenticate config authors, provide
 an atomic snapshot or recover names already lost by a caller's JSON decoder.
 
-Unreleased config-source checks also distinguish absent files from dangling
+v0.25.0+ config-source checks also distinguish absent files from dangling
 links. Config must resolve to a regular file inside the selected repository root;
 internal file links and explicit root aliases remain supported. External/cyclic/
 nonregular/unreadable sources fail rather than using defaults. Both Git worktrees
 must satisfy the boundary independently. This is not atomic against concurrent
 path replacement, and hard-link/mount identity is not certified. Workflow-only
 setup and unscored guardrails remain separate from policy validation. See
-[compatibility and migration](doctor.md#configuration-file-boundary-unreleased).
+[compatibility and migration](doctor.md#configuration-file-boundary).
 
 ## Local history integrity
 
-Unreleased source builds distinguish an absent local history index from damaged
+v0.25.0+ builds distinguish an absent local history index from damaged
 or unreadable data. Invalid history returns operational exit `2`, not an empty
 success report. The Python append helper refuses to reset it and uses a complete
 same-directory replacement instead of truncating existing bytes. Partial legacy
 snapshots remain supported; missing scores are unknown. Linked/reparse history
-paths require manual migration. These changes are not in v0.24.0.
+paths require manual migration. These changes are included from v0.25.0.
 
 History validation is not evidence authenticity, policy/tool comparability or
 semantic quality. The append helper needs serialized writers and does not claim
@@ -82,9 +82,9 @@ this guard does not claim to constrain every filesystem operation in the tool.
 Non-instruction link cycles are excluded from the path index, not judged safe or
 semantically correct. Keep repositories stable while scanning.
 
-## Cursor file-context profile (unreleased)
+## Cursor file-context profile (v0.25.0+)
 
-Source-only [per-file coverage](cursor-coverage.md) enumerates filtered regular
+The v0.25.0+ [per-file coverage](cursor-coverage.md) enumerates filtered regular
 file names from both trees and checks each independently. It shares the profile's
 recognition/activation limits and supplies no native Cursor observation. Inventory
 exclusions, file lifecycle, empty selections and resource limits remain explicit.
@@ -101,15 +101,15 @@ not semantic-conflict proofs. Uninterpreted bodies and unknown activation stay
 visible; no signals is not a clean bill of health. Completed advisory analysis
 returns `0` even with signals; input/read/limit errors use `2`. Whole-repository
 supported-source preflight still applies. See the [grammar, report and limits](cursor-scope.md).
-Unreleased [comparison commands](cursor-scope-impact.md) additionally compare
+The v0.25.0+ [comparison commands](cursor-scope-impact.md) additionally compare
 the same declared context across trees/a local Git baseline. File lifecycle and
 trigger losses are distinct from loss of aggregated exact recognized directives;
 another active copy or remaining trigger may retain availability. Opt-in
 caller-owned flags gate known recognition losses and unknowns separately with
 exit `1`; default comparisons remain advisory. Neither semantic paraphrase
 equivalence, arbitrary scope narrowing nor runtime compliance is established.
-An unrecognized/empty baseline protects zero identities. These additions are not
-in published v0.24.0 artifacts or the existing baseline score-policy schema.
+An unrecognized/empty baseline protects zero identities. These additions are available from v0.25.0 and remain separate from the
+existing baseline score-policy schema.
 
 ## Command interpretation
 
@@ -183,7 +183,7 @@ anchor-only links, fenced examples, absolute paths, and paths escaping the
 repository are skipped. Nested parentheses in inline link destinations are not
 currently parsed. This is a limited link check, not a full Markdown validator.
 
-Unreleased source builds additionally check simple full `[Guide][setup]` and
+v0.25.0+ builds additionally check simple full `[Guide][setup]` and
 collapsed `[setup][]` reference links, including images, when a matching
 single-line definition such as `[setup]: GUIDE.md` exists in the same instruction
 file. Paths stay document-relative; a missing used target is reported once at
@@ -191,7 +191,7 @@ its definition line. Labels use Unicode case folding and ASCII whitespace
 normalization; the first matching definition wins, including external/anchor
 targets. This follows the relevant [CommonMark reference-link conventions](https://spec.commonmark.org/0.31.2/#reference-link),
 not full parser conformance. Unused supported definitions and resolved captions
-are not separately treated as prose paths. These changes are not in v0.24.0.
+are not separately treated as prose paths. These changes are included from v0.25.0.
 
 This subset accepts at most 999 label characters without escapes/nested brackets,
 zero to three spaces before top-level definitions, bare/angle destinations and
@@ -309,7 +309,7 @@ whole selected file. Narrow approval-bypass directives also require manual
 resolution even alongside recognized protection; they are unscored review
 signals, not complete conflict detection or evidence of actual agent behavior.
 
-Unreleased source builds scope explicit guardrail selection without whole-tree
+v0.25.0+ builds scope explicit guardrail selection without whole-tree
 discovery. Only relevant ignore rules and the selected ancestry/parent names are
 inspected for selection; unselected broken/external/nonregular instruction files
 are not validated or repaired. Directory aliases/reparse ancestors and ambiguous

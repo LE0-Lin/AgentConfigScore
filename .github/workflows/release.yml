@@ -162,6 +162,15 @@ jobs:
           cd "$RUNNER_TEMP"
           python "$GITHUB_WORKSPACE/scripts/verify_installed_package.py" \
             --python "$wheel_python" --expected-version "$VERSION"
+          python "$GITHUB_WORKSPACE/scripts/run_cursor_coverage_demo.py" \
+            --python "$wheel_python" --output "$RUNNER_TEMP/cursor-coverage-demo.json"
+      - name: Retain release coverage evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-cursor-coverage-${{ matrix.os }}
+          path: ${{ runner.temp }}/cursor-coverage-demo.json
+          if-no-files-found: error
+          retention-days: 7
 
   github-release:
     name: Publish GitHub release

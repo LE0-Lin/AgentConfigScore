@@ -1,7 +1,6 @@
 # Cursor rule activation from declared file context
 
-**Unreleased, opt-in and unscored.** `scope` is available in source builds after
-v0.24.0, not the published v0.24.0 package or rolling Action. It predicts which
+**Available in v0.25.0+, opt-in and unscored.** `scope` predicts which
 root `.cursor/rules/` project rules attach automatically given explicitly
 declared file paths. It does not query Cursor or observe an agent run.
 
