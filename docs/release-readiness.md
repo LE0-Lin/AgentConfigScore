@@ -88,3 +88,12 @@ The immutable v0.23.0 distributions/tag are unchanged. See
 [translation scope and source revision](translations.md).
 Real-user feedback and independent evaluation remain separate ongoing work;
 they are not replaced by localization or release acceptance.
+
+
+## v0.25.0 release acceptance
+
+The release packages the opt-in Cursor profile and per-file coverage commands.
+The same built wheel must pass the installed journey and the complete five-case
+coverage replay on all three operating systems before publication. Release
+artifacts retain the tool identity, fixture hashes and the joint-context control.
+Native Cursor observation and independent accuracy remain separate work.

@@ -41,12 +41,11 @@ agent-config-score history --json
 - `summary` — snapshot count, scored count, first/latest score, total delta, and `up` / `down` / `flat` / `unknown` trend
 - `history` — the visible snapshots after applying `--limit`
 
-An absent local index reports no history with exit `0`. **Unreleased source
-builds no longer treat damaged or unreadable history as an empty list**: they
+An absent local index reports no history with exit `0`. **v0.25.0+ builds no longer treat damaged or unreadable history as an empty list**: they
 return operational exit `2`, leave stdout empty (including `--json`), and leave
 the index unchanged. `--limit` controls display only, not validation: a damaged
 older entry outside the visible window still fails. A non-positive `--limit`
-remains an invocation error. These stricter behaviors are not in v0.24.0.
+remains an invocation error. These stricter behaviors are included from v0.25.0.
 
 ## Snapshot contents
 
@@ -65,7 +64,9 @@ current tool identity. Unknown metadata is retained, not authenticated or
 semantically validated. Finite fractional scores from older/custom records
 remain readable; the scanner itself emits integer scores.
 
-## Invalid history and recovery (unreleased)
+<a id="invalid-history-and-recovery-unreleased"></a>
+
+## Invalid history and recovery
 
 The index must be UTF-8 JSON containing an array of snapshot objects. Source
 builds reject invalid JSON, non-object rows, duplicate decoded member names

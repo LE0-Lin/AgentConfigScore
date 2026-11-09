@@ -1,8 +1,7 @@
 # Review Cursor coverage across existing files
 
-**Unreleased source feature.** Published v0.24.0 and the rolling `v0` Action do
-not include `scope coverage`. Install the reviewed source in a virtual environment
-to use it. This extends the bounded [Cursor profile](cursor-scope.md).
+**Available in v0.25.0+.** Install the package in a virtual environment to use
+`scope coverage`. This extends the bounded [Cursor profile](cursor-scope.md).
 
 A rule's glob can change while its instruction text and standalone score stay
 unchanged. A task containing both an API file and a matching frontend file can
@@ -79,7 +78,7 @@ of silently sampling or truncating coverage.
 
 ## Replay the installed tool
 
-From a source checkout with the source build installed in the selected Python:
+From a repository checkout with v0.25.0+ installed in the selected Python:
 
 ```bash
 python scripts/run_cursor_coverage_demo.py --output cursor-coverage-demo.json

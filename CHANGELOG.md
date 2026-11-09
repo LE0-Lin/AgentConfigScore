@@ -2,43 +2,46 @@
 
 ## Unreleased
 
-### Documentation
+## v0.25.0
 
-- Refocus the English/Simplified/Traditional project overviews on instruction-change review and baseline-governed checks. Separate published v0.24.0 from unreleased Cursor analysis, add a concrete attachment-loss example, and move detailed policy/CLI/integration material into a reference page while retaining the visual demos. Point to the current pinned-corpus status: five scans and an expected Reaparr source rejection with no score, rather than presenting its historic A 100 as current. Runtime rules, artifacts and frozen evidence are unchanged.
+This Beta release packages the opt-in Cursor profile and per-file coverage
+review. See [installation, migration and evidence limits](docs/releases/v0.25.0.md).
 
 ### Added
 
-- Add opt-in `scope coverage` for separate single-file contexts drawn from the
-  union of filtered regular files in two trees or a pinned local Git baseline.
-  Reuse captured rule sources across contexts, retain source/line evidence and
-  inventory exclusions, and gate recognized losses and uncertainty separately.
-  Empty selections/read failures/resource limits fail without partial JSON.
-- Replay five synthetic coverage cases plus a joint-context control against the
-  installed wheel on all three CI operating systems, retaining fixture hashes,
-  tool identity, unchanged standalone scores and JSON artifacts. Native Cursor
-  fidelity and independent accuracy remain unmeasured.
-
-- Unreleased `scope compare` and Git-backed `scope diff` for the same declared Cursor file context: file lifecycle, trigger matches and aggregated exact-directive availability, with original line evidence and captured source hashes. Optional caller-owned flags gate recognized active losses and unknowns separately; active duplicate/renamed sources and remaining multi-file triggers retain availability. Includes four runnable synthetic examples and source-build CI guidance. This is bounded attachment/recognition analysis, not general semantic impact or runtime enforcement; normal scoring, policy schema, published packages and Action refs are unchanged.
-
-- An opt-in, unscored `scope` command predicting root Cursor project-rule activation for explicitly declared file context. A bounded scalar-metadata parser and iterative glob model retain unknowns, source-line evidence and multi-file opposing-directive signals even for disjoint patterns. Includes a runnable synthetic example, installed-wheel acceptance and aligned core guides. It does not observe Cursor, prove semantic conflicts, alter scan/gate scores or ship in the published v0.24.0 artifacts or rolling Action.
-
-- An offline runnable design lab with five synthetic before/after scenarios and two passing controls, comparing baseline new-error gating, score-delta-only gating and explicit candidate-threshold caller overrides through the real CLI. Retains observed decisions, commands and source/scenario hashes without claiming independent accuracy, AI superiority or user adoption. Runtime rules, scores, package artifacts and Action refs are unchanged.
-
-- An explicitly manual, read-only GitHub Actions replay of the existing pinned real-repository smoke corpus. The same runner propagates acquisition/mismatch failures and retains logs/results for seven days; it does not execute external repository code, run on every PR or establish independent accuracy/adoption.
+- `scope` predicts root Cursor rule attachment from declared file contexts,
+  with bounded scalar metadata, iterative glob matching, line evidence and
+  explicit unknown manual/model loading.
+- `scope compare`, Git-backed `scope diff` and `scope coverage` report rule
+  lifecycle, trigger changes and exact recognized-directive availability.
+  Coverage checks inventoried files independently and reuses captured sources.
+  Caller-owned flags gate recognized losses and uncertainty separately.
+- A complete installed replay of five synthetic coverage cases plus a joint
+  context control, with fixture hashes, source identities and retained
+  cross-platform CI/release JSON artifacts. Native Cursor fidelity remains unmeasured.
+- Offline design and pinned-repository replay helpers with explicit development
+  evidence tiers. Existing frozen reports retain their original identities.
 
 ### Fixed
 
-- Distinguish an absent repository-policy entry from dangling/cyclic or unreadable configuration sources. Require the resolved config to be a regular file inside its selected root before reading; retain internal file links and explicit root aliases, validate both comparison trees and sanitize source I/O errors. Invalid sources no longer fall back to compatibility defaults or read external policy contents. Document deliberate migration for external links and Git worktree targets, with explicit non-atomic/hard-link/mount limits. Valid-policy scoring/defaults, published v0.24.0 artifacts, Action refs and frozen research are unchanged.
+- Reject duplicate decoded configuration members, non-standard numeric constants
+  and Boolean format versions. Doctor derives policy/schema metadata from one read.
+- Require policy sources to resolve inside each selected repository root.
+  Invalid/dangling/external sources fail instead of falling back to defaults.
+- Preserve invalid local history and reject unsafe store paths. Validate before
+  visibility/retention limits and replace a complete file when appending.
+  Writers require serialization; recovery remains explicit.
+- Scope explicit guardrail review to its selected file while retaining normal
+  whole-tree preflight for scans and doctor.
+- Check simple full/collapsed Markdown reference links at their definition lines.
+- Preserve partial real-repository smoke progress and typed operational errors.
 
-- Preserve damaged local history instead of treating malformed/unreadable indexes as empty and overwriting them on append. Reject non-object rows, duplicate decoded names, non-finite numbers, invalid scores and known linked/reparse/nonregular store paths; retain partial legacy snapshots and unknown scores. The Python append helper serializes before writing and flushes/syncs a same-directory temporary file before replacement, with tested write/sync/replacement-failure preservation. CLI history failures use exit `2` without success output; full-history validation precedes visibility/retention limits. No automatic repair, writer locking, power-loss durability or evidence-authenticity claim is implied. Rule scores, CI artifacts, published v0.24.0 artifacts and Action refs are unchanged.
+### Documentation
 
-- Reject duplicate decoded JSON member names throughout repository configuration instead of silently adopting the last policy/suppression value, including escaped aliases and equal-valued repeats. Reject non-standard numeric constants and Boolean format versions while preserving valid-policy defaults and numeric `1.0` compatibility. Doctor derives policy/schema metadata from one read. Invalid baseline and candidate configs remain errors despite CLI threshold overrides; rejection does not overwrite reports or certify policy adequacy. Published v0.24.0 artifacts, Action refs, rule scores and frozen research are unchanged.
-
-- Keep explicit guardrail review scoped to the selected file instead of requiring whole-repository instruction discovery first. Unselected broken/external/nonregular sources and unrelated subtrees no longer block a valid review; relevant ignore rules, selected ancestry, supported filenames and canonical filename preference still apply. Directory aliases or ambiguous directory casing require manual integration. Full scans/doctor still reject unreadable sources; confirmation, append guards, scoring and published v0.24.0 artifacts are unchanged.
-
-- Preserve per-repository smoke results and partial progress after acquisition or scanner operational failures instead of aborting and losing earlier rows. Error cases have null scores/findings; acquisition failures never match a clean expectation. Explicitly document the pinned Reaparr dangling instruction symlink as an expected typed operational rejection, separate from the historical clean root-file example. Expectation matching is not all-scans-completed or accuracy.
-
-- Check simple full/collapsed Markdown reference links and images against document-relative local targets, reporting a used target at its definition line. Respect document-local, first-definition precedence, skip unused definitions and avoid treating supported definitions/link captions as extra prose paths. Code, ambiguous containers/layouts and unsupported Markdown forms retain explicit coverage limits. Stable rule IDs/penalties, runtime dependencies, published v0.24.0 artifacts and frozen research records are unchanged.
+- Update English, Simplified Chinese and Traditional Chinese availability,
+  install instructions and compatibility notes for v0.25.0.
+- Retain the explicitly labelled v0.24.0 gallery recordings and the separate
+  anonymized instruction-move demonstration.
 
 ## v0.24.0
 

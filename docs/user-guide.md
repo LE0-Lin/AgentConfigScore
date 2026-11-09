@@ -46,7 +46,7 @@ Commit the generated files after reviewing them. If you only want local checks,
 use `init --no-workflow`. A missing standard workflow is then an advisory doctor
 warning, not an error.
 
-Unreleased source builds reject duplicate config member names (including nested
+v0.25.0+ builds reject duplicate config member names (including nested
 objects and escaped spellings), `NaN`/`Infinity` constants and a Boolean format
 `version`, rather than choosing an overwritten value. Review and keep one value
 per field. Scans, `feedback`, `diff` and `compare` return `2` without a success
@@ -54,15 +54,15 @@ report; doctor returns `1` with a `config` error. Threshold overrides do not byp
 config validation. Missing-config defaults remain unchanged. This is not in
 v0.24.0; see [configuration decoding](doctor.md#configuration-decoding).
 
-Unreleased config-source checks also require `.agentconfigscore.json` to resolve
+v0.25.0+ config-source checks also require `.agentconfigscore.json` to resolve
 to a regular file inside the selected repository root. Only an absent entry uses
 defaults; dangling/external/cyclic/unreadable sources are errors. Internal file
 links and explicit repository-root aliases remain supported. Use a relative,
 tracked shared config so each Git baseline has its own in-root target. Keep the
 tree stable: this is not an atomic filesystem sandbox. Existing invalid links
 need deliberate repair, not deletion to bypass policy. See
-[config boundary and migration](doctor.md#configuration-file-boundary-unreleased).
-Published v0.24.0 and Action refs are unchanged.
+[config boundary and migration](doctor.md#configuration-file-boundary).
+Review the selected package and Action revision when upgrading.
 
 If doctor finds no supported instruction files, add repository-specific
 instructions or adapt one of the [templates](../examples/README.md). Do not add
@@ -141,6 +141,8 @@ the bare CLI without a policy remains score-only by default.
 | Scan (`agent-config-score .`) | Scan completed; optional floor met | Score below configured floor | Invalid input or operational error |
 | `diff`, `compare` | Baseline policy passed | New-error / score-drop gate failed | Comparison could not complete |
 | `doctor` | No error checks; warnings may exist | One or more error checks | Argument / invocation error |
+| `scope` | Advisory analysis completed, including unknowns | Not used | Invalid input or read failure |
+| `scope compare`, `scope diff`, `scope coverage` | Advisory completion or opted-in gate passed | Opted-in loss/unknown review gate triggered | Invalid input, read failure or resource limit |
 | Other commands | Requested operation completed | Not a lint gate | Invalid input or operational error |
 
 Unexpected programming errors are not hidden by a catch-all handler. Report a
@@ -168,14 +170,14 @@ the same version, not accuracy or reproducibility by itself. Missing source make
 the digest unavailable, not the scan invalid. See [report identity](report-identity.md)
 for coverage, compatibility and environment/input limits; older reports are not relabelled.
 
-For local snapshots, unreleased source builds distinguish absent history from
+For local snapshots, v0.25.0+ builds distinguish absent history from
 damaged/unreadable history. `history` returns `2` with no success output for an
 invalid index; appending through the Python helper refuses to reset it. Back up
 and repair the index before retrying. Partial legacy records remain readable;
 missing scores are unknown, not zero. The helper uses complete-file replacement
 but requires serialized writers, not concurrent transactions. Scans do not
 automatically append local history. See [local history and recovery](score-history-cli.md).
-These changes are not in v0.24.0 or an update to immutable CI artifacts.
+These changes are included from v0.25.0. Immutable CI artifacts retain their recorded data.
 
 For a privacy-minimized draft instead:
 
@@ -206,22 +208,22 @@ policies manually; this is not a general contradiction detector.
 See [guardrail suggestions](guardrail-suggestions.md) for grammar, scope, privacy
 and non-atomic/partial-write limits. Existing scoring and CI defaults are unchanged.
 
-Unreleased source builds resolve `--file` without whole-tree discovery, so an
+v0.25.0+ builds resolve `--file` without whole-tree discovery, so an
 unrelated broken instruction link does not block this selected-file review.
 Relevant ignore rules and selected ancestry still apply; directory aliases or
 ambiguous directory casing need manual integration. Other sources are not
 certified or repaired. Normal scan/doctor failures still need separate attention;
 an append does not turn an incomplete whole-tree scan into a clean result.
-This scope refinement is not in the v0.24.0 package.
+This scope refinement is included from v0.25.0.
 
-## Optional: Cursor file-context analysis (unreleased)
+## Optional: Cursor file-context analysis (v0.25.0+)
 
 ```bash
 agent-config-score scope . --target src/web/app.ts
 agent-config-score scope . --target src/web/app.ts --target src/api/service.py --json
 ```
 
-Source builds after v0.24.0 can predict automatic attachment of root
+v0.25.0+ can predict automatic attachment of root
 `.cursor/rules/` project rules for logical file paths you declare in context.
 Target existence is not checked. Manual/model selection and unsupported
 metadata remain unknown; inactive means not triggered by these paths, not
@@ -233,7 +235,7 @@ failures return `2`. Existing scan and regression scores remain unchanged.
 The command still uses whole-repository supported-source preflight, so unrelated
 invalid instruction links can stop it. See the [model and limits](cursor-scope.md)
 and [runnable synthetic example](../examples/cursor-scope/README.md).
-This command is not in the published v0.24.0 package or rolling Action.
+This command requires v0.25.0+ and an explicit CLI invocation.
 
 Compare the same declared context before and after a change:
 
@@ -242,7 +244,13 @@ agent-config-score scope compare ../repo-base . --target src/web/app.ts --fail-o
 agent-config-score scope diff origin/main --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown --json
 ```
 
-These unreleased commands separate file changes, lost trigger matches and exact
+For existing files, check each inventoried path as an independent context. [Coverage, exclusions and complete replay](cursor-coverage.md).
+
+```bash
+agent-config-score scope coverage --base-ref origin/main --under src --fail-on-lost-directives --fail-on-unknown --json
+```
+
+These commands (v0.25.0+) separate file changes, lost trigger matches and exact
 recognized directives losing all predicted active sources. Another active copy
 or a remaining multi-file trigger can preserve availability. Both flags opt into
 a caller-configured review gate: loss or unknown uses `1`; operational failures

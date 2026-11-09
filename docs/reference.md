@@ -4,9 +4,8 @@
 
 This reference contains the detailed configuration, CLI and workflow material
 previously embedded in the project README. Core commands and integrations are
-available in v0.24.0; sections explicitly marked unreleased require newer source
-builds. For Cursor context and change review, see the [activation model](cursor-scope.md)
-and [comparison contract](cursor-scope-impact.md).
+available in v0.25.0. Earlier feature availability is labelled where relevant. For Cursor context and change review, see the [activation model](cursor-scope.md),
+[comparison contract](cursor-scope-impact.md) and [per-file coverage](cursor-coverage.md).
 
 Jump to [policy](#repository-policy--editor-validation),
 [exceptions](#auditable-exceptions), [CLI](#cli-reference),
@@ -31,13 +30,13 @@ The `$schema` annotation enables live validation and completion in editors that 
 
 The schema is Draft 2020-12 and lives at `schema/agentconfigscore.schema.json`. AgentConfigScore's tests verify that its suppression rule enum stays exactly aligned with the stable Rule Catalog, so editor hints cannot silently drift away from scanner behavior.
 
-Unreleased source builds additionally reject duplicate JSON member names at any
+v0.25.0+ builds additionally reject duplicate JSON member names at any
 depth, even if the values match or a name uses JSON escapes. A repeated threshold
 is a configuration error, not "last value wins." `NaN`/`Infinity` constants and a
 Boolean format `version` are rejected too. Keep one reviewed value per field;
 do not rely on editor schema validation to detect duplicate names. See
 [configuration failure behavior](doctor.md#configuration-decoding). These
-changes are not in the published v0.24.0 artifacts.
+changes are included from v0.25.0.
 
 Policy fields:
 
@@ -431,7 +430,7 @@ The Action emits outputs before returning its final regression status. Use `if: 
 - [x] user guide, exit-code reference and troubleshooting
 - [x] versioned English core package with release notes and compatibility guidance
 - [x] optional Simplified and Traditional Chinese core documentation and README language switch
-- [x] unreleased Cursor activation and exact-directive availability comparison
+- [x] Cursor activation and exact-directive availability comparison
 - [ ] optional semantic contradiction plugin
 
 See [release readiness and the localization sequence](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/release-readiness.md).

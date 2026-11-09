@@ -24,7 +24,7 @@ Warnings are advisory and keep exit status `0`. Concrete configuration or standa
 
 ## Configuration decoding
 
-Unreleased source builds use one shared configuration decoder for scans,
+v0.25.0+ builds use one shared configuration decoder for scans,
 `feedback`, `diff`, `compare` and `doctor`. Every JSON object in
 `.agentconfigscore.json` must have unique decoded member names, including nested
 policy and suppression objects. Repeating a name is an error even when both
@@ -51,9 +51,11 @@ compatibility defaults and produces an advisory doctor warning.
 This is configuration validation, not an atomic repository snapshot, filesystem
 sandbox, authenticity check or proof that the policy is adequate. The direct
 `parse_policy(dict)` API cannot recover duplicate names that a caller has already
-discarded while decoding. Published v0.24.0 packages and Action refs are unchanged.
+discarded while decoding. Review the selected package and Action revision when upgrading.
 
-## Configuration file boundary (unreleased)
+<a id="configuration-file-boundary-unreleased"></a>
+
+## Configuration file boundary
 
 Source builds distinguish an absent `.agentconfigscore.json` directory entry
 from an existing but invalid source. Only a genuinely absent config uses
@@ -78,7 +80,7 @@ For an invalid link, review/migrate the intended policy into the repository or
 repair the link deliberately, then rerun doctor. Do not delete the link merely
 to make the tool fall back to defaults. Git/platform link support still matters.
 
-This changes compatibility for external config links and is not yet in v0.24.0.
+This changes compatibility for external config links beginning with v0.25.0.
 It is not an atomic snapshot or filesystem sandbox: concurrent replacement of
 parents/targets remains possible between metadata checks and open. Hard-link
 identity and mount boundaries are not certified; workflow/report readers are

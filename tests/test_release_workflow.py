@@ -49,6 +49,8 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn("python -m unittest discover -s tests -v", workflow)
         self.assertIn("os: [ubuntu-latest, windows-latest, macos-latest]", workflow)
         self.assertIn("scripts/verify_installed_package.py", workflow)
+        self.assertIn("scripts/run_cursor_coverage_demo.py", workflow)
+        self.assertIn("release-cursor-coverage-${{ matrix.os }}", workflow)
         self.assertIn("needs: [build, acceptance]", workflow)
         self.assertIn("needs: [build, acceptance, github-release]", workflow)
         self.assertIn("pip install --no-deps", workflow)
