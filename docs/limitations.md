@@ -84,6 +84,11 @@ semantically correct. Keep repositories stable while scanning.
 
 ## Cursor file-context profile (unreleased)
 
+Source-only [per-file coverage](cursor-coverage.md) enumerates filtered regular
+file names from both trees and checks each independently. It shares the profile's
+recognition/activation limits and supplies no native Cursor observation. Inventory
+exclusions, file lifecycle, empty selections and resource limits remain explicit.
+
 The opt-in `scope` command predicts automatic rule attachment from declared file
 paths for root `.cursor/rules/`. It is unscored and does not observe Cursor,
 validate target existence, resolve other formats/precedence or change normal

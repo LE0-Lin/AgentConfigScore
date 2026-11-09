@@ -1,5 +1,7 @@
 # Comparing Cursor attachment changes
 
+For an inventory of existing file contexts, see [per-file coverage](cursor-coverage.md).
+
 **Unreleased.** Source builds after v0.24.0 extend the [Cursor file-context
 profile](cursor-scope.md) with two entrypoints:
 

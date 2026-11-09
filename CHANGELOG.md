@@ -8,6 +8,16 @@
 
 ### Added
 
+- Add opt-in `scope coverage` for separate single-file contexts drawn from the
+  union of filtered regular files in two trees or a pinned local Git baseline.
+  Reuse captured rule sources across contexts, retain source/line evidence and
+  inventory exclusions, and gate recognized losses and uncertainty separately.
+  Empty selections/read failures/resource limits fail without partial JSON.
+- Replay five synthetic coverage cases plus a joint-context control against the
+  installed wheel on all three CI operating systems, retaining fixture hashes,
+  tool identity, unchanged standalone scores and JSON artifacts. Native Cursor
+  fidelity and independent accuracy remain unmeasured.
+
 - Unreleased `scope compare` and Git-backed `scope diff` for the same declared Cursor file context: file lifecycle, trigger matches and aggregated exact-directive availability, with original line evidence and captured source hashes. Optional caller-owned flags gate recognized active losses and unknowns separately; active duplicate/renamed sources and remaining multi-file triggers retain availability. Includes four runnable synthetic examples and source-build CI guidance. This is bounded attachment/recognition analysis, not general semantic impact or runtime enforcement; normal scoring, policy schema, published packages and Action refs are unchanged.
 
 - An opt-in, unscored `scope` command predicting root Cursor project-rule activation for explicitly declared file context. A bounded scalar-metadata parser and iterative glob model retain unknowns, source-line evidence and multi-file opposing-directive signals even for disjoint patterns. Includes a runnable synthetic example, installed-wheel acceptance and aligned core guides. It does not observe Cursor, prove semantic conflicts, alter scan/gate scores or ship in the published v0.24.0 artifacts or rolling Action.

@@ -59,6 +59,8 @@ PyPI 包和滚动 `v0` Action **不包含尚未发布的 Cursor 命令**。安�
 
 ## Cursor 加载变化审核——尚未发布的源码功能
 
+新增 `scope coverage --base-ref origin/main --under src`，从两侧仓库实际文件生成独立的单文件上下文，列出具体失去已识别约束的文件。提供修复、重命名、不确定情况与未修改对照，以及安装后的完整复跑。[逐文件覆盖检查（英文）](docs/cursor-coverage.md)。
+
 对于只声明后端文件 `src/api/service.py` 的任务，保持 `Never delete files without approval.` 正文不变，仅把 Cursor glob 从 `src/**` 改为 `src/web/**`，两侧普通评分仍是 **100**，预计自动加载却从活动变为不活动。
 
 在源码仓库目录中运行合成示例：

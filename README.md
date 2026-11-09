@@ -126,6 +126,13 @@ extend the existing baseline score-policy schema.
 Try the [four controls](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/cursor-scope-impact/README.md),
 or use [`scope diff` with a local Git baseline](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/cursor-scope-impact.md).
 
+To find affected files without declaring a task, source builds also provide
+`scope coverage --base-ref origin/main --under src`. It inventories regular
+files on both sides and checks each as a separate context, keeping an API-only
+loss visible when a frontend file still matches. The
+[coverage guide and installed replay](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/cursor-coverage.md)
+include a repair, rename, uncertainty and unchanged controls.
+
 ## Repository policy + editor validation
 
 The generated policy enables regression checks:
