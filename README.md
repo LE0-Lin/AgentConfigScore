@@ -225,7 +225,7 @@ for the localized overview, guide and limitations; advanced references remain En
 ## Development
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.26.1"
+python -m pip install -e .
 python -m unittest discover -s tests -v
 agent-config-score . --fail-under 90
 ```
