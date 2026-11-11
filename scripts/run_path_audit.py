@@ -169,7 +169,9 @@ def main() -> int:
             continue
         tree = trees[repo["repository"]]
         index = {row["path"]: row for row in tree["tree"]}
-        report = scan(args.python.resolve(), tree, repo, base)
+        # Resolving a venv's Python symlink selects the base interpreter and can
+        # lose the verified installation. Keep its absolute invocation path.
+        report = scan(args.python.absolute(), tree, repo, base)
         if (report["tool"]["version"] != protocol["product_version"]
                 or report["tool"]["source_fingerprint"]["sha256"] != EXPECTED_SOURCE_SHA256):
             raise ValueError("audit requires the frozen published package and source identity")
@@ -190,7 +192,7 @@ def main() -> int:
                     or entry["mode"] not in {"040000", "100644", "100755"}):
                 continue
             seen_targets.add(key)
-            mutated = scan(args.python.resolve(), tree, repo, base, target)
+            mutated = scan(args.python.absolute(), tree, repo, base, target)
             if mutated["tool"] != identity:
                 raise ValueError("tool changed during control")
             mutations.append({"id": f"control-{len(mutations) + 1:02}", "parent_case": case["id"],
