@@ -1,0 +1,50 @@
+name: Frozen path audit
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'benchmarks/path-audit-v1/**'
+      - 'scripts/*path_audit.py'
+      - '.github/workflows/path-audit.yml'
+      - '.gitattributes'
+  pull_request:
+    paths:
+      - 'benchmarks/path-audit-v1/**'
+      - 'scripts/*path_audit.py'
+      - '.github/workflows/path-audit.yml'
+      - '.gitattributes'
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install the frozen published wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/path-audit-env"
+          python -m pip download --no-deps --only-binary=:all: agent-config-score==0.26.1 --dest "$RUNNER_TEMP/path-audit-wheel"
+          echo "b9be0dfd43e6a0827797cb4bbddbc7d002b590e9fbcfe6973438cdc74e00e84c  $RUNNER_TEMP/path-audit-wheel/agent_config_score-0.26.1-py3-none-any.whl" | sha256sum --check
+          "$RUNNER_TEMP/path-audit-env/bin/python" -I -m pip install --no-deps "$RUNNER_TEMP/path-audit-wheel/agent_config_score-0.26.1-py3-none-any.whl"
+      - name: Replay retained source facts offline
+        shell: bash
+        env:
+          PYTHONPATH: src
+        run: |
+          python scripts/run_path_audit.py --python "$RUNNER_TEMP/path-audit-env/bin/python" --output "$RUNNER_TEMP/path-audit-result.json"
+      - name: Retain the completed audit
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: path-audit-result
+          path: ${{ runner.temp }}/path-audit-result.json
+          if-no-files-found: error
+          retention-days: 14

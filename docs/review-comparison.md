@@ -10,6 +10,12 @@ results.
 inputs are synthetic calibration fixtures with provisional project-authored
 labels. They reuse known cases and must not be called held-out or real user data.
 
+A separate [bounded path-reference maintainer audit](../benchmarks/path-audit-v1/README.md)
+now retains actual frozen-wheel results, including misses and a post-hoc warning
+review. It uses provisional AI-authored maintainer observations and names-only
+path projections. It does not satisfy the independent-label or matched AI
+comparison requirements below.
+
 A separate [prospective candidate collection](../benchmarks/prospective-review-v1/README.md)
 now retains five pinned public root instruction files, a predeclared twelve-repository
 registry, every exclusion, and third-party license notices. It is **unreviewed

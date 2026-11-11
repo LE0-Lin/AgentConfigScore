@@ -1,0 +1,917 @@
+{
+  "schema_version": 1,
+  "status": "collected_unscored",
+  "collected_at_utc": "2026-11-11T16:04:43.659742+00:00",
+  "protocol_sha256": "5aa97fdd4d697d79ee2729d3a0e6a26ae3421858bd3be4ce7d44b8132b861ca4",
+  "selected_cases": 16,
+  "repositories": [
+    {
+      "repository": "sveltejs/svelte",
+      "revision": "1fd881f514b647955024df4458e3e1934713f122",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "instruction_path": "AGENTS.md",
+      "source_file": "sources/sveltejs--svelte.txt",
+      "source_sha256": "21d0c76b1d9d5c7772fd56f4cd09192db2418ee9e3d37e0894419aa4ba21f16b",
+      "source_blob_sha": "81a81f098bdbc6b7b418ff57ebc44a68bc5975b1",
+      "source_url": "https://github.com/sveltejs/svelte/blob/1fd881f514b647955024df4458e3e1934713f122/AGENTS.md",
+      "tree_file": "trees/sveltejs--svelte.json.gz",
+      "tree_sha256": "d44d0736324821c0fab8470c7502483125da3918c63ddc001292ccd1e9611ed8",
+      "tree_object_sha": "d69831deb3bca5a3378823ca5229116d4f701417",
+      "tree_entries": 13173,
+      "license_file": "licenses/sveltejs--svelte.txt",
+      "license_sha256": "06257f4847b13a49a039efb17b944c141e71b12fd8d231b362d86919067d77a3",
+      "license_blob_sha": "f872adf738de278e2345516eb1cea30d5451914e",
+      "license_url": "https://github.com/sveltejs/svelte/blob/1fd881f514b647955024df4458e3e1934713f122/LICENSE.md",
+      "candidates": [
+        {
+          "line": 5,
+          "destination": "./CONTRIBUTING.md",
+          "kind": "markdown_link",
+          "selected": true,
+          "id": "path-01"
+        },
+        {
+          "line": 5,
+          "destination": "CONTRIBUTING.md",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-02"
+        },
+        {
+          "line": 7,
+          "destination": "./.github/PULL_REQUEST_TEMPLATE.md",
+          "kind": "markdown_link",
+          "selected": true,
+          "id": "path-03"
+        },
+        {
+          "line": 7,
+          "destination": "PULL_REQUEST_TEMPLATE.md",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-04"
+        }
+      ]
+    },
+    {
+      "repository": "nuxt/nuxt",
+      "revision": "ed465e0bb98c29cff324712224804f21458d4eb3",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "instruction_path": "AGENTS.md",
+      "source_file": "sources/nuxt--nuxt.txt",
+      "source_sha256": "fb8f945749dacb480699cbcfa07197b25f8ef887ad2a1b74d7fc5c5c65af6b4a",
+      "source_blob_sha": "f061f9401a3d86895995f199b9dfe87c4e9203f8",
+      "source_url": "https://github.com/nuxt/nuxt/blob/ed465e0bb98c29cff324712224804f21458d4eb3/AGENTS.md",
+      "tree_file": "trees/nuxt--nuxt.json.gz",
+      "tree_sha256": "e911cc73845aab46a028d88386db5a3636a799d51c6f4d10998b5dc054129542",
+      "tree_object_sha": "f0522147e9fe524d34c4d776f04399f7a7750b11",
+      "tree_entries": 3320,
+      "license_file": "licenses/nuxt--nuxt.txt",
+      "license_sha256": "947a111b1c5797180b92547c6498358fd812b0f133090844dae324eb3fb2efc7",
+      "license_blob_sha": "363f513455fc8d788f5dbbe5851d311e8306efe4",
+      "license_url": "https://github.com/nuxt/nuxt/blob/ed465e0bb98c29cff324712224804f21458d4eb3/LICENSE",
+      "candidates": []
+    },
+    {
+      "repository": "pnpm/pnpm",
+      "revision": "f2cbd57520b8963fb6ad95659b7e9c47751518e7",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "instruction_path": "AGENTS.md",
+      "source_file": "sources/pnpm--pnpm.txt",
+      "source_sha256": "0613294abb2b003da4be622502ff48a5183a7c2e97a85725fac60ff76b0568e8",
+      "source_blob_sha": "b666127d29317b4ef6128c9a475afc8c8c2fea51",
+      "source_url": "https://github.com/pnpm/pnpm/blob/f2cbd57520b8963fb6ad95659b7e9c47751518e7/AGENTS.md",
+      "tree_file": "trees/pnpm--pnpm.json.gz",
+      "tree_sha256": "a93151f4288c6636fdde58c06d3a6f25dd9767c0d9d6e1bf61c2d3582799e96c",
+      "tree_object_sha": "2e62fdda7c7f0646b27e58818d733a5e1caa6700",
+      "tree_entries": 14530,
+      "license_file": "licenses/pnpm--pnpm.txt",
+      "license_sha256": "4b8e2a57502758b2d034ece9cabf19dd098c5609003ed8dbdafd085274f25bd9",
+      "license_blob_sha": "565d3e85af157e84829fc486d58a199d4b4f4de4",
+      "license_url": "https://github.com/pnpm/pnpm/blob/f2cbd57520b8963fb6ad95659b7e9c47751518e7/LICENSE",
+      "candidates": [
+        {
+          "line": 7,
+          "destination": "pnpm11/",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-05"
+        },
+        {
+          "line": 8,
+          "destination": "pnpm/",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-06"
+        },
+        {
+          "line": 8,
+          "destination": "./pnpm/AGENTS.md",
+          "kind": "markdown_link",
+          "selected": true,
+          "id": "path-07"
+        },
+        {
+          "line": 8,
+          "destination": "pnpm/AGENTS.md",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-08"
+        },
+        {
+          "line": 9,
+          "destination": "pnpr/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 9,
+          "destination": "./pnpr/AGENTS.md",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 9,
+          "destination": "pnpr/AGENTS.md",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 10,
+          "destination": "pnpm/npm/get-pnpm",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 12,
+          "destination": "AGENTS.md",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 16,
+          "destination": "./PHILOSOPHY.md",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 34,
+          "destination": "pnpm/docs/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 34,
+          "destination": "pnpm11/docs/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 35,
+          "destination": "pnpr/docs/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 37,
+          "destination": "./DOCUMENTATION.md",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 46,
+          "destination": "pnpm11/pnpm/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 47,
+          "destination": "pnpm11/installing/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 48,
+          "destination": "pnpm11/bins/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 49,
+          "destination": "pnpm11/resolving/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 50,
+          "destination": "pnpm11/fetching/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 51,
+          "destination": "pnpm11/store/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 52,
+          "destination": "pnpm11/lockfile/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 56,
+          "destination": "pnpm11/cli/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 57,
+          "destination": "pnpm11/config/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 58,
+          "destination": "pnpm11/hooks/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 59,
+          "destination": "pnpm11/cli/commands/src/completion/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 63,
+          "destination": "pnpm11/network/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 64,
+          "destination": "pnpm11/workspace/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 65,
+          "destination": "pnpm11/exec/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 66,
+          "destination": "pnpm11/engine/runtime/commands/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 67,
+          "destination": "pnpm11/cache/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 68,
+          "destination": "pnpm11/patching/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 69,
+          "destination": "pnpm11/releasing/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 73,
+          "destination": "pnpm11/fs/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 74,
+          "destination": "pnpm11/crypto/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 75,
+          "destination": "pnpm11/text/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 97,
+          "destination": "pnpm11/pnpm/test/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 97,
+          "destination": "pnpm11/pnpm/dist/pnpm.mjs",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 97,
+          "destination": "lib/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 111,
+          "destination": "./.agents/skills/testing-changes/SKILL.md",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 113,
+          "destination": "pnpm/CONTRIBUTING.md",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 156,
+          "destination": "./.agents/skills/review-code/references/REVIEW_GUIDE.md",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 164,
+          "destination": "pnpm11/object/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 184,
+          "destination": ".husky/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 192,
+          "destination": ".husky/_/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 196,
+          "destination": ".husky/reject-bare-issue-refs.mjs",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 209,
+          "destination": ".husky/reject-bare-mentions.mjs",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 299,
+          "destination": "ghcr.io/pnpm/pnpr",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 302,
+          "destination": "pnpm-workspace.yaml",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 357,
+          "destination": "pnpm/npm/napi/index.d.ts",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 370,
+          "destination": "./.vale/styles/pnpm",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 370,
+          "destination": ".vale/styles/pnpm",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 370,
+          "destination": "./.vale.ini",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 370,
+          "destination": "origin/main",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 396,
+          "destination": "./dylint.toml",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 396,
+          "destination": "dylint.toml",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 401,
+          "destination": "./eslint.config.mjs",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 410,
+          "destination": "object/property-path",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 413,
+          "destination": "async/await",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 447,
+          "destination": "./.agents/skills/pull-requests/SKILL.md",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 466,
+          "destination": "./SECURITY.md",
+          "kind": "markdown_link",
+          "selected": false
+        },
+        {
+          "line": 477,
+          "destination": ".agents/skills/pull-requests/scripts/resolve-pr-conflicts.sh",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 483,
+          "destination": "pnpm-lock.yaml",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 489,
+          "destination": ".claude/skills",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 489,
+          "destination": "settings.local.json",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 491,
+          "destination": ".agents/skills",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 493,
+          "destination": "CLAUDE.md",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 498,
+          "destination": "package.json",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 499,
+          "destination": "CONTRIBUTING.md",
+          "kind": "literal",
+          "selected": false
+        }
+      ]
+    },
+    {
+      "repository": "vitest-dev/vitest",
+      "revision": "f4fdbcae08ec365f35d9e1866ce3e7d04880ea60",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "instruction_path": "AGENTS.md",
+      "source_file": "sources/vitest-dev--vitest.txt",
+      "source_sha256": "27416758e516ecf031af0096eff7f66ae36e28070676b93707d0dc85f8d385aa",
+      "source_blob_sha": "5c4fcc580b9383671d72de8ab719e7d4cbf269da",
+      "source_url": "https://github.com/vitest-dev/vitest/blob/f4fdbcae08ec365f35d9e1866ce3e7d04880ea60/AGENTS.md",
+      "tree_file": "trees/vitest-dev--vitest.json.gz",
+      "tree_sha256": "d2d0eb211b0286328a5dbd1a77b140563a84c3e8538b8b1a1a02140c9aed72b5",
+      "tree_object_sha": "83599aae3f6b19e3d95c0916d275c2de8f45083b",
+      "tree_entries": 4062,
+      "license_file": "licenses/vitest-dev--vitest.txt",
+      "license_sha256": "04575fc5bfae19a9b63100f8691f901a2e15a399011ac02db435a9ef27295551",
+      "license_blob_sha": "0e5771dddf4e96ebc77c349f53fc763b910e63c0",
+      "license_url": "https://github.com/vitest-dev/vitest/blob/f4fdbcae08ec365f35d9e1866ce3e7d04880ea60/LICENSE",
+      "candidates": [
+        {
+          "line": 22,
+          "destination": "packages/",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-09"
+        },
+        {
+          "line": 47,
+          "destination": "test/unit",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-10"
+        },
+        {
+          "line": 67,
+          "destination": "dist/",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-11"
+        },
+        {
+          "line": 72,
+          "destination": "packages/vitest/src/runtime/",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-12"
+        },
+        {
+          "line": 73,
+          "destination": ".d.ts",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 77,
+          "destination": "test/test-utils/index.ts",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 85,
+          "destination": "vitest.config.js",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 90,
+          "destination": "test/e2e/vitest.config.ts",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 91,
+          "destination": "test/test-utils",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 112,
+          "destination": "test/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 115,
+          "destination": "test/e2e",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 116,
+          "destination": "test/browser",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 117,
+          "destination": "test/node-runner",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 122,
+          "destination": "docs/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 123,
+          "destination": "examples/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 124,
+          "destination": "scripts/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 125,
+          "destination": ".github/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 126,
+          "destination": "patches/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 142,
+          "destination": "vitest/node",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 144,
+          "destination": "packages/web-worker/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 144,
+          "destination": "test/unit/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 146,
+          "destination": "packages/browser",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 153,
+          "destination": "tsconfig.base.json",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 153,
+          "destination": "tsconfig.build.json",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 153,
+          "destination": "tsconfig.check.json",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 154,
+          "destination": "test/typescript",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 155,
+          "destination": "packages/ui/client",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 191,
+          "destination": "docs/AGENTS.md",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 192,
+          "destination": "packages/vitest/src/node/cli/cli-config.ts",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 192,
+          "destination": "docs/guide/cli-generated.md",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 198,
+          "destination": "packages/vitest/LICENSE.md",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 200,
+          "destination": "pnpm-workspace.yaml",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 201,
+          "destination": "docs/.vitepress/contributor-names.json",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 206,
+          "destination": ".github/workflows/",
+          "kind": "literal",
+          "selected": false
+        },
+        {
+          "line": 260,
+          "destination": ".github/commit-convention.md",
+          "kind": "literal",
+          "selected": false
+        }
+      ]
+    },
+    {
+      "repository": "biomejs/biome",
+      "revision": "98f4d533a1e68b8f170cfdc1a7a128df77845510",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "NOASSERTION",
+      "status": "excluded",
+      "reason": "license_outside_allowlist"
+    },
+    {
+      "repository": "facebook/react",
+      "revision": "1620f7b943eb5de6a055e8eb042ad6e36b5317d4",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": false
+        },
+        {
+          "path": "CLAUDE.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "instruction_path": "CLAUDE.md",
+      "source_file": "sources/facebook--react.txt",
+      "source_sha256": "01bfd26b915b0f9328f64a396b765c335e9a38ba5fc9ee2117eee6b465533afd",
+      "source_blob_sha": "863aaab66c523299eae4a1781169929701ed67c6",
+      "source_url": "https://github.com/facebook/react/blob/1620f7b943eb5de6a055e8eb042ad6e36b5317d4/CLAUDE.md",
+      "tree_file": "trees/facebook--react.json.gz",
+      "tree_sha256": "b1d3b1c2a7099522009f607ae60feeec7ac6162401bdda612b4cabac0a700b17",
+      "tree_object_sha": "08258cbc31af1f55183d95144ea106aae861459a",
+      "tree_entries": 7918,
+      "license_file": "licenses/facebook--react.txt",
+      "license_sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+      "license_blob_sha": "b93be90515ccd0b9daedaa589e42bf5929693f1f",
+      "license_url": "https://github.com/facebook/react/blob/1620f7b943eb5de6a055e8eb042ad6e36b5317d4/LICENSE",
+      "candidates": [
+        {
+          "line": 12,
+          "destination": "compiler/docs/rust-port/",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-13"
+        },
+        {
+          "line": 12,
+          "destination": "compiler/crates/",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-14"
+        }
+      ]
+    },
+    {
+      "repository": "TanStack/query",
+      "revision": "8f6da1e2a1b5e9afd774cd12bd3865df5c432984",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "instruction_path": "AGENTS.md",
+      "source_file": "sources/TanStack--query.txt",
+      "source_sha256": "cf0b05fcc4414b953da34cb7cf546682a0be0825e03d78ca57072ebd04402f35",
+      "source_blob_sha": "af9e35435008e755b03ae5785ab72ea732ec8093",
+      "source_url": "https://github.com/TanStack/query/blob/8f6da1e2a1b5e9afd774cd12bd3865df5c432984/AGENTS.md",
+      "tree_file": "trees/TanStack--query.json.gz",
+      "tree_sha256": "8bfd6a99e8cb057b76c2dffcee63015abd4252baaa436fc36bbbf4b3fe756739",
+      "tree_object_sha": "9558f012d6a6b9e253f3dbd7a46e60e491a97a34",
+      "tree_entries": 6529,
+      "license_file": "licenses/TanStack--query.txt",
+      "license_sha256": "a405ee70c632bb938acb7ac5f210e814409b3760ea9d2329d8ed8ffcfd11a0e7",
+      "license_blob_sha": "1869e21fc3c80b3010c3e60c5ab6dda077ce1f22",
+      "license_url": "https://github.com/TanStack/query/blob/8f6da1e2a1b5e9afd774cd12bd3865df5c432984/LICENSE",
+      "candidates": [
+        {
+          "line": 4,
+          "destination": "./CONTRIBUTING.md",
+          "kind": "markdown_link",
+          "selected": true,
+          "id": "path-15"
+        },
+        {
+          "line": 4,
+          "destination": "CONTRIBUTING.md",
+          "kind": "literal",
+          "selected": true,
+          "id": "path-16"
+        }
+      ]
+    },
+    {
+      "repository": "encode/httpx",
+      "revision": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": false
+        },
+        {
+          "path": "CLAUDE.md",
+          "present": false
+        }
+      ],
+      "status": "excluded",
+      "reason": "registered_root_instruction_absent"
+    },
+    {
+      "repository": "Textualize/textual",
+      "revision": "5e5b7ef58b8c5572c13a3ff9027d756623661495",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": false
+        },
+        {
+          "path": "CLAUDE.md",
+          "present": false
+        }
+      ],
+      "status": "excluded",
+      "reason": "registered_root_instruction_absent"
+    },
+    {
+      "repository": "python-poetry/poetry",
+      "revision": "4acc75e19f128c8340c6f977a35e53b5f7f39071",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": false
+        },
+        {
+          "path": "CLAUDE.md",
+          "present": false
+        }
+      ],
+      "status": "excluded",
+      "reason": "registered_root_instruction_absent"
+    }
+  ]
+}

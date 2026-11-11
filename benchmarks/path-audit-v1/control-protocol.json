@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "registered_date": "2026-11-12",
+  "registered_after": "Real collection and inspection of source/path facts, before any tool predictions",
+  "reason": "Fixed natural sampling produced 16 candidates, including correlated link labels, rather than the target 24. Preserve that sample without replacements. Add a separately reported detection control, never extra natural defects.",
+  "selection": "First eight distinct normalized concrete tracked targets among selected natural candidates, in case order. Only regular files or directories. Ignore link-label aliases that do not denote an exact tracked target. No selection using scanner results.",
+  "mutation": "Keep the selected source document unchanged. Independently omit one target and all its descendants from the path projection. Each control starts from the complete original projection. Do not accumulate deletions or mutate upstream sources.",
+  "reference": "A link or instruction describing an existing repository location now points to an absent target. Expected review signal is dead-path for that exact literal and original source line. Literal directories count even if the current scanner intentionally excludes them; report this scope limitation as a miss under the broader audit task.",
+  "cases": 8,
+  "reporting": "Keep natural and controlled counts separate. Correlated variants are development controls, not held-out samples or evidence that upstream projects have defects. No native loading or runtime behavior claim. Freeze this file and observations before running the tool."
+}
