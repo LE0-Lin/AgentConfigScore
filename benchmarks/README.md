@@ -6,6 +6,12 @@ AgentConfigScore keeps deliberately different forms of evidence:
 - a pinned public-repository smoke suite for checking scanner noise on real inputs;
 - a separate review-comparison workflow for importing blinded AI decisions against declared reference labels.
 
+A [bounded path-reference maintainer audit](path-audit-v1/README.md) additionally
+retains 16 unmodified candidate occurrences and eight separate removal controls
+with the published v0.26.1 wheel. It records five directory-reference misses and
+a separate post-hoc generated-output false positive. Its provisional observations
+are not independent human labels or a general accuracy estimate.
+
 None of these workflows claims that A 100 means semantic prompt quality.
 
 ## AI comparison status

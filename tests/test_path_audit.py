@@ -1,4 +1,7 @@
 import importlib.util
+import gzip
+import hashlib
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -13,6 +16,27 @@ SPEC.loader.exec_module(AUDIT)
 
 
 class PathAuditTests(unittest.TestCase):
+    def test_committed_result_binds_the_inputs_and_retains_unfavorable_controls(self):
+        result = AUDIT.json_file(AUDIT.BASE / "result.json")
+        for name, expected in result["input_sha256"].items():
+            self.assertEqual(AUDIT.digest((AUDIT.BASE / name).read_bytes()), expected)
+        self.assertEqual(AUDIT.counts(result["natural_cases"]), result["natural_summary"])
+        self.assertEqual(AUDIT.counts(result["controls"]), result["control_summary"])
+        self.assertEqual(result["control_summary"]["false_negative"], 5)
+        self.assertIsNone(result["accuracy_percentage"])
+        self.assertFalse(result["independent_human_labels"])
+        self.assertFalse(result["native_cursor_observed"])
+
+    def test_posthoc_context_is_separate_and_matches_the_original_git_tree(self):
+        context = AUDIT.json_file(AUDIT.BASE / "posthoc-context.json")
+        tree = json.loads(gzip.decompress((AUDIT.BASE / "collected/trees/vitest-dev--vitest.json.gz").read_bytes()))
+        index = {row["path"]: row for row in tree["tree"]}
+        self.assertEqual(context["status"], "posthoc_context_not_prespecified_sample")
+        for row in context["files"]:
+            raw = row["content"].encode("utf-8")
+            self.assertEqual(AUDIT.blob_sha(raw), index[row["path"]]["sha"])
+            self.assertEqual(hashlib.sha256(raw).hexdigest(), row["sha256"])
+
     def test_retained_inputs_match_full_git_trees_and_provisional_labels(self):
         protocol, controls, collection, labels, trees = AUDIT.verify_inputs(AUDIT.BASE)
         self.assertEqual(protocol["product_version"], "0.26.1")
