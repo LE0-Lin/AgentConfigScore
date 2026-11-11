@@ -30,23 +30,52 @@ try:
     if len(raw) > 1048576:
         raise ValueError("oversized input")
     data = json.loads(raw)
+    if not isinstance(data, dict):
+        raise ValueError("expected object")
     attachments = []
-    outside = 0
-    for entry in data.get("attachments", []):
+    outside = unsupported = unusable = 0
+    raw_attachments = data.get("attachments")
+    entries = raw_attachments if isinstance(raw_attachments, list) else []
+    entry_shapes = []
+    safe_keys = {"type", "file_path", "filePath", "path", "uri", "name", "content"}
+    for entry in entries:
+        entry_shapes.append({"value_type": type(entry).__name__,
+                             "known_keys": sorted(safe_keys.intersection(entry)) if isinstance(entry, dict) else []})
         if not isinstance(entry, dict) or entry.get("type") not in {"file", "rule"}:
+            unsupported += 1
             continue
         try:
-            relative = Path(entry["file_path"]).resolve().relative_to(root).as_posix()
+            target = Path(entry["file_path"]).resolve()
         except (KeyError, TypeError, ValueError, OSError):
+            unusable += 1
+            continue
+        try:
+            relative = target.relative_to(root).as_posix()
+        except ValueError:
             outside += 1
             continue
         attachments.append({"type": entry["type"], "path": relative})
-    record = {"schema_version": 1, "event": event,
+    known_input_keys = {"attachments", "prompt", "file_path", "content", "conversation_id", "session_id",
+                        "hook_event_name", "cursor_version", "workspace_roots", "model", "tool_input"}
+    record = {"schema_version": 2, "event": event,
               "captured_at_utc": datetime.now(timezone.utc).isoformat(),
+              "collector_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "known_input_field_types": {key: type(data[key]).__name__ for key in sorted(known_input_keys.intersection(data))},
               "attachments_field_present": "attachments" in data,
+              "input_attachment_count": len(entries) if isinstance(raw_attachments, list) else None,
+              "attachment_entry_shapes": entry_shapes,
+              "unsupported_attachment_count": unsupported,
+              "unusable_attachment_path_count": unusable,
               "reported_attachments": attachments,
               "outside_workspace_attachments_omitted": outside,
               "interpretation": "client-reported metadata at this hook, not model compliance or proof of complete context"}
+    prompt = data.get("prompt")
+    if isinstance(prompt, str):
+        # Retain only a fixed synthetic case marker, never arbitrary prompt text.
+        for marker in ("Probe api-only.", "Probe web-only.", "Probe joint.", "Probe root-ts.", "CAPTURE_CONTROL_V2"):
+            if marker in prompt:
+                record["recognized_probe_marker"] = marker
+                break
     for name in ("conversation_id", "session_id"):
         if isinstance(data.get(name), str):
             record[name + "_sha256"] = hashlib.sha256(data[name].encode()).hexdigest()
