@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## v0.26.0
+
+- Complete optional Cursor coverage CI setup with `init --coverage-under`, job
+  summaries and retained Markdown/JSON artifacts. Default setup remains unchanged.
+- Add `scope coverage --markdown` with path/line-only, escaped review evidence,
+  gate reasons, exclusions and repair/recheck guidance. Output failures use exit 2.
+- Add opt-in Action coverage input and structured outputs. Completed review
+  failures retain reports; operational failures remain explicitly unavailable.
+- Require installed cross-platform acceptance and real composite-Action cases
+  before publication, including expected failures and worktree cleanup.
+- Document the shipped static contract and architecture, separately from native
+  Cursor fidelity, runtime enforcement and independent accuracy.
+
 ## v0.25.0
 
 This Beta release packages the opt-in Cursor profile and per-file coverage

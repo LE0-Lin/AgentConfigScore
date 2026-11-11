@@ -50,7 +50,7 @@ agent-config-score diff
 
 ## 发布版本
 
-v0.25.0 Beta 包含本地检查、基线回归门禁、可审计豁免、报告、删除保护审核，以及可选的 Cursor 加载与逐文件覆盖分析。Cursor 功能是有明确未知状态的静态预测。[发布与升级说明（英文）](docs/releases/v0.25.0.md)。
+v0.26.0 Beta 包含本地检查、基线回归门禁、可审计豁免、报告、删除保护审核，以及可选的 Cursor 加载与逐文件覆盖分析。Cursor 功能是有明确未知状态的静态预测。[发布与升级说明（英文）](docs/releases/v0.26.0.md)。
 
 ## Cursor 加载变化审核
 
@@ -61,7 +61,7 @@ v0.25.0 Beta 包含本地检查、基线回归门禁、可审计豁免、报告�
 在源码仓库目录中运行合成示例：
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.25.0"
+python -m pip install --upgrade "agent-config-score==0.26.0"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
@@ -70,6 +70,15 @@ agent-config-score scope compare \
 预期退出码为 **1**：已识别的活动指令失去自动加载来源，需要审核。报告给出元数据与指令行号；另一条活动规则中的相同指令，或任务中其他仍匹配的文件，可以保留可用性。手动／模型选择加载及不支持的输入保留为未知。
 
 比较两侧使用同一组声明的文件上下文，不观察实际 Agent 行为，也不证明语义等价。默认比较只给建议；两个标志显式启用调用方的审核门禁，不扩展现有基线评分策略格式。详见[四个对照（英文）](examples/cursor-scope-impact/README.md)和[Git 基线比较与 CI 示例（英文）](docs/cursor-scope-impact.md)。
+
+### 接入覆盖检查 CI（v0.26.0+）
+
+```bash
+agent-config-score init --coverage-under src --dry-run
+agent-config-score init --coverage-under src
+```
+
+审核并提交生成的文件。这个可选的只读工作流组合普通门禁与严格逐文件检查，生成可读的任务摘要，并保存七天的报告产物。已有接入可使用 `--workflow-only`，审核预览后再显式 `--force` 替换工作流。详见[完整接入流程（英文）](docs/cursor-coverage.md#ci-setup-and-review-artifacts)与[设计及交付边界（英文）](docs/architecture.md)。
 
 ## 为什么采用回归检查
 
@@ -131,10 +140,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: LE0-Lin/AgentConfigScore@v0.25.0
+      - uses: LE0-Lin/AgentConfigScore@v0.26.0
 ```
 
-固定 `@v0.25.0` 有利于复现；`@v0` 是会随后续版本更新的滚动引用。PR 评论属于[可选集成（英文）](docs/pr-comments.md)，扫描器默认不替你发评论。
+固定 `@v0.26.0` 有利于复现；`@v0` 是会随后续版本更新的滚动引用。PR 评论属于[可选集成（英文）](docs/pr-comments.md)，扫描器默认不替你发评论。
 
 ## 支持的指令文件
 
@@ -158,4 +167,4 @@ jobs:
 
 图中的三次评分由 `agent-config-score history` 读取。[历史工作流（英文）](docs/score-history.md)
 
-项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.25.0.md)目前为英文。
+项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.26.0.md)目前为英文。

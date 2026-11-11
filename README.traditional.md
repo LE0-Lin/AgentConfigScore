@@ -50,7 +50,7 @@ agent-config-score diff
 
 ## 發布版本
 
-v0.25.0 Beta 包含本機檢查、基準回歸檢查、可稽核例外、報告、刪除保護審閱，以及選用的 Cursor 載入與逐檔覆蓋分析。Cursor 功能是具有明確未知狀態的靜態預測。[發布與升級說明（英文）](docs/releases/v0.25.0.md)。
+v0.26.0 Beta 包含本機檢查、基準回歸檢查、可稽核例外、報告、刪除保護審閱，以及選用的 Cursor 載入與逐檔覆蓋分析。Cursor 功能是具有明確未知狀態的靜態預測。[發布與升級說明（英文）](docs/releases/v0.26.0.md)。
 
 ## Cursor 載入變化審閱
 
@@ -61,7 +61,7 @@ v0.25.0 Beta 包含本機檢查、基準回歸檢查、可稽核例外、報告�
 在原始碼儲存庫目錄中執行合成範例：
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.25.0"
+python -m pip install --upgrade "agent-config-score==0.26.0"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
@@ -70,6 +70,15 @@ agent-config-score scope compare \
 預期結束代碼為 **1**：已識別的活動指令失去自動載入來源，需要審閱。報告給出中繼資料與指令行號；另一條活動規則中的相同指令，或任務中其他仍符合的檔案，可以保留可用性。手動／模型選擇載入及不支援的輸入保留為未知。
 
 比較兩側使用同一組宣告的檔案上下文，不觀察實際 Agent 行為，也不證明語意等價。預設比較只給建議；兩個旗標明確啟用呼叫端的審閱檢查，不擴充現有基準評分策略格式。詳見[四個對照（英文）](examples/cursor-scope-impact/README.md)和[Git 基準比較與 CI 範例（英文）](docs/cursor-scope-impact.md)。
+
+### 整合覆蓋檢查 CI（v0.26.0+）
+
+```bash
+agent-config-score init --coverage-under src --dry-run
+agent-config-score init --coverage-under src
+```
+
+審閱並提交產生的檔案。這個選用的唯讀工作流程結合一般檢查與嚴格逐檔分析，產生可讀的工作摘要，並保存七天的報告產物。既有整合可使用 `--workflow-only`，審閱預覽後再明確使用 `--force` 替換工作流程。詳見[完整整合流程（英文）](docs/cursor-coverage.md#ci-setup-and-review-artifacts)與[設計及交付界線（英文）](docs/architecture.md)。
 
 ## 為什麼使用回歸檢查
 
@@ -131,10 +140,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: LE0-Lin/AgentConfigScore@v0.25.0
+      - uses: LE0-Lin/AgentConfigScore@v0.26.0
 ```
 
-固定使用 `@v0.25.0` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
+固定使用 `@v0.26.0` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
 
 ## 支援的指令檔
 
@@ -158,4 +167,4 @@ jobs:
 
 圖中的三次評分由 `agent-config-score history` 讀取。[歷史工作流程（英文）](docs/score-history.md)
 
-專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.25.0.md)目前為英文。
+專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.26.0.md)目前為英文。

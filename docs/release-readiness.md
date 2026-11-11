@@ -97,3 +97,13 @@ The same built wheel must pass the installed journey and the complete five-case
 coverage replay on all three operating systems before publication. Release
 artifacts retain the tool identity, fixture hashes and the joint-context control.
 Native Cursor observation and independent accuracy remain separate work.
+
+
+## v0.26.0 core delivery acceptance
+
+Publication additionally waits for the real composite Action on seven
+disposable Git fixtures. Expected review failures must retain reports;
+operational failures must not export completed coverage artifacts. Installed
+acceptance covers Markdown, workflow-only setup and the adapter's review,
+repair and failure outcomes with Unicode target paths. See the
+[shipped design boundary](architecture.md).

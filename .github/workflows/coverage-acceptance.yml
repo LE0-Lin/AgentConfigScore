@@ -1,0 +1,121 @@
+name: Cursor CI acceptance
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - case: narrowed
+            exit: '1'
+            losses: '1'
+            unknowns: '0'
+          - case: repaired
+            exit: '0'
+            losses: '0'
+            unknowns: '0'
+          - case: renamed
+            exit: '0'
+            losses: '0'
+            unknowns: '0'
+          - case: uncertain
+            exit: '1'
+            losses: '0'
+            unknowns: '2'
+          - case: base
+            exit: '0'
+            losses: '0'
+            unknowns: '0'
+          - case: empty
+            exit: '2'
+          - case: unreadable
+            exit: '2'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: build/tool
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Prepare disposable local Git fixture
+        id: fixture
+        env:
+          CASE: ${{ matrix.case }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q -b main --template=
+          git config user.name 'Coverage CI Fixture'
+          git config user.email 'coverage@example.invalid'
+          git config commit.gpgsign false
+          git config core.hooksPath "$RUNNER_TEMP/unused-fixture-hooks"
+          cp -R build/tool/examples/cursor-scope-impact/base/.cursor .cursor
+          cp -R build/tool/examples/cursor-scope-impact/base/src src
+          git add .cursor src
+          git commit -qm baseline
+          echo "base=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          python - <<'PY'
+          import os, shutil
+          from pathlib import Path
+          case = os.environ['CASE']
+          if case == 'unreadable':
+              Path('.cursor/rules/policy.mdc').write_bytes(b'invalid-utf8-\xff')
+          elif case != 'empty':
+              for path in Path('.cursor/rules').glob('*.mdc'):
+                  path.unlink()
+              for path in (Path('build/tool/examples/cursor-scope-impact') / case / '.cursor/rules').glob('*.mdc'):
+                  shutil.copyfile(path, Path('.cursor/rules') / path.name)
+          PY
+      - uses: ./build/tool
+        id: acs
+        continue-on-error: true
+        with:
+          base-sha: ${{ steps.fixture.outputs.base }}
+          coverage-under: ${{ matrix.case == 'empty' && 'missing' || 'src' }}
+      - name: Check the real Action outcome and retained evidence
+        if: ${{ !cancelled() }}
+        env:
+          EXPECTED: ${{ matrix.exit }}
+          EXPECTED_LOSSES: ${{ matrix.losses }}
+          EXPECTED_UNKNOWNS: ${{ matrix.unknowns }}
+          OUTCOME: ${{ steps.acs.outcome }}
+          ACTUAL: ${{ steps.acs.outputs.coverage-exit-code }}
+          REPORT: ${{ steps.acs.outputs.coverage-json }}
+          MARKDOWN: ${{ steps.acs.outputs.coverage-markdown }}
+          ACTUAL_LOSSES: ${{ steps.acs.outputs.coverage-lost-files }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          expected = os.environ['EXPECTED']
+          assert os.environ['ACTUAL'] == expected
+          assert os.environ['OUTCOME'] == ('success' if expected == '0' else 'failure')
+          if expected == '2':
+              assert not os.environ['REPORT'] and not os.environ['MARKDOWN']
+          else:
+              data = json.loads(Path(os.environ['REPORT']).read_text(encoding='utf-8'))
+              assert str(data['summary']['files_with_losses']) == os.environ['EXPECTED_LOSSES'] == os.environ['ACTUAL_LOSSES']
+              assert str(data['summary']['files_with_unknown']) == os.environ['EXPECTED_UNKNOWNS']
+              assert data['summary']['files'] == 2 and data['observed_agent_context'] is False
+              assert 'Cursor coverage review' in Path(os.environ['MARKDOWN']).read_text(encoding='utf-8')
+          worktrees = subprocess.check_output(['git', 'worktree', 'list', '--porcelain'], text=True)
+          assert sum(line.startswith('worktree ') for line in worktrees.splitlines()) == 1
+          PY
+      - name: Retain completed coverage reports
+        if: ${{ !cancelled() && steps.acs.outputs.coverage-json != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-action-${{ matrix.case }}
+          path: |
+            ${{ steps.acs.outputs.coverage-json }}
+            ${{ steps.acs.outputs.coverage-markdown }}
+          if-no-files-found: error
+          retention-days: 7

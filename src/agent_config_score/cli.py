@@ -16,7 +16,7 @@ from .regression import compare, markdown_report
 from .rules import RULES, get_rule, rule_guidance
 from .sarif import sarif_report
 from .scanner import (analyze, analyze_cursor_scope, compare_cursor_scope, compare_cursor_coverage,
-                      normalize_coverage_roots, badge_svg, html_report)
+                      normalize_coverage_roots, cursor_coverage_markdown, badge_svg, html_report)
 from .scopes import ScopeInputError, normalize_targets
 
 RESET = "\033[0m"
@@ -165,6 +165,7 @@ def build_init_parser() -> argparse.ArgumentParser:
     workflow.add_argument("--no-workflow", action="store_true", help="Create only .agentconfigscore.json")
     workflow.add_argument("--pr-comment", action="store_true", help="Opt into a generated same-repository PR comment workflow with pull-requests: write; forks use the job summary only")
     p.add_argument("--workflow-only", action="store_true", help="Generate only the workflow; do not read, create or overwrite .agentconfigscore.json")
+    p.add_argument("--coverage-under", action="append", metavar="DIRECTORY", help="Opt into strict per-file Cursor coverage in CI; repeat for multiple directory prefixes")
     p.add_argument("--force", action="store_true", help="Overwrite conflicting generated files")
     p.add_argument("--dry-run", action="store_true", help="Show the initialization plan without writing files")
     return p
@@ -276,6 +277,7 @@ def _main_init(argv: list[str]) -> int:
             include_config=not args.workflow_only,
             include_workflow=not args.no_workflow,
             pr_comment=args.pr_comment,
+            coverage_under=args.coverage_under,
             force=args.force,
             dry_run=args.dry_run,
         )
@@ -285,6 +287,8 @@ def _main_init(argv: list[str]) -> int:
 
     if args.pr_comment:
         print("PR comment workflow selected: pull-requests: write is included; fork PR comments are skipped. Review before committing.")
+    if args.coverage_under is not None:
+        print("Cursor coverage selected: caller-owned prefixes, strict loss/unknown review, job summary and retained reports. Requires an Action revision with coverage support.")
     if args.workflow_only:
         print("Policy file is out of scope: not read, created or modified.")
     if not args.no_workflow:
@@ -578,6 +582,7 @@ def _main_scope_coverage(argv: list[str]) -> int:
     parser.add_argument("--fail-on-lost-directives", action="store_true", help="Exit 1 on a recognized active loss in any file context")
     parser.add_argument("--fail-on-unknown", action="store_true", help="Exit 1 on uncertain activation/body in any file context")
     parser.add_argument("--json", action="store_true", help="Print file inventory, source manifests and per-file evidence")
+    parser.add_argument("--markdown", metavar="FILE", help="Write a path/line-only Markdown coverage review")
     args = parser.parse_args(argv)
     if args.base_ref is not None:
         if args.base is not None or args.head is not None:
@@ -605,6 +610,10 @@ def _main_scope_coverage(argv: list[str]) -> int:
         reasons.append("unknown_scope_or_body")
     report["review_gate"] = {"fail_on_lost_directives": args.fail_on_lost_directives,
                              "fail_on_unknown": args.fail_on_unknown, "failed": bool(reasons), "reasons": reasons}
+    if args.markdown:
+        out = Path(args.markdown)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(cursor_coverage_markdown(report), encoding="utf-8")
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
