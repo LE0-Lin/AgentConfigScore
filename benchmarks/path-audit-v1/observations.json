@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-12",
+  "author": "AI coding assistant acting as project maintainer; no independent human review",
+  "status": "provisional_maintainer_observations_before_tool_predictions",
+  "reference_task": "Concrete broken repository path at this occurrence, using the supplied tracked tree and complete source context. Labels in Markdown links are display text. Explicit generated output is not required to be tracked.",
+  "cases": [
+    {"id": "path-01", "review_needed": false, "reason": "The Markdown destination resolves to the tracked root CONTRIBUTING.md blob."},
+    {"id": "path-02", "review_needed": false, "reason": "Display label for path-01, not an independent link destination; root target also exists."},
+    {"id": "path-03", "review_needed": false, "reason": "The Markdown destination resolves to the tracked .github/PULL_REQUEST_TEMPLATE.md blob."},
+    {"id": "path-04", "review_needed": false, "reason": "Display label for path-03. The actual link targets .github/PULL_REQUEST_TEMPLATE.md; root absence of its label is not a broken path."},
+    {"id": "path-05", "review_needed": false, "reason": "The TypeScript product is explicitly located in pnpm11/, which is a tracked directory."},
+    {"id": "path-06", "review_needed": false, "reason": "The Rust product is explicitly located in pnpm/, which is a tracked directory."},
+    {"id": "path-07", "review_needed": false, "reason": "The Markdown destination resolves to the tracked pnpm/AGENTS.md blob. Its instruction content is delegated and outside this path-existence task."},
+    {"id": "path-08", "review_needed": false, "reason": "Display label for path-07; same tracked target, not an independent reference."},
+    {"id": "path-09", "review_needed": false, "reason": "The described monorepo packages/ location is a tracked directory."},
+    {"id": "path-10", "review_needed": false, "reason": "The described unit-test directory test/unit is tracked."},
+    {"id": "path-11", "review_needed": false, "reason": "Source line 67 explicitly describes built output and requires a rebuild. Absence of a tracked dist directory is not a broken source reference."},
+    {"id": "path-12", "review_needed": false, "reason": "The described worker source directory packages/vitest/src/runtime/ is tracked."},
+    {"id": "path-13", "review_needed": false, "reason": "The named Rust port plan directory compiler/docs/rust-port/ is tracked."},
+    {"id": "path-14", "review_needed": false, "reason": "The named Rust implementation directory compiler/crates/ is tracked."},
+    {"id": "path-15", "review_needed": false, "reason": "The Markdown destination resolves to tracked root CONTRIBUTING.md."},
+    {"id": "path-16", "review_needed": false, "reason": "Display label for path-15; same tracked target, not an independent reference."}
+  ]
+}
