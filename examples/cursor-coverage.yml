@@ -1,0 +1,41 @@
+name: agent-config-regression
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: LE0-Lin/AgentConfigScore@v0
+        id: acs
+        with:
+          coverage-under: |
+            src
+
+      - name: Require configured coverage support
+        if: ${{ !cancelled() }}
+        env:
+          ACS_COVERAGE_EXIT: ${{ steps.acs.outputs.coverage-exit-code }}
+        shell: bash
+        run: |
+          case "$ACS_COVERAGE_EXIT" in
+            0|1|2) ;;
+            *) echo "::error::Selected Action did not run configured Cursor coverage"; exit 2 ;;
+          esac
+      - name: Retain Cursor coverage reports
+        if: ${{ !cancelled() && steps.acs.outputs.coverage-json != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cursor-coverage-review
+          path: |
+            ${{ steps.acs.outputs.coverage-json }}
+            ${{ steps.acs.outputs.coverage-markdown }}
+          if-no-files-found: error
+          retention-days: 7

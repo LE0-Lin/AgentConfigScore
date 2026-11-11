@@ -103,6 +103,50 @@ in each fixture. CI replays the example with an installed wheel on Linux,
 Windows and macOS and retains JSON as `cursor-coverage-demo-<OS>` artifacts for
 seven days. These are development controls with no independent accuracy estimate.
 
+## CI setup and review artifacts
+
+In v0.26.0+, initialize a reviewed coverage workflow without a source checkout:
+
+```bash
+agent-config-score init --coverage-under src --dry-run
+agent-config-score init --coverage-under src
+```
+
+Repeat `--coverage-under` for other directories. Existing integrations can use
+`--workflow-only --coverage-under src --force --dry-run` before explicitly
+replacing their workflow. Workflow-only mode leaves policy outside its reads
+and writes. `--force` replaces selected files, including local customizations.
+The [copy-ready recipe](../examples/cursor-coverage.yml) is also available.
+
+The default workflow is read-only. It combines the usual baseline-governed
+score comparison with the Action's opt-in `coverage-under` input, strict
+loss/unknown coverage, a job summary and seven-day artifacts. Completed review
+failures retain their JSON and Markdown. Input/read failures expose exit `2`
+and an unavailable summary, without a completed coverage artifact.
+
+The generated workflow verifies that its selected Action actually supplies the
+coverage outputs. Pin an Action revision supporting these inputs, such as
+`LE0-Lin/AgentConfigScore@v0.26.0`. An older Action cannot silently skip the
+requested coverage. Prefixes and coverage gates remain caller-owned.
+
+For local readable review evidence:
+
+```bash
+agent-config-score scope coverage --base-ref origin/main --under src --fail-on-lost-directives --fail-on-unknown --markdown coverage-review.md --json
+```
+
+`--markdown` is additive in v0.26.0. Completed exit `1` still writes the review.
+A write failure uses exit `2` with no successful JSON. Choose artifact paths
+outside instruction/policy files. Report writes are not atomic transactions.
+Review the cited metadata/directive lines, repair the intended attachment or
+approve a scope migration through normal review, then rerun the same command.
+
+The real composite Action is exercised on disposable Git fixtures for
+narrowing, repair, rename, unknown loading, unchanged inputs, empty selection
+and unreadable source. Acceptance checks the actual step outcome, failure
+outputs, completed reports and worktree cleanup before release publication.
+These are development controls with no native Cursor or user-adoption claim.
+
 ## Native Cursor verification boundary
 
 The profile interprets the published [Cursor rules documentation](https://cursor.com/docs/rules),

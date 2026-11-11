@@ -6,6 +6,8 @@ from pathlib import Path
 import stat
 
 from .config import SCHEMA_URL
+from .scanner import normalize_coverage_roots
+from .scopes import ScopeInputError
 
 
 class InitError(RuntimeError):
@@ -155,10 +157,42 @@ class InitChange:
     action: str
 
 
-def _targets(root: Path, include_config: bool, include_workflow: bool, pr_comment: bool) -> list[tuple[Path, str]]:
+def _coverage_workflow(content: str, prefixes: tuple[str, ...], pr_comment: bool) -> str:
+    needle = f"      - uses: {WORKFLOW_ACTION_REF}\n" + ("        id: acs\n" if pr_comment else "")
+    replacement = f"      - uses: {WORKFLOW_ACTION_REF}\n        id: acs\n        with:\n          coverage-under: |\n"
+    replacement += "".join("            " + prefix + "\n" for prefix in prefixes)
+    content = content.replace(needle, replacement, 1)
+    return content + """
+      - name: Require configured coverage support
+        if: ${{ !cancelled() }}
+        env:
+          ACS_COVERAGE_EXIT: ${{ steps.acs.outputs.coverage-exit-code }}
+        shell: bash
+        run: |
+          case "$ACS_COVERAGE_EXIT" in
+            0|1|2) ;;
+            *) echo "::error::Selected Action did not run configured Cursor coverage"; exit 2 ;;
+          esac
+      - name: Retain Cursor coverage reports
+        if: ${{ !cancelled() && steps.acs.outputs.coverage-json != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cursor-coverage-review
+          path: |
+            ${{ steps.acs.outputs.coverage-json }}
+            ${{ steps.acs.outputs.coverage-markdown }}
+          if-no-files-found: error
+          retention-days: 7
+"""
+
+
+def _targets(root: Path, include_config: bool, include_workflow: bool, pr_comment: bool,
+             coverage_prefixes: tuple[str, ...] = ()) -> list[tuple[Path, str]]:
     items = [(root / ".agentconfigscore.json", CONFIG_CONTENT)] if include_config else []
     if include_workflow:
         content = PR_COMMENT_WORKFLOW_CONTENT if pr_comment else WORKFLOW_CONTENT
+        if coverage_prefixes:
+            content = _coverage_workflow(content, coverage_prefixes, pr_comment)
         items.append((root / ".github" / "workflows" / "agent-config-score.yml", content))
     return items
 
@@ -226,6 +260,7 @@ def initialize_repository(
     include_config: bool = True,
     include_workflow: bool = True,
     pr_comment: bool = False,
+    coverage_under: list[str] | None = None,
     force: bool = False,
     dry_run: bool = False,
 ) -> list[InitChange]:
@@ -235,9 +270,19 @@ def initialize_repository(
 
     if pr_comment and not include_workflow:
         raise InitError("PR comments require a workflow; do not combine --pr-comment with --no-workflow")
+    coverage_prefixes = ()
+    if coverage_under is not None:
+        if not include_workflow:
+            raise InitError("Cursor coverage requires a workflow")
+        try:
+            coverage_prefixes = normalize_coverage_roots(coverage_under)
+        except ScopeInputError as exc:
+            raise InitError(str(exc)) from exc
+        if any("${{" in prefix or "}}" in prefix for prefix in coverage_prefixes):
+            raise InitError("Coverage prefixes must not contain GitHub expression delimiters")
     if not include_config and not include_workflow:
         raise InitError("No initialization targets selected; do not combine --workflow-only with --no-workflow")
-    targets = _targets(root, include_config, include_workflow, pr_comment)
+    targets = _targets(root, include_config, include_workflow, pr_comment, coverage_prefixes)
     plan: list[tuple[Path, str, str]] = []
 
     # Preflight every target before writing anything. A conflicting workflow

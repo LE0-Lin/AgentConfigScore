@@ -1662,6 +1662,52 @@ def compare_cursor_coverage(base_root: Path, head_root: Path, *, under: list[str
                         "has_unknown": any(row["has_unknown"] for row in contexts)}}
 
 
+def cursor_coverage_markdown(report: dict) -> str:
+    """Render path/line-only evidence safely for a GitHub job summary."""
+    def code(value):
+        escaped = html.escape(str(value), quote=False)
+        # Inline HTML alone does not disable all Markdown extensions. Entities
+        # also keep links, emphasis, backticks and control characters literal.
+        escaped = "".join(f"&#{ord(char)};" if char in "\\`[](){}*_!|#~:." or ord(char) < 32 or ord(char) == 127
+                          else char for char in escaped)
+        return "<code>" + escaped + "</code>"
+
+    summary = report["summary"]
+    gate = report["review_gate"]
+    lines = ["## Cursor coverage review", "", "**" + (
+        "Review gate failed" if gate["failed"] else "Review gate not triggered") + "**", "",
+        "Static single-file contexts. Native Cursor attachment was not observed.", "",
+        "| Inventoried files | Baseline covered | Files with losses | Files with unknowns |",
+        "| ---: | ---: | ---: | ---: |",
+        f"| {summary['files']} | {summary['baseline_covered_files']} | {summary['files_with_losses']} | {summary['files_with_unknown']} |", ""]
+    if not summary["baseline_covered_files"]:
+        lines += ["**No recognized baseline-active directive covers the selected files.**", ""]
+    if gate["reasons"]:
+        lines += ["Gate reasons: " + ", ".join(code(reason) for reason in gate["reasons"]), ""]
+    for row in report["contexts"]:
+        if not row["recognized_active_losses"] and not row["has_unknown"]:
+            continue
+        lines += ["### " + code(row["target"]), "",
+                  "Present in baseline: " + str(row["present_in_base"]).lower() +
+                  "; candidate: " + str(row["present_in_head"]).lower() + ".", ""]
+        for loss in row["lost_directives"]:
+            origins = ", ".join(code(f"{source['file']}:{source['line']}") for source in loss["base"]["sources"])
+            lines.append("- Recognized directive lost from " + origins + ". " + code(loss["transition"]))
+        for side, sources in row["unknown_sources"].items():
+            if sources:
+                lines.append("- Unknown " + side + " sources: " + ", ".join(code(path) for path in sources))
+        lines += ["", "Review the rule's glob/mode and original source lines. Restore the intended "
+                  "attachment or review the scope migration, then rerun the same check.", ""]
+    lines += ["### Inventory boundary", ""]
+    for side, inventory in ((side, report["file_inventory"][side]) for side in ("base", "head")):
+        omitted = ", ".join(f"{key}={value}" for key, value in inventory["excluded"].items())
+        lines.append("- " + side + ": " + str(inventory["regular_files"]) + " regular files; " + omitted + ".")
+    lines += ["", "Selected prefixes: " + ", ".join(code(path) for path in report["under"]),
+              "", "Loss counts are directive-context pairs. Unknowns and zero baseline coverage "
+              "require interpretation; this report does not certify safe agent behavior.", ""]
+    return "\n".join(lines)
+
+
 def _matching_suppression(finding: Finding, suppressions: tuple[Suppression, ...]) -> Suppression | None:
     for suppression in suppressions:
         if suppression.applies_to(finding.code, finding.file):

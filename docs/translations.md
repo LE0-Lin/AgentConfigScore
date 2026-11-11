@@ -204,3 +204,12 @@ Earlier synchronization records describe availability at their recorded dates.
 They retain their historical wording and frozen-evidence links. This release
 synchronization supplies no native Cursor observation, independent accuracy
 result or localization of CLI messages and instruction semantics.
+
+
+## v0.26.0 CI delivery synchronization
+
+For the 2026-11-11 release, all three overviews use the same coverage setup
+commands and pin Action examples to v0.26.0. Core CLI messages remain English.
+The detailed coverage adoption guide, design boundary and release notes are
+English references. No native Cursor observation or new accuracy result is
+implied by the documentation update.

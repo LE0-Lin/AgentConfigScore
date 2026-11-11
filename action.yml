@@ -23,8 +23,30 @@ inputs:
     description: "Python version used to run AgentConfigScore."
     required: false
     default: "3.12"
+  coverage-under:
+    description: "Opt-in strict Cursor coverage. Newline-separated directory prefixes; empty disables it. Caller-owned, separate from score policy."
+    required: false
+    default: ""
 
 outputs:
+  coverage-exit-code:
+    description: "Coverage outcome when enabled: 0 completed, 1 review required, 2 operational failure. Empty when disabled."
+    value: ${{ steps.regression.outputs.coverage-exit-code }}
+  coverage-files:
+    description: "Number of inventoried file contexts when coverage completed."
+    value: ${{ steps.regression.outputs.coverage-files }}
+  coverage-lost-files:
+    description: "File contexts with recognized active directive losses."
+    value: ${{ steps.regression.outputs.coverage-lost-files }}
+  coverage-unknown-files:
+    description: "File contexts with unknown activation or interpretation."
+    value: ${{ steps.regression.outputs.coverage-unknown-files }}
+  coverage-json:
+    description: "Absolute path to the completed coverage JSON report, for caller-controlled artifact upload."
+    value: ${{ steps.regression.outputs.coverage-json }}
+  coverage-markdown:
+    description: "Absolute path to the completed Markdown report."
+    value: ${{ steps.regression.outputs.coverage-markdown }}
   base-score:
     description: "AgentConfigScore for the baseline revision."
     value: ${{ steps.regression.outputs.base-score }}
@@ -64,6 +86,8 @@ runs:
         ACS_EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         ACS_MAX_DROP: ${{ inputs.max-drop }}
         ACS_FAIL_ON_NEW_ERRORS: ${{ inputs.fail-on-new-errors }}
+        ACS_COVERAGE_UNDER: ${{ inputs.coverage-under }}
+        ACS_ACTION_PATH: ${{ github.action_path }}
       run: |
         set -euo pipefail
 
@@ -164,4 +188,17 @@ runs:
         PY
         fi
 
-        exit "$status"
+        coverage_status=0
+        if [[ -n "$ACS_COVERAGE_UNDER" ]]; then
+          set +e
+          python "$ACS_ACTION_PATH/scripts/check_cursor_coverage.py" --base "$base_dir" --head "$GITHUB_WORKSPACE"
+          coverage_status=$?
+          set -e
+        fi
+        if [[ "$status" -ge 2 || "$coverage_status" -ge 2 ]]; then
+          exit 2
+        fi
+        if [[ "$status" -ne 0 || "$coverage_status" -ne 0 ]]; then
+          exit 1
+        fi
+        exit 0

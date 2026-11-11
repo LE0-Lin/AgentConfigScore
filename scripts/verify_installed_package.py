@@ -24,13 +24,14 @@ def require(condition: bool, message: str) -> None:
         raise AcceptanceError(message)
 
 
-def run(command: list[str], cwd: Path, expected: int = 0) -> str:
+def run(command: list[str], cwd: Path, expected: int = 0, *, overrides: dict | None = None) -> str:
     env = os.environ.copy()
     # No editable-source fallback via caller environment or user-site packages.
     env.pop("PYTHONPATH", None)
     env.pop("PYTHONHOME", None)
     env["PYTHONNOUSERSITE"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
+    env.update(overrides or {})
     try:
         result = subprocess.run(command, cwd=cwd, env=env, capture_output=True,
                                 text=True, encoding="utf-8", timeout=60)
@@ -138,6 +139,7 @@ def verify_cursor_scope_impact(commands: list[list[str]], workspace: Path) -> No
                 "Remaining multi-file trigger did not preserve attachment")
     require((baseline.read_bytes(), candidate.read_bytes()) == original, "Scope comparison modified input files")
     for command in commands:
+        markdown = workspace / "coverage artifacts" / "review.md"
         coverage_text = run([*command, "scope", "coverage", str(base), str(head), "--under", "src", *strict],
                             workspace, expected=1)
         coverage = json.loads(coverage_text)
@@ -148,6 +150,12 @@ def verify_cursor_scope_impact(commands: list[list[str]], workspace: Path) -> No
         require(coverage["file_inventory"]["contents_read"] is False
                 and coverage["observed_agent_context"] is False and "synthetic-private" not in coverage_text,
                 "Coverage exported private source values or claimed native execution")
+        written = run([*command, "scope", "coverage", str(base), str(head), "--under", "src", "--markdown", str(markdown), *strict],
+                      workspace, expected=1)
+        require(json.loads(written)["summary"] == coverage["summary"]
+                and "Cursor coverage review" in markdown.read_text(encoding="utf-8")
+                and "synthetic-private" not in markdown.read_text(encoding="utf-8"),
+                "Installed Markdown reporting changed the decision or exposed raw instructions")
         require(run([*command, "scope", "coverage", str(base), str(head), "--under", "missing", "--json"],
                     workspace, expected=2) == "", "An empty coverage selection became a passing report")
     candidate.rename(candidate.with_name("renamed.mdc"))
@@ -187,6 +195,50 @@ def verify_cursor_scope_impact(commands: list[list[str]], workspace: Path) -> No
     worktrees = run(["git", "worktree", "list", "--porcelain"], base)
     require(sum(line.startswith("worktree ") for line in worktrees.splitlines()) == 1,
             "Git scope comparison leaked a baseline worktree")
+    setup = workspace / "coverage workflow setup"
+    setup.mkdir()
+    policy = setup / ".agentconfigscore.json"
+    policy.write_bytes(b"private-unselected-policy-\xff")
+    for command in commands:
+        run([*command, "init", "--workflow-only", "--coverage-under", "src", "--dry-run"], setup)
+        require(not (setup / ".github").exists(), "Coverage dry run wrote a workflow")
+    for command in commands:
+        run([*command, "init", "--workflow-only", "--coverage-under", "src"], setup)
+        require(policy.read_bytes() == b"private-unselected-policy-\xff", "Coverage setup reset unselected policy")
+    workflow = (setup / ".github/workflows/agent-config-score.yml").read_text(encoding="utf-8")
+    require("coverage-under: |" in workflow and "coverage-exit-code" in workflow and "upload-artifact@" in workflow
+            and "pull-requests: write" not in workflow, "Generated coverage workflow lacks read-only review/artifact setup")
+
+
+def verify_coverage_delivery(python: Path, workspace: Path) -> None:
+    base, head = workspace / "delivery base", workspace / "delivery head"
+    for root, pattern in ((base, "src/**"), (head, "web/**")):
+        (root / ".cursor/rules").mkdir(parents=True)
+        (root / ".cursor/rules/policy.mdc").write_text(
+            f'---\nglobs: "{pattern}"\nalwaysApply: false\n---\nNever delete files without approval.\n', encoding="utf-8")
+        (root / "src").mkdir()
+        (root / "src/caf\u00e9.py").write_text("target names only\n", encoding="utf-8")
+    helper = Path(__file__).with_name("check_cursor_coverage.py")
+    for expected in (1, 0, 2):
+        if expected == 0:
+            (head / ".cursor/rules/policy.mdc").write_bytes((base / ".cursor/rules/policy.mdc").read_bytes())
+        if expected == 2:
+            (head / ".cursor/rules/policy.mdc").write_bytes(b"invalid-utf8-\xff")
+        outputs, summary = workspace / f"delivery-{expected}.outputs", workspace / f"delivery-{expected}.md"
+        run([str(python), "-I", "-X", "utf8", str(helper), "--base", str(base), "--head", str(head)], workspace,
+            expected=expected, overrides={"ACS_COVERAGE_UNDER": "src", "RUNNER_TEMP": str(workspace),
+                                          "GITHUB_OUTPUT": str(outputs), "GITHUB_STEP_SUMMARY": str(summary)})
+        fields = dict(line.split("=", 1) for line in outputs.read_text(encoding="utf-8").splitlines())
+        require(fields["coverage-exit-code"] == str(expected), "Action adapter lost the coverage exit code")
+        if expected == 2:
+            require("coverage-json" not in fields and "coverage unavailable" in summary.read_text(encoding="utf-8"),
+                    "Operational failure exported completed coverage evidence")
+        else:
+            data = json.loads(Path(fields["coverage-json"]).read_text(encoding="utf-8"))
+            require(data["contexts"][0]["target"] == "src/caf\u00e9.py"
+                    and fields["coverage-lost-files"] == str(expected), "Adapter lost Unicode paths or review counts")
+            require("Cursor coverage review" in Path(fields["coverage-markdown"]).read_text(encoding="utf-8"),
+                    "Completed review did not retain Markdown")
 
 
 def verify(python: Path, expected_version: str) -> list[str]:
@@ -221,8 +273,10 @@ def verify(python: Path, expected_version: str) -> list[str]:
         verify_cursor_scope(commands, workspace)
         checks.append("Cursor declared-file activation, multi-file opposition, unknown metadata, line evidence and read-only aliases")
         verify_cursor_scope_impact(commands, workspace)
+        verify_coverage_delivery(python, workspace)
         checks.append("Cursor compare/Git change gate across aliases, retained triggers/renames, unknowns, source privacy and cleanup")
         checks.append("Cursor per-file coverage across aliases, masked-loss detection, empty selections and pinned Git baseline cleanup")
+        checks.append("coverage Markdown, workflow-only setup and Action adapter review/repair/error evidence with Unicode paths")
 
         run([*cli, "init", "--dry-run"], repo)
         require(list(repo.iterdir()) == [], "Dry-run wrote files")

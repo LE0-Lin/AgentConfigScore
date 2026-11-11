@@ -51,8 +51,9 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn("scripts/verify_installed_package.py", workflow)
         self.assertIn("scripts/run_cursor_coverage_demo.py", workflow)
         self.assertIn("release-cursor-coverage-${{ matrix.os }}", workflow)
-        self.assertIn("needs: [build, acceptance]", workflow)
-        self.assertIn("needs: [build, acceptance, github-release]", workflow)
+        self.assertIn("needs: [build, acceptance, action-acceptance]", workflow)
+        self.assertIn("needs: [build, acceptance, action-acceptance, github-release]", workflow)
+        self.assertIn("uses: ./.github/workflows/coverage-acceptance.yml", workflow)
         self.assertIn("pip install --no-deps", workflow)
 
     def test_ci_uses_the_same_installed_acceptance_on_all_platforms(self):

@@ -172,9 +172,16 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  action-acceptance:
+    needs: build
+    if: needs.build.outputs.skip != 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/coverage-acceptance.yml
+
   github-release:
     name: Publish GitHub release
-    needs: [build, acceptance]
+    needs: [build, acceptance, action-acceptance]
     if: needs.build.outputs.skip != 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -230,7 +237,7 @@ jobs:
 
   pypi-publish:
     name: Publish to PyPI
-    needs: [build, acceptance, github-release]
+    needs: [build, acceptance, action-acceptance, github-release]
     if: needs.build.outputs.skip != 'true'
     runs-on: ubuntu-latest
     environment:
