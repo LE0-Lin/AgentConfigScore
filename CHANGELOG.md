@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.26.1
+
+- Use public absolute URLs for the packaged overview's coverage and design links.
+- Check English package README links for PyPI-compatible public destinations.
+  Analysis and CI contracts are unchanged.
+
 ## v0.26.0
 
 - Complete optional Cursor coverage CI setup with `init --coverage-under`, job
