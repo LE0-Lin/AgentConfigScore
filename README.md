@@ -81,10 +81,10 @@ covers setup, exits and troubleshooting.
 
 ## Release status
 
-v0.26.0 Beta includes local lint, baseline-governed regression checks, auditable
+v0.26.1 Beta includes local lint, baseline-governed regression checks, auditable
 exceptions, reports, safeguard review and opt-in Cursor attachment/coverage
 analysis. The Cursor profile is a bounded static prediction with explicit
-unknowns. See the [release and upgrade notes](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/releases/v0.26.0.md).
+unknowns. See the [release and upgrade notes](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/releases/v0.26.1.md).
 
 ## Cursor attachment changes
 
@@ -102,7 +102,7 @@ For a declared API-only task:
 From a repository checkout, install the package and run the synthetic example:
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.26.0"
+python -m pip install --upgrade "agent-config-score==0.26.1"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
@@ -138,8 +138,8 @@ agent-config-score init --coverage-under src
 Review and commit the generated files. The opt-in read-only workflow combines
 the normal gate with strict per-file coverage, a readable job summary and
 seven-day report artifacts. Existing setups can use `--workflow-only` and an
-explicit reviewed `--force`. See the [complete adoption path](docs/cursor-coverage.md#ci-setup-and-review-artifacts)
-and [design and shipped boundary](docs/architecture.md).
+explicit reviewed `--force`. See the [complete adoption path](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/cursor-coverage.md#ci-setup-and-review-artifacts)
+and [design and shipped boundary](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/architecture.md).
 
 ## Repository policy + editor validation
 
@@ -225,7 +225,7 @@ for the localized overview, guide and limitations; advanced references remain En
 ## Development
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.26.0"
+python -m pip install --upgrade "agent-config-score==0.26.1"
 python -m unittest discover -s tests -v
 agent-config-score . --fail-under 90
 ```

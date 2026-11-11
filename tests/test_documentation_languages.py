@@ -17,6 +17,14 @@ def blocks(text, language):
 
 
 class DocumentationLanguageTests(unittest.TestCase):
+    def test_package_readme_document_links_are_public_on_pypi(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for destination in re.findall(r"!?\[[^\]\n]+\]\(([^)\n]+)\)", readme):
+            parts = urlsplit(destination)
+            with self.subTest(destination=destination):
+                self.assertTrue(parts.scheme in {"https", "http"} or (not parts.path and parts.fragment),
+                                "PyPI cannot resolve repository-relative document links")
+
     def test_english_stays_the_default_package_readme(self):
         project = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         self.assertIn('readme = "README.md"', project)

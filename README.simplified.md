@@ -50,7 +50,7 @@ agent-config-score diff
 
 ## 发布版本
 
-v0.26.0 Beta 包含本地检查、基线回归门禁、可审计豁免、报告、删除保护审核，以及可选的 Cursor 加载与逐文件覆盖分析。Cursor 功能是有明确未知状态的静态预测。[发布与升级说明（英文）](docs/releases/v0.26.0.md)。
+v0.26.1 Beta 包含本地检查、基线回归门禁、可审计豁免、报告、删除保护审核，以及可选的 Cursor 加载与逐文件覆盖分析。Cursor 功能是有明确未知状态的静态预测。[发布与升级说明（英文）](docs/releases/v0.26.1.md)。
 
 ## Cursor 加载变化审核
 
@@ -61,7 +61,7 @@ v0.26.0 Beta 包含本地检查、基线回归门禁、可审计豁免、报告�
 在源码仓库目录中运行合成示例：
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.26.0"
+python -m pip install --upgrade "agent-config-score==0.26.1"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
@@ -140,10 +140,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: LE0-Lin/AgentConfigScore@v0.26.0
+      - uses: LE0-Lin/AgentConfigScore@v0.26.1
 ```
 
-固定 `@v0.26.0` 有利于复现；`@v0` 是会随后续版本更新的滚动引用。PR 评论属于[可选集成（英文）](docs/pr-comments.md)，扫描器默认不替你发评论。
+固定 `@v0.26.1` 有利于复现；`@v0` 是会随后续版本更新的滚动引用。PR 评论属于[可选集成（英文）](docs/pr-comments.md)，扫描器默认不替你发评论。
 
 ## 支持的指令文件
 
@@ -167,4 +167,4 @@ jobs:
 
 图中的三次评分由 `agent-config-score history` 读取。[历史工作流（英文）](docs/score-history.md)
 
-项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.26.0.md)目前为英文。
+项目采用 [MIT 协议](LICENSE)。[发布与升级说明](docs/releases/v0.26.1.md)目前为英文。
