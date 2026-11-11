@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "registered_date": "2026-11-12",
+  "status": "registered_before_native_queries",
+  "product_version": "0.26.1",
+  "native_client": "Cursor desktop Windows x64 3.29.15; record actual version if it updates",
+  "cases": [
+    {"id": "api-only", "targets": ["src/api/service.py"]},
+    {"id": "web-only", "targets": ["src/web/app.ts"]},
+    {"id": "joint", "targets": ["src/api/service.py", "src/web/app.ts"]},
+    {"id": "root-ts", "targets": ["index.ts"]}
+  ],
+  "setup": "Synthetic workspace created before native queries. Four neutral rules: always, Python files, TypeScript files, root-only TypeScript glob. ACS predictions are frozen before native queries. Fresh chat per case; explicitly attach the listed files and record UI resolution. No rule/body/file change while collecting.",
+  "observations": "Collect client-reported beforeSubmitPrompt and beforeReadFile attachment metadata, plus UI observations when available. Retain original event timing and the actual surface. Do not interpret model self-report or obedience as loading ground truth. Absent rule entries in a hook are unknown unless that hook's completeness for automatic rules is independently established. Keep disagreements and failures.",
+  "privacy": "Only synthetic workspace contents may be sent for the probe. Hook logs retain allowlisted in-workspace attachment paths, event names, timestamps and hashed session identifiers. Prompts, file contents, email, credentials and external paths are omitted. No personal repository or account artifact is published.",
+  "limits": "This is a versioned local smoke check, not platform-wide compatibility or an independent accuracy study. Account limitations, missing hooks or insufficient visibility remain unresolved. No subscription purchase or security-setting change is authorized by this experiment."
+}
