@@ -57,7 +57,7 @@ try:
         attachments.append({"type": entry["type"], "path": relative})
     known_input_keys = {"attachments", "prompt", "file_path", "content", "conversation_id", "session_id",
                         "hook_event_name", "cursor_version", "workspace_roots", "model", "tool_input"}
-    record = {"schema_version": 2, "event": event,
+    record = {"schema_version": 3, "event": event,
               "captured_at_utc": datetime.now(timezone.utc).isoformat(),
               "collector_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "known_input_field_types": {key: type(data[key]).__name__ for key in sorted(known_input_keys.intersection(data))},
@@ -69,10 +69,17 @@ try:
               "reported_attachments": attachments,
               "outside_workspace_attachments_omitted": outside,
               "interpretation": "client-reported metadata at this hook, not model compliance or proof of complete context"}
+    if event == "beforeReadFile" and isinstance(data.get("file_path"), str):
+        try:
+            record["observed_read_target"] = Path(data["file_path"]).resolve().relative_to(root).as_posix()
+        except (ValueError, OSError):
+            record["outside_or_invalid_read_target_omitted"] = True
     prompt = data.get("prompt")
     if isinstance(prompt, str):
         # Retain only a fixed synthetic case marker, never arbitrary prompt text.
-        for marker in ("Probe api-only.", "Probe web-only.", "Probe joint.", "Probe root-ts.", "CAPTURE_CONTROL_V2"):
+        for marker in ("Probe api-only.", "Probe web-only.", "Probe joint.", "Probe root-ts.", "CAPTURE_CONTROL_V2",
+                       "NATIVE_BEHAVIOR_V1 api-only", "NATIVE_BEHAVIOR_V1 web-only", "NATIVE_BEHAVIOR_V1 joint",
+                       "NATIVE_BEHAVIOR_V1 root-ts", "NATIVE_BEHAVIOR_V1 manual-control"):
             if marker in prompt:
                 record["recognized_probe_marker"] = marker
                 break
