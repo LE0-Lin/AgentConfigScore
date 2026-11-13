@@ -1,5 +1,7 @@
 # AgentConfigScore
 
+[真實文件案例](docs/path-case-study.md)：產生檔案誤報的修復、目錄檢查的新增涵蓋，以及真實文件重跑如何攔下一次新誤報。新路徑邏輯目前在未發佈原始碼中，報告保留修復前後的證據。
+
 [English](README.md) | [简体中文](README.simplified.md) | 繁體中文
 
 在合併前發現 AI 程式開發助手指令中的已知退化。

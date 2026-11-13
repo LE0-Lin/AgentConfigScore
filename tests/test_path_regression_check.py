@@ -14,9 +14,11 @@ SPEC.loader.exec_module(CHECK)
 class PathRegressionCheckTests(unittest.TestCase):
     def data(self):
         return {"known_generated_output": {"current_flagged": False},
-                "known_controls": [{"id": "directory", "target_kind": "tree", "destination": "src/", "current_flagged": True},
+                "known_controls": [{"id": "directory", "target_kind": "tree", "destination": "./src/", "current_flagged": True},
                                    {"id": "file", "target_kind": "blob", "destination": "guide.md", "current_flagged": True},
                                    {"id": "unresolved-name", "target_kind": "tree", "destination": "test/unit", "current_flagged": False}],
+                "explicit_directory_variants": [{"parent_control": "variant", "current_flagged": True}],
+                "new_whole_document_warnings": [],
                 "known_natural_cases": [{"id": "negative", "provisional_review_needed": False, "current_flagged": False}]}
 
     def test_known_development_gate_retains_limit_without_requiring_miss(self):
@@ -26,13 +28,17 @@ class PathRegressionCheckTests(unittest.TestCase):
         self.assertTrue(CHECK.acceptance(data)["passed"])
 
     def test_returning_generated_false_positive_or_missing_required_control_fails(self):
-        for kind in ("generated", "directory", "file", "negative"):
+        for kind in ("generated", "directory", "file", "negative", "variant", "unselected"):
             with self.subTest(kind=kind):
                 data = self.data()
                 if kind == "generated":
                     data["known_generated_output"]["current_flagged"] = True
                 elif kind == "negative":
                     data["known_natural_cases"][0]["current_flagged"] = True
+                elif kind == "variant":
+                    data["explicit_directory_variants"][0]["current_flagged"] = False
+                elif kind == "unselected":
+                    data["new_whole_document_warnings"].append({"repository": "owner/project", "line": 97})
                 else:
                     data["known_controls"][0 if kind == "directory" else 1]["current_flagged"] = False
                 self.assertFalse(CHECK.acceptance(data)["passed"])

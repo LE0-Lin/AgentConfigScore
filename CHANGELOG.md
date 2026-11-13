@@ -4,7 +4,7 @@
 
 - Avoid missing-path warnings for narrowly declared generated outputs while
   retaining checks on generator paths, Markdown links, commands and credentials.
-- Check single-backtick directory references ending in `/` against concrete
+- Check single-backtick directory references with `./` or `../` and a trailing `/` against concrete
   repository/scope bases. Require a directory; retain the extensionless-name
   and package-suffix boundaries.
 - Add an offline installed-build replay of the known Vitest generated-output

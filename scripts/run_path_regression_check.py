@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import sys
+from tempfile import TemporaryDirectory
 
 import run_path_audit as audit
 from run_pinned_tool_probe import verify_tree_objects
@@ -79,7 +80,7 @@ def check(python: Path):
                             "current_flagged": audit.flagged(result["findings"], row)})
         print("Known source replayed: " + name, flush=True)
 
-    controls = []
+    controls, explicit_variants = [], []
     for row in frozen["controls"]:
         name = row["repository"]
         result = scan(repos[name], trees[name], audit.BASE, row["target"])
@@ -87,6 +88,29 @@ def check(python: Path):
                         | {"frozen_flagged": row["tool_flagged"], "current_flagged": audit.flagged(result["findings"], row),
                            "current_findings": result["findings"], "projection": result["projection"]})
         print("Known control replayed: " + row["id"], flush=True)
+        if row["target_kind"] == "tree" and row["destination"].endswith("/"):
+            repo = repos[name]
+            source = (audit.BASE / "collected" / repo["source_file"]).read_bytes()
+            lines = source.decode("utf-8").splitlines(keepends=True)
+            literal = "`" + row["destination"] + "`"
+            if lines[row["line"] - 1].count(literal) != 1:
+                raise ValueError("explicit-path variant needs one exact literal on the original line")
+            destination = "./" + row["destination"]
+            lines[row["line"] - 1] = lines[row["line"] - 1].replace(literal, "`" + destination + "`", 1)
+            variant = "".join(lines).encode("utf-8")
+            with TemporaryDirectory(prefix="acs-explicit-path-variant-") as directory:
+                base = Path(directory)
+                (base / "collected").mkdir()
+                (base / "collected/variant.txt").write_bytes(variant)
+                changed = scan({**repo, "source_file": "variant.txt"}, trees[name], base, row["target"])
+            explicit_variants.append({"parent_control": row["id"], "repository": name,
+                                      "line": row["line"], "original_destination": row["destination"],
+                                      "destination": destination, "source_sha256": audit.digest(source),
+                                      "variant_source_sha256": audit.digest(variant),
+                                      "synthetic_instruction_edit": "prefix ./ to the one quoted directory on this line",
+                                      "target_removed": row["target"],
+                                      "current_flagged": audit.flagged(changed["findings"], {**row, "destination": destination}),
+                                      "findings": changed["findings"]})
 
     context = audit.json_file(audit.BASE / "posthoc-context.json")
     vitest_tree = {entry["path"]: entry for entry in trees["vitest-dev/vitest"]["tree"]}
@@ -117,6 +141,12 @@ def check(python: Path):
                                       "tool_flagged": audit.flagged(result["findings"], row), "reference_label": None}
                                      for row in selected], "projection": result["projection"]})
         print("Fresh source replayed: " + repo["repository"], flush=True)
+    previous_snapshots = frozen["whole_document_path_findings_unscored_outside_selected_cases"]
+    new_warnings = []
+    for name, result in snapshots.items():
+        previous = {(row["line"], row["message"]) for row in previous_snapshots[name]["findings"]}
+        new_warnings.extend({"repository": name, **row} for row in result["findings"]
+                            if (row["line"], row["message"]) not in previous)
     return {"schema_version": 1, "status": "completed_development_replay",
             "completed_at_utc": datetime.now(timezone.utc).isoformat(), "tool": identity,
             "frozen_tool": frozen["tool"], "independent_accuracy_estimate": None,
@@ -125,8 +155,10 @@ def check(python: Path):
             "fresh_parser_matches_collection_freeze": identity["source_fingerprint"]["sha256"] == expected_identity,
             "frozen_result_sha256": audit.digest((audit.BASE / "result.json").read_bytes()),
             "runner_sha256_lf": hashlib.sha256(Path(__file__).read_text(encoding="utf-8").encode()).hexdigest(),
-            "known_natural_cases": natural, "known_controls": controls, "known_generated_output": generated,
-            "known_whole_document_observations": snapshots, "fresh_registry": fresh}
+            "known_natural_cases": natural, "known_controls": controls, "explicit_directory_variants": explicit_variants,
+            "known_generated_output": generated,
+            "known_whole_document_observations": snapshots, "new_whole_document_warnings": new_warnings,
+            "fresh_registry": fresh}
 
 
 def acceptance(data):
@@ -136,11 +168,19 @@ def acceptance(data):
     if generated["current_flagged"]:
         failures.append("known_generated_output_warning_returned")
     for row in data["known_controls"]:
-        if (row["target_kind"] == "blob" or row["destination"].endswith("/")) and not row["current_flagged"]:
+        explicit_directory = row["destination"].startswith(("./", "../")) and row["destination"].endswith("/")
+        if (row["target_kind"] == "blob" or explicit_directory) and not row["current_flagged"]:
             failures.append("required_control_missed:" + row["id"])
+    for row in data["explicit_directory_variants"]:
+        if not row["current_flagged"]:
+            failures.append("explicit_directory_variant_missed:" + row["parent_control"])
     for row in data["known_natural_cases"]:
         if row["current_flagged"] and row["provisional_review_needed"] is False:
             failures.append("known_natural_negative_flagged:" + row["id"])
+    for row in data["new_whole_document_warnings"]:
+        # A new finding on these already reviewed documents requires explicit
+        # maintenance review, even when it is outside the selected 16 cases.
+        failures.append(f"new_unreviewed_path_warning:{row['repository']}:{row['line']}")
     return {"passed": not failures, "scope": "known_development_contracts_only", "failures": failures}
 
 
@@ -154,7 +194,10 @@ def markdown(data):
     lines += ["", f"Vitest's declared generated output: frozen warning **{generated['frozen_flagged']}**, current warning **{generated['current_flagged']}**.",
               "Producer source was checked against the retained Git tree. Upstream code was never built or executed.", "",
               f"Known target-removal controls detected: {sum(r['frozen_flagged'] for r in rows)}/{len(rows)} frozen; {sum(r['current_flagged'] for r in rows)}/{len(rows)} current.",
-              "The literal without a trailing slash remains an explicit coverage limit. These mutations are not natural upstream defects.", "",
+              "Unprefixed directory names remain outside the default prose heuristic. These mutations are not natural upstream defects.", "",
+              "## Separate explicit-directory variants", "",
+              f"Detected {sum(r['current_flagged'] for r in data['explicit_directory_variants'])}/{len(data['explicit_directory_variants'])} synthetic variants after prefixing ./ to the selected literal, then removing its target.",
+              "Both the instruction spelling and target state change in these separate controls. They are not pooled with unchanged-text controls.", "",
               "## Separate fresh registry", "", "| Repository | Result | Selected candidates |", "|---|---|---|"]
     for row in data["fresh_registry"]:
         lines.append(f"| {row['repository']} | {row.get('reason', row['status'])} | {row.get('selected_candidates', 0)} |")

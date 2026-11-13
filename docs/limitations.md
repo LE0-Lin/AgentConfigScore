@@ -244,17 +244,18 @@ and actual Markdown link destinations remain checked. This recognizes a declared
 output role; it does not verify the producer, build the artifact, or establish
 that the declaration is truthful. Command and credential rules remain active.
 
-Single-backtick relative directory references ending in `/`, such as `packages/`
-and `./src/`, require a real directory under the repository root or an applicable
+Single-backtick directory references with an explicit `./` or `../` prefix and
+a trailing `/`, such as `./packages/` and `../src/`, require a real directory under the repository root or an applicable
 instruction-scope base. A regular file cannot satisfy them. Directory references
 do not use the ambiguous package-suffix fallback. Unquoted directory prose and
-extensionless names without a trailing slash, such as `test/unit`, remain outside
-this heuristic; use an explicit trailing slash or a Markdown link when an
+unprefixed names such as `packages/` and extensionless names without a trailing
+slash, such as `test/unit`, remain outside this heuristic; use an explicit
+relative prefix and trailing slash or a Markdown link when an
 existence check is intended. Branch prefixes, URLs, placeholders and out-of-root
 paths remain excluded. These checks do not infer working-directory changes.
-Bare `build/`, `dist/`, `target/` and `.next/` references also remain outside the
-check: they often denote package exports or unbuilt artifacts. Explicit `./dist/`
-or `packages/client/dist/` references still opt into a concrete existence check.
+This avoids guessing whether unprefixed names denote package exports or
+install/build outputs. `./dist/` and `./packages/client/dist/` opt into a
+concrete existence check.
 
 Package-relative suffix lookup includes existing paths under `build`, `dist`,
 `target` and `.next`; instruction discovery still skips those trees. Dependency

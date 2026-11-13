@@ -20,19 +20,45 @@ it does not build the project or interpret arbitrary prose.
 
 The earlier audit also exposed five misses when existing directory targets were
 independently removed from verified path projections. Four use a quoted literal
-with a trailing slash. Those now require an actual directory at a concrete
-repository/scope base. `test/unit`, which has no trailing slash, remains a
+with a trailing slash. The final rule requires an explicit `./` or `../` prefix
+as well, so unprefixed spellings stay unresolved. Separate synthetic variants
+add `./` before removing the target to test the explicit spelling. `test/unit`, which has no trailing slash, remains a
 documented heuristic boundary. The [full grammar and scope](../../docs/limitations.md#plain-prose-path-references)
 includes package ambiguity, aliases, examples and filesystem limits.
 
 The first installed Linux replay failed its acceptance gate: the new directory
 check incorrectly treated Vitest's bare `dist/` package-export/build-output
-reference at line 67 as a required root directory. That failure is retained in
-[first-attempt.json](first-attempt.json), not recounted as a passing run. A
+reference at line 67 as a required root directory. A diagnostic rerun of that
+failing implementation is retained in [first-attempt.json](first-attempt.json),
+not recounted as a passing run. A
 follow-up narrows the rule so bare build-output names remain unasserted, while
 explicit root/package paths still receive checks. This parser change occurred
 after the fresh collection, so later reports correctly show a source-freeze
-mismatch; the collection is now development replay material.
+mismatch; the collection is now development replay material. That intermediate
+version detected 7/8 unchanged-text controls, but its whole-document observations
+also added warnings for package `lib/` outputs and Husky's install-time directory.
+The intermediate [broad-directory attempt](broad-directory-attempt.json) is
+retained. The final rule uses explicit relative spellings instead of a growing
+list of guessed output-directory exemptions.
+
+## Completed result
+
+The final installed Linux CI replay is identified in [artifact/source identities](evidence.json).
+[Readable results](result.md), [full JSON](result.json)
+and [artifact/source identities](evidence.json) are retained here.
+
+| Development observation | Published v0.26.1 | Changed source |
+|---|---|---|
+| Vitest's declared generated contributor file | Warning | No warning |
+| Eight separately removed tracked targets, original wording | 3 detected | 3 detected |
+| Original 16 selected natural occurrences | 0 flagged | 0 flagged |
+
+Four separate explicit-directory variants add `./` to the selected literal,
+then remove the target. They are reported separately from unchanged-source
+controls. The five original ambiguous directory spellings remain outside the
+default rule. These are development fixtures and correlated occurrences, not a
+real-world accuracy percentage or upstream defects. Whole-document observations
+are retained so selected-case counts cannot hide new unselected warnings.
 
 ## Replay, retain and inspect
 
