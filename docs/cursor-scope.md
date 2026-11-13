@@ -4,6 +4,11 @@
 root `.cursor/rules/` project rules attach automatically given explicitly
 declared file paths. It does not query Cursor or observe an agent run.
 
+A separate [native behavioral smoke check](../benchmarks/cursor-native-v1/README.md)
+retains four actual file-context runs and one explicit-selection control with
+Cursor desktop 3.29.15. Visible markers agreed with frozen v0.26.1 predictions;
+complete attachment fidelity and independent accuracy remain unestablished.
+
 ```bash
 agent-config-score scope . --target src/web/app.ts
 agent-config-score scope . --target src/web/app.ts --target src/api/service.py --json

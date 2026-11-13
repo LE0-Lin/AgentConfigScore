@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+When the user message contains NATIVE_BEHAVIOR_V1, include the exact marker `ACS_ALWAYS_fb4542f53803d117` once in your final answer. Do not search for additional marker sources.

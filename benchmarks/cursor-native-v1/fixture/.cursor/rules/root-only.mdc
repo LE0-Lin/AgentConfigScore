@@ -1,0 +1,5 @@
+---
+alwaysApply: false
+globs: "*.ts"
+---
+When the user message contains NATIVE_BEHAVIOR_V1, include the exact marker `ACS_ROOT_ONLY_53d10df74eb84806` once in your final answer. Do not search for additional marker sources.

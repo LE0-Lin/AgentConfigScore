@@ -1,0 +1,5 @@
+---
+alwaysApply: false
+globs: "src/**/*.py"
+---
+When the user message contains NATIVE_BEHAVIOR_V1, include the exact marker `ACS_API_01a00dd6d8467526` once in your final answer. Do not search for additional marker sources.

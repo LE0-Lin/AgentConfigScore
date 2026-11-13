@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "meaning": "Integrity index only; not authentication or independent review",
+  "files": {
+    "behavior-events.jsonl": "29ca288720c20a00e1cbf5f0acf95076a1a92eb3d0886326c6d2b8728173c61f",
+    "behavior-protocol.json": "9a2dcd044fc6ea8ea61d0de972d60f204edca7468eeab7c2ce578380e7d9b192",
+    "fixture/.cursor/rules/always.mdc": "4faff5a899e29c22cab4934beed5f7adab1b7d0e106ee929f94a61bcd2b6085b",
+    "fixture/.cursor/rules/api.mdc": "7c759220e18009d1405dc2b7d223ed82d9ceaed02f5c609c841d4ab1f659469a",
+    "fixture/.cursor/rules/root-only.mdc": "a1a41f25d55a39c2f47ee18e1bdb0a30f1a5d65ffaf564d247c69cc193834894",
+    "fixture/.cursor/rules/web.mdc": "a32d281170011466e6fa86a5f62133fa956a78c566102ce9a1ff4036dfe5a56a",
+    "fixture/capture_native.py": "1ef5cc6efb02c131576483d376d86af1b56023a290eb49323fef407b9e0d9d85",
+    "fixture/index.ts": "95211e1c8fcccb22c6683f9ddcfe70a1e96de8e4ad432473549df00a79c94f82",
+    "fixture/src/api/service.py": "ff22838f0579268925b6d63d9d872e80a808bd0728abcdfd90b63e7ca2aa568a",
+    "fixture/src/web/app.ts": "68a939480299f36dcb24dc3bde6919951aff9386638a26ec84a387f5243f85ba",
+    "initial-hook-events.jsonl": "a8890c80db2224503489bfbba9fa00f424fbf47a6b1f3f046ff9a96d8532fd9c",
+    "initial-transcript.md": "d8aba6b30a98551191c4e7d083458566df49ba02a03b54fe0b474ee968545ca9",
+    "observations.json": "ff818de97ede73f29ecd824cf48bc218d179df65a4798235763f90bfe98ad734",
+    "prepared-inputs.json": "86a426c46f1cd061028dc8eca5d5d882332f412824ec0db663d6d2d1aeaa6ab7",
+    "protocol.json": "5578e3f6f8ec0cae1b0bc9965ab6c33b90f44f847e4c7b4bc304b163559bb182",
+    "screenshots/api-only.png": "38c9321ff73f9da220205b7d187019e1be19c3282cdbc1ae7d3ded59f6342441",
+    "screenshots/joint.png": "696e36b1d820058dda41f4634b4d200d1138365911b9767e96e7c351579818bc",
+    "screenshots/manual-control.png": "fafa0f485b25eeccdad48d2f5a99d81667f4aa15606893347f11b767e6d51f9f",
+    "screenshots/root-ts.png": "183d9624e7d43c99161a40410c29140ffd721f2edaf16dad58c0f48bc6bf9ef0",
+    "screenshots/web-only.png": "e3cd42cd8c41805f03f3254691095d9bf6559cea0a1c4d4462f2d0cb6a90fdc5"
+  }
+}

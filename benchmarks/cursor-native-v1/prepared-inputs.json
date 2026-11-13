@@ -1,0 +1,570 @@
+{
+  "schema_version": 1,
+  "status": "prepared_no_native_behavior_results",
+  "prepared_at_utc": "2026-11-12T03:39:28.949179+00:00",
+  "markers": {
+    "always.mdc": "ACS_ALWAYS_fb4542f53803d117",
+    "api.mdc": "ACS_API_01a00dd6d8467526",
+    "web.mdc": "ACS_WEB_cce8ef647b17ead1",
+    "root-only.mdc": "ACS_ROOT_ONLY_53d10df74eb84806"
+  },
+  "inputs_sha256": {
+    "capture_native.py": "1ef5cc6efb02c131576483d376d86af1b56023a290eb49323fef407b9e0d9d85",
+    "src/api/service.py": "ff22838f0579268925b6d63d9d872e80a808bd0728abcdfd90b63e7ca2aa568a",
+    "src/web/app.ts": "68a939480299f36dcb24dc3bde6919951aff9386638a26ec84a387f5243f85ba",
+    "index.ts": "95211e1c8fcccb22c6683f9ddcfe70a1e96de8e4ad432473549df00a79c94f82",
+    ".cursor/rules/always.mdc": "4faff5a899e29c22cab4934beed5f7adab1b7d0e106ee929f94a61bcd2b6085b",
+    ".cursor/rules/api.mdc": "7c759220e18009d1405dc2b7d223ed82d9ceaed02f5c609c841d4ab1f659469a",
+    ".cursor/rules/web.mdc": "a32d281170011466e6fa86a5f62133fa956a78c566102ce9a1ff4036dfe5a56a",
+    ".cursor/rules/root-only.mdc": "a1a41f25d55a39c2f47ee18e1bdb0a30f1a5d65ffaf564d247c69cc193834894",
+    ".cursor/hooks.json": "5b46f5f0402221b74c897cc71392ba42d0d8ebe1837619590428b442b60759be"
+  },
+  "cases": [
+    {
+      "id": "api-only",
+      "targets": [
+        "src/api/service.py"
+      ],
+      "prompt": "NATIVE_BEHAVIOR_V1 api-only. Read only the attached src/api/service.py. Reply with its declared name(s) and any probe markers required by the project rules. Do not inspect other files, search, edit, or run shell commands.",
+      "acs_prediction": {
+        "schema_version": 1,
+        "analysis": "cursor_file_context",
+        "profile": "cursor-file-context-v1",
+        "tool": {
+          "name": "AgentConfigScore",
+          "version": "0.26.1",
+          "source_fingerprint": {
+            "format": "acs-python-source-v1",
+            "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+            "files": [
+              "__init__.py",
+              "__main__.py",
+              "cli.py",
+              "config.py",
+              "doctor.py",
+              "entrypoint.py",
+              "feedback.py",
+              "gitdiff.py",
+              "guardrails.py",
+              "history.py",
+              "initializer.py",
+              "provenance.py",
+              "regression.py",
+              "rules.py",
+              "sarif.py",
+              "scanner.py",
+              "scopes.py"
+            ]
+          }
+        },
+        "status": "completed",
+        "scored": false,
+        "targets": [
+          "src/api/service.py"
+        ],
+        "targets_existence_checked": false,
+        "observed_agent_context": false,
+        "activation_inputs": "declared_file_paths_only",
+        "unmodelled_inputs": [
+          "manual_mentions",
+          "model_selection",
+          "user_team_rules",
+          "runtime_settings",
+          "other_instruction_formats"
+        ],
+        "rules": [
+          {
+            "file": ".cursor/rules/always.mdc",
+            "mode": "always",
+            "activation": "active",
+            "reason": "always_apply",
+            "pattern_count": 0,
+            "metadata_lines": {
+              "alwaysApply": 2
+            },
+            "body_line": 4,
+            "matched_targets": [
+              "src/api/service.py"
+            ],
+            "source_sha256": "4faff5a899e29c22cab4934beed5f7adab1b7d0e106ee929f94a61bcd2b6085b",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          },
+          {
+            "file": ".cursor/rules/api.mdc",
+            "mode": "patterns",
+            "activation": "active",
+            "reason": "declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [
+              "src/api/service.py"
+            ],
+            "source_sha256": "7c759220e18009d1405dc2b7d223ed82d9ceaed02f5c609c841d4ab1f659469a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          },
+          {
+            "file": ".cursor/rules/root-only.mdc",
+            "mode": "patterns",
+            "activation": "inactive",
+            "reason": "no_declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [],
+            "source_sha256": "a1a41f25d55a39c2f47ee18e1bdb0a30f1a5d65ffaf564d247c69cc193834894",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 0
+          },
+          {
+            "file": ".cursor/rules/web.mdc",
+            "mode": "patterns",
+            "activation": "inactive",
+            "reason": "no_declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [],
+            "source_sha256": "a32d281170011466e6fa86a5f62133fa956a78c566102ce9a1ff4036dfe5a56a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 0
+          }
+        ],
+        "opposing_directives": [],
+        "summary": {
+          "rules": 4,
+          "other_supported_sources": 0,
+          "active": 2,
+          "inactive": 2,
+          "unknown": 0,
+          "uninterpreted_bodies": 0,
+          "active_signals": 0,
+          "uncertain_signals": 0
+        }
+      }
+    },
+    {
+      "id": "web-only",
+      "targets": [
+        "src/web/app.ts"
+      ],
+      "prompt": "NATIVE_BEHAVIOR_V1 web-only. Read only the attached src/web/app.ts. Reply with its declared name(s) and any probe markers required by the project rules. Do not inspect other files, search, edit, or run shell commands.",
+      "acs_prediction": {
+        "schema_version": 1,
+        "analysis": "cursor_file_context",
+        "profile": "cursor-file-context-v1",
+        "tool": {
+          "name": "AgentConfigScore",
+          "version": "0.26.1",
+          "source_fingerprint": {
+            "format": "acs-python-source-v1",
+            "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+            "files": [
+              "__init__.py",
+              "__main__.py",
+              "cli.py",
+              "config.py",
+              "doctor.py",
+              "entrypoint.py",
+              "feedback.py",
+              "gitdiff.py",
+              "guardrails.py",
+              "history.py",
+              "initializer.py",
+              "provenance.py",
+              "regression.py",
+              "rules.py",
+              "sarif.py",
+              "scanner.py",
+              "scopes.py"
+            ]
+          }
+        },
+        "status": "completed",
+        "scored": false,
+        "targets": [
+          "src/web/app.ts"
+        ],
+        "targets_existence_checked": false,
+        "observed_agent_context": false,
+        "activation_inputs": "declared_file_paths_only",
+        "unmodelled_inputs": [
+          "manual_mentions",
+          "model_selection",
+          "user_team_rules",
+          "runtime_settings",
+          "other_instruction_formats"
+        ],
+        "rules": [
+          {
+            "file": ".cursor/rules/always.mdc",
+            "mode": "always",
+            "activation": "active",
+            "reason": "always_apply",
+            "pattern_count": 0,
+            "metadata_lines": {
+              "alwaysApply": 2
+            },
+            "body_line": 4,
+            "matched_targets": [
+              "src/web/app.ts"
+            ],
+            "source_sha256": "4faff5a899e29c22cab4934beed5f7adab1b7d0e106ee929f94a61bcd2b6085b",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          },
+          {
+            "file": ".cursor/rules/api.mdc",
+            "mode": "patterns",
+            "activation": "inactive",
+            "reason": "no_declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [],
+            "source_sha256": "7c759220e18009d1405dc2b7d223ed82d9ceaed02f5c609c841d4ab1f659469a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 0
+          },
+          {
+            "file": ".cursor/rules/root-only.mdc",
+            "mode": "patterns",
+            "activation": "inactive",
+            "reason": "no_declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [],
+            "source_sha256": "a1a41f25d55a39c2f47ee18e1bdb0a30f1a5d65ffaf564d247c69cc193834894",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 0
+          },
+          {
+            "file": ".cursor/rules/web.mdc",
+            "mode": "patterns",
+            "activation": "active",
+            "reason": "declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [
+              "src/web/app.ts"
+            ],
+            "source_sha256": "a32d281170011466e6fa86a5f62133fa956a78c566102ce9a1ff4036dfe5a56a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          }
+        ],
+        "opposing_directives": [],
+        "summary": {
+          "rules": 4,
+          "other_supported_sources": 0,
+          "active": 2,
+          "inactive": 2,
+          "unknown": 0,
+          "uninterpreted_bodies": 0,
+          "active_signals": 0,
+          "uncertain_signals": 0
+        }
+      }
+    },
+    {
+      "id": "joint",
+      "targets": [
+        "src/api/service.py",
+        "src/web/app.ts"
+      ],
+      "prompt": "NATIVE_BEHAVIOR_V1 joint. Read only the attached src/api/service.py, src/web/app.ts. Reply with its declared name(s) and any probe markers required by the project rules. Do not inspect other files, search, edit, or run shell commands.",
+      "acs_prediction": {
+        "schema_version": 1,
+        "analysis": "cursor_file_context",
+        "profile": "cursor-file-context-v1",
+        "tool": {
+          "name": "AgentConfigScore",
+          "version": "0.26.1",
+          "source_fingerprint": {
+            "format": "acs-python-source-v1",
+            "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+            "files": [
+              "__init__.py",
+              "__main__.py",
+              "cli.py",
+              "config.py",
+              "doctor.py",
+              "entrypoint.py",
+              "feedback.py",
+              "gitdiff.py",
+              "guardrails.py",
+              "history.py",
+              "initializer.py",
+              "provenance.py",
+              "regression.py",
+              "rules.py",
+              "sarif.py",
+              "scanner.py",
+              "scopes.py"
+            ]
+          }
+        },
+        "status": "completed",
+        "scored": false,
+        "targets": [
+          "src/api/service.py",
+          "src/web/app.ts"
+        ],
+        "targets_existence_checked": false,
+        "observed_agent_context": false,
+        "activation_inputs": "declared_file_paths_only",
+        "unmodelled_inputs": [
+          "manual_mentions",
+          "model_selection",
+          "user_team_rules",
+          "runtime_settings",
+          "other_instruction_formats"
+        ],
+        "rules": [
+          {
+            "file": ".cursor/rules/always.mdc",
+            "mode": "always",
+            "activation": "active",
+            "reason": "always_apply",
+            "pattern_count": 0,
+            "metadata_lines": {
+              "alwaysApply": 2
+            },
+            "body_line": 4,
+            "matched_targets": [
+              "src/api/service.py",
+              "src/web/app.ts"
+            ],
+            "source_sha256": "4faff5a899e29c22cab4934beed5f7adab1b7d0e106ee929f94a61bcd2b6085b",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          },
+          {
+            "file": ".cursor/rules/api.mdc",
+            "mode": "patterns",
+            "activation": "active",
+            "reason": "declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [
+              "src/api/service.py"
+            ],
+            "source_sha256": "7c759220e18009d1405dc2b7d223ed82d9ceaed02f5c609c841d4ab1f659469a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          },
+          {
+            "file": ".cursor/rules/root-only.mdc",
+            "mode": "patterns",
+            "activation": "inactive",
+            "reason": "no_declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [],
+            "source_sha256": "a1a41f25d55a39c2f47ee18e1bdb0a30f1a5d65ffaf564d247c69cc193834894",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 0
+          },
+          {
+            "file": ".cursor/rules/web.mdc",
+            "mode": "patterns",
+            "activation": "active",
+            "reason": "declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [
+              "src/web/app.ts"
+            ],
+            "source_sha256": "a32d281170011466e6fa86a5f62133fa956a78c566102ce9a1ff4036dfe5a56a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          }
+        ],
+        "opposing_directives": [],
+        "summary": {
+          "rules": 4,
+          "other_supported_sources": 0,
+          "active": 3,
+          "inactive": 1,
+          "unknown": 0,
+          "uninterpreted_bodies": 0,
+          "active_signals": 0,
+          "uncertain_signals": 0
+        }
+      }
+    },
+    {
+      "id": "root-ts",
+      "targets": [
+        "index.ts"
+      ],
+      "prompt": "NATIVE_BEHAVIOR_V1 root-ts. Read only the attached index.ts. Reply with its declared name(s) and any probe markers required by the project rules. Do not inspect other files, search, edit, or run shell commands.",
+      "acs_prediction": {
+        "schema_version": 1,
+        "analysis": "cursor_file_context",
+        "profile": "cursor-file-context-v1",
+        "tool": {
+          "name": "AgentConfigScore",
+          "version": "0.26.1",
+          "source_fingerprint": {
+            "format": "acs-python-source-v1",
+            "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+            "files": [
+              "__init__.py",
+              "__main__.py",
+              "cli.py",
+              "config.py",
+              "doctor.py",
+              "entrypoint.py",
+              "feedback.py",
+              "gitdiff.py",
+              "guardrails.py",
+              "history.py",
+              "initializer.py",
+              "provenance.py",
+              "regression.py",
+              "rules.py",
+              "sarif.py",
+              "scanner.py",
+              "scopes.py"
+            ]
+          }
+        },
+        "status": "completed",
+        "scored": false,
+        "targets": [
+          "index.ts"
+        ],
+        "targets_existence_checked": false,
+        "observed_agent_context": false,
+        "activation_inputs": "declared_file_paths_only",
+        "unmodelled_inputs": [
+          "manual_mentions",
+          "model_selection",
+          "user_team_rules",
+          "runtime_settings",
+          "other_instruction_formats"
+        ],
+        "rules": [
+          {
+            "file": ".cursor/rules/always.mdc",
+            "mode": "always",
+            "activation": "active",
+            "reason": "always_apply",
+            "pattern_count": 0,
+            "metadata_lines": {
+              "alwaysApply": 2
+            },
+            "body_line": 4,
+            "matched_targets": [
+              "index.ts"
+            ],
+            "source_sha256": "4faff5a899e29c22cab4934beed5f7adab1b7d0e106ee929f94a61bcd2b6085b",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          },
+          {
+            "file": ".cursor/rules/api.mdc",
+            "mode": "patterns",
+            "activation": "inactive",
+            "reason": "no_declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [],
+            "source_sha256": "7c759220e18009d1405dc2b7d223ed82d9ceaed02f5c609c841d4ab1f659469a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 0
+          },
+          {
+            "file": ".cursor/rules/root-only.mdc",
+            "mode": "patterns",
+            "activation": "active",
+            "reason": "declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [
+              "index.ts"
+            ],
+            "source_sha256": "a1a41f25d55a39c2f47ee18e1bdb0a30f1a5d65ffaf564d247c69cc193834894",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 1
+          },
+          {
+            "file": ".cursor/rules/web.mdc",
+            "mode": "patterns",
+            "activation": "inactive",
+            "reason": "no_declared_target_matches",
+            "pattern_count": 1,
+            "metadata_lines": {
+              "alwaysApply": 2,
+              "globs": 3
+            },
+            "body_line": 5,
+            "matched_targets": [],
+            "source_sha256": "a32d281170011466e6fa86a5f62133fa956a78c566102ce9a1ff4036dfe5a56a",
+            "directive_analysis": "bounded_prose",
+            "recognized_directives": 0
+          }
+        ],
+        "opposing_directives": [],
+        "summary": {
+          "rules": 4,
+          "other_supported_sources": 0,
+          "active": 2,
+          "inactive": 2,
+          "unknown": 0,
+          "uninterpreted_bodies": 0,
+          "active_signals": 0,
+          "uncertain_signals": 0
+        }
+      }
+    }
+  ],
+  "manual_positive_control": "Explicitly select @always.mdc. Send NATIVE_BEHAVIOR_V1 manual-control. Reply only with the probe marker required by this rule. Do not inspect other files, search, edit, or run commands.",
+  "interpretation": "Marker appearance is observed behavior consistent with access to a rule body, not a complete rule-attachment trace. Missing markers can be noncompliance, not absence. Unexpected file/rule reads confound interpretation. Keep client version, UI evidence, hook limits, failures and all replies. This is not independent accuracy.",
+  "operator": "user-controlled UI; separate fresh chat per case; explicitly attach target file chips only, without manually attaching rules in automatic cases",
+  "local_hook_config_not_published": true,
+  "local_hook_config_boundary": "Original hook-command hash retained; use the generator for your own interpreter/workspace. All other captured input bytes are retained under fixture/. No markers or predictions were stored inside the native workspace."
+}
