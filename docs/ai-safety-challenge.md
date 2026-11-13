@@ -4,6 +4,14 @@
 an unapproved tool operation.** The example combines the released ACS static
 checker with a small, separate host executor operating on real disposable files.
 
+![One-minute rendered walkthrough of the retained development evidence](../assets/agent-config-score-approval.gif)
+
+[One-minute MP4 walkthrough](../assets/agent-config-score-approval.mp4) ·
+[Assistant-operated smoke and its limits](../examples/approval-gate/assistant-recorded/README.md)
+
+The video is rendered from retained JSON reports, not a screen recording. The
+12 scripted cases and four caller-operated requests are labeled separately.
+
 ```mermaid
 flowchart LR
     A[Rule glob changes] --> B[Installed ACS comparison]
@@ -69,6 +77,7 @@ cleanup follows either an approved operation or refusal.
 - [Full JSON: static source lines, execution decisions and input hashes](../examples/approval-gate/recorded/result.json)
 - [Executor, API contract, tests and trust boundary](../examples/approval-gate/README.md)
 - [Gate regression tests](../tests/test_approval_gate_demo.py)
+- [Four assistant-operated requests, redacted transcript and caller limitations](../examples/approval-gate/assistant-recorded/README.md)
 - [Cross-platform installed-wheel CI](../.github/workflows/ci.yml)
 
 ## Scope of the prototype
@@ -87,3 +96,9 @@ one regular file up to 1 MiB is supported; approval state is process-local.
 The existing [native Cursor smoke test](../benchmarks/cursor-native-v1/README.md)
 is separate evidence about selected rule-marker behavior. It does not validate
 this executor or turn these scripted scenarios into real-world safety results.
+
+The assistant-operated bridge smoke adds actual requests from the maintainer's
+Codex session. Approval was simulated by the host. The assistant knew the
+scenario and had other parent-session tools, so agent isolation and independent
+model behavior remain unvalidated. Independent CLI preflights could not obtain
+a valid model response; that separate experiment is not claimed as completed.

@@ -13,6 +13,11 @@ The runnable example uses local temporary files, no model API, no network and
 no new runtime dependencies. See the [challenge walkthrough](../../docs/ai-safety-challenge.md)
 and [recorded replay](recorded/result.md).
 
+The [assistant-operated smoke](assistant-recorded/README.md) separately records
+four requests from the maintainer's Codex session. It uses host-simulated
+approval and does not validate agent isolation. The [one-minute walkthrough](../../assets/agent-config-score-approval.mp4)
+renders these two evidence categories separately from their retained JSON.
+
 ## Try the operator console
 
 From a checkout of this repository, using Python 3.10+:
