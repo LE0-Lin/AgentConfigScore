@@ -1,0 +1,979 @@
+{
+  "schema_version": 1,
+  "status": "completed_development_replay",
+  "completed_at_utc": "2026-11-13T16:55:52.999509+00:00",
+  "tool": {
+    "name": "AgentConfigScore",
+    "version": "0.26.1",
+    "source_fingerprint": {
+      "format": "acs-python-source-v1",
+      "sha256": "081ab8bf7d86dd248b4ed2f9eef409f71f45bb6353ce0df64913ccad56c9ec2f",
+      "files": [
+        "__init__.py",
+        "__main__.py",
+        "cli.py",
+        "config.py",
+        "doctor.py",
+        "entrypoint.py",
+        "feedback.py",
+        "gitdiff.py",
+        "guardrails.py",
+        "history.py",
+        "initializer.py",
+        "provenance.py",
+        "regression.py",
+        "rules.py",
+        "sarif.py",
+        "scanner.py",
+        "scopes.py"
+      ]
+    }
+  },
+  "frozen_tool": {
+    "name": "AgentConfigScore",
+    "version": "0.26.1",
+    "source_fingerprint": {
+      "format": "acs-python-source-v1",
+      "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+      "files": [
+        "__init__.py",
+        "__main__.py",
+        "cli.py",
+        "config.py",
+        "doctor.py",
+        "entrypoint.py",
+        "feedback.py",
+        "gitdiff.py",
+        "guardrails.py",
+        "history.py",
+        "initializer.py",
+        "provenance.py",
+        "regression.py",
+        "rules.py",
+        "sarif.py",
+        "scanner.py",
+        "scopes.py"
+      ]
+    }
+  },
+  "independent_accuracy_estimate": null,
+  "external_user_feedback": null,
+  "source_projection": "Git-verified names, empty non-instruction files",
+  "source_freeze_commit": "4b8ebc0",
+  "fresh_protocol_sha256": "f001a50db17286fbf085cc6d57038bde66ec216781e8085f0b14eec6d253b7e4",
+  "fresh_parser_matches_collection_freeze": true,
+  "frozen_result_sha256": "5a083ed967261acf79e1d0ba071c4ec76224581e1b50c51c5ee864c8a8c5fdec",
+  "runner_sha256_lf": "a5b9901fcecf3a05b7fe32eafea71e02f4c8f70a1c5731d492c9bc2639ac6260",
+  "known_natural_cases": [
+    {
+      "id": "path-01",
+      "repository": "sveltejs/svelte",
+      "line": 5,
+      "destination": "./CONTRIBUTING.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-02",
+      "repository": "sveltejs/svelte",
+      "line": 5,
+      "destination": "CONTRIBUTING.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-03",
+      "repository": "sveltejs/svelte",
+      "line": 7,
+      "destination": "./.github/PULL_REQUEST_TEMPLATE.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-04",
+      "repository": "sveltejs/svelte",
+      "line": 7,
+      "destination": "PULL_REQUEST_TEMPLATE.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-05",
+      "repository": "pnpm/pnpm",
+      "line": 7,
+      "destination": "pnpm11/",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-06",
+      "repository": "pnpm/pnpm",
+      "line": 8,
+      "destination": "pnpm/",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-07",
+      "repository": "pnpm/pnpm",
+      "line": 8,
+      "destination": "./pnpm/AGENTS.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-08",
+      "repository": "pnpm/pnpm",
+      "line": 8,
+      "destination": "pnpm/AGENTS.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-09",
+      "repository": "vitest-dev/vitest",
+      "line": 22,
+      "destination": "packages/",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-10",
+      "repository": "vitest-dev/vitest",
+      "line": 47,
+      "destination": "test/unit",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-11",
+      "repository": "vitest-dev/vitest",
+      "line": 67,
+      "destination": "dist/",
+      "provisional_review_needed": false,
+      "current_flagged": true
+    },
+    {
+      "id": "path-12",
+      "repository": "vitest-dev/vitest",
+      "line": 72,
+      "destination": "packages/vitest/src/runtime/",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-13",
+      "repository": "facebook/react",
+      "line": 12,
+      "destination": "compiler/docs/rust-port/",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-14",
+      "repository": "facebook/react",
+      "line": 12,
+      "destination": "compiler/crates/",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-15",
+      "repository": "TanStack/query",
+      "line": 4,
+      "destination": "./CONTRIBUTING.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    },
+    {
+      "id": "path-16",
+      "repository": "TanStack/query",
+      "line": 4,
+      "destination": "CONTRIBUTING.md",
+      "provisional_review_needed": false,
+      "current_flagged": false
+    }
+  ],
+  "known_controls": [
+    {
+      "id": "control-01",
+      "repository": "sveltejs/svelte",
+      "target": "CONTRIBUTING.md",
+      "target_kind": "blob",
+      "line": 5,
+      "destination": "./CONTRIBUTING.md",
+      "frozen_flagged": true,
+      "current_flagged": true,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 5,
+          "message": "Referenced path does not exist: ./CONTRIBUTING.md"
+        }
+      ],
+      "projection": {
+        "omitted_target": "CONTRIBUTING.md",
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "id": "control-02",
+      "repository": "sveltejs/svelte",
+      "target": ".github/PULL_REQUEST_TEMPLATE.md",
+      "target_kind": "blob",
+      "line": 7,
+      "destination": "./.github/PULL_REQUEST_TEMPLATE.md",
+      "frozen_flagged": true,
+      "current_flagged": true,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 7,
+          "message": "Referenced path does not exist: ./.github/PULL_REQUEST_TEMPLATE.md"
+        }
+      ],
+      "projection": {
+        "omitted_target": ".github/PULL_REQUEST_TEMPLATE.md",
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "id": "control-03",
+      "repository": "pnpm/pnpm",
+      "target": "pnpm11",
+      "target_kind": "tree",
+      "line": 7,
+      "destination": "pnpm11/",
+      "frozen_flagged": false,
+      "current_flagged": true,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 7,
+          "message": "Referenced path does not exist: pnpm11/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 22,
+          "message": "Referenced path does not exist: pnpm11/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 34,
+          "message": "Referenced path does not exist: pnpm11/docs/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 46,
+          "message": "Referenced path does not exist: pnpm11/pnpm/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 47,
+          "message": "Referenced path does not exist: pnpm11/installing/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 48,
+          "message": "Referenced path does not exist: pnpm11/bins/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 49,
+          "message": "Referenced path does not exist: pnpm11/resolving/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 50,
+          "message": "Referenced path does not exist: pnpm11/fetching/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 51,
+          "message": "Referenced path does not exist: pnpm11/store/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 52,
+          "message": "Referenced path does not exist: pnpm11/lockfile/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 56,
+          "message": "Referenced path does not exist: pnpm11/cli/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 57,
+          "message": "Referenced path does not exist: pnpm11/config/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 58,
+          "message": "Referenced path does not exist: pnpm11/hooks/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 59,
+          "message": "Referenced path does not exist: pnpm11/cli/commands/src/completion/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 63,
+          "message": "Referenced path does not exist: pnpm11/network/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 64,
+          "message": "Referenced path does not exist: pnpm11/workspace/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 65,
+          "message": "Referenced path does not exist: pnpm11/exec/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 66,
+          "message": "Referenced path does not exist: pnpm11/engine/runtime/commands/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 67,
+          "message": "Referenced path does not exist: pnpm11/cache/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 68,
+          "message": "Referenced path does not exist: pnpm11/patching/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 69,
+          "message": "Referenced path does not exist: pnpm11/releasing/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 73,
+          "message": "Referenced path does not exist: pnpm11/fs/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 74,
+          "message": "Referenced path does not exist: pnpm11/crypto/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 75,
+          "message": "Referenced path does not exist: pnpm11/text/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 97,
+          "message": "Referenced path does not exist: pnpm11/pnpm/test/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 97,
+          "message": "Referenced path does not exist: lib/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 164,
+          "message": "Referenced path does not exist: pnpm11/fs/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 164,
+          "message": "Referenced path does not exist: pnpm11/crypto/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 164,
+          "message": "Referenced path does not exist: pnpm11/text/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 164,
+          "message": "Referenced path does not exist: pnpm11/object/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 192,
+          "message": "Referenced path does not exist: .husky/_/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 354,
+          "message": "Referenced path does not exist: pnpm11/docs/"
+        }
+      ],
+      "projection": {
+        "omitted_target": "pnpm11",
+        "skipped_aliases_or_gitlinks": [
+          ".claude/skills",
+          "CLAUDE.md",
+          "pnpm/CLAUDE.md",
+          "pnpm/GEMINI.md"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "id": "control-04",
+      "repository": "pnpm/pnpm",
+      "target": "pnpm",
+      "target_kind": "tree",
+      "line": 8,
+      "destination": "pnpm/",
+      "frozen_flagged": false,
+      "current_flagged": true,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 8,
+          "message": "Referenced path does not exist: ./pnpm/AGENTS.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 8,
+          "message": "Referenced path does not exist: pnpm/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 12,
+          "message": "Referenced path does not exist: pnpm/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 22,
+          "message": "Referenced path does not exist: pnpm/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 30,
+          "message": "Referenced path does not exist: ./pnpm/AGENTS.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 34,
+          "message": "Referenced path does not exist: pnpm/docs/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 79,
+          "message": "Referenced path does not exist: ./pnpm/AGENTS.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 79,
+          "message": "Referenced path does not exist: pnpm/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 97,
+          "message": "Referenced path does not exist: lib/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 113,
+          "message": "Referenced path does not exist: ./pnpm/CONTRIBUTING.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 192,
+          "message": "Referenced path does not exist: .husky/_/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 354,
+          "message": "Referenced path does not exist: pnpm/docs/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 357,
+          "message": "Referenced path does not exist: pnpm/npm/napi/index.d.ts"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 396,
+          "message": "Referenced path does not exist: ./pnpm/CODE_STYLE_GUIDE.md"
+        }
+      ],
+      "projection": {
+        "omitted_target": "pnpm",
+        "skipped_aliases_or_gitlinks": [
+          ".claude/skills",
+          "CLAUDE.md",
+          "pnpm11/__fixtures__/has-outdated-deps-using-catalog-protocol/node_modules/is-negative",
+          "pnpm11/__fixtures__/has-outdated-deps-using-npm-alias/node_modules/is-negative-alias"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "id": "control-05",
+      "repository": "pnpm/pnpm",
+      "target": "pnpm/AGENTS.md",
+      "target_kind": "blob",
+      "line": 8,
+      "destination": "./pnpm/AGENTS.md",
+      "frozen_flagged": true,
+      "current_flagged": true,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 8,
+          "message": "Referenced path does not exist: ./pnpm/AGENTS.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 30,
+          "message": "Referenced path does not exist: ./pnpm/AGENTS.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 79,
+          "message": "Referenced path does not exist: ./pnpm/AGENTS.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 97,
+          "message": "Referenced path does not exist: lib/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 192,
+          "message": "Referenced path does not exist: .husky/_/"
+        }
+      ],
+      "projection": {
+        "omitted_target": "pnpm/AGENTS.md",
+        "skipped_aliases_or_gitlinks": [
+          ".claude/skills",
+          "CLAUDE.md",
+          "pnpm/CLAUDE.md",
+          "pnpm/GEMINI.md",
+          "pnpm11/__fixtures__/has-outdated-deps-using-catalog-protocol/node_modules/is-negative",
+          "pnpm11/__fixtures__/has-outdated-deps-using-npm-alias/node_modules/is-negative-alias"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "id": "control-06",
+      "repository": "vitest-dev/vitest",
+      "target": "packages",
+      "target_kind": "tree",
+      "line": 22,
+      "destination": "packages/",
+      "frozen_flagged": false,
+      "current_flagged": true,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 22,
+          "message": "Referenced path does not exist: packages/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 67,
+          "message": "Referenced path does not exist: dist/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 72,
+          "message": "Referenced path does not exist: packages/vitest/src/runtime/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 97,
+          "message": "Referenced path does not exist: packages/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 144,
+          "message": "Referenced path does not exist: packages/web-worker/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 178,
+          "message": "Referenced path does not exist: packages/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 192,
+          "message": "Referenced path does not exist: packages/vitest/src/node/cli/cli-config.ts"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 198,
+          "message": "Referenced path does not exist: packages/vitest/LICENSE.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 199,
+          "message": "Referenced path does not exist: packages/vitest/src/node/cli/cli-config.ts"
+        }
+      ],
+      "projection": {
+        "omitted_target": "packages",
+        "skipped_aliases_or_gitlinks": [
+          "test/e2e/project-references/packages/project-b/node_modules/project-a"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "id": "control-07",
+      "repository": "vitest-dev/vitest",
+      "target": "test/unit",
+      "target_kind": "tree",
+      "line": 47,
+      "destination": "test/unit",
+      "frozen_flagged": false,
+      "current_flagged": false,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 67,
+          "message": "Referenced path does not exist: dist/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 144,
+          "message": "Referenced path does not exist: test/unit/"
+        }
+      ],
+      "projection": {
+        "omitted_target": "test/unit",
+        "skipped_aliases_or_gitlinks": [
+          "test/e2e/project-references/packages/project-b/node_modules/project-a"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "id": "control-08",
+      "repository": "vitest-dev/vitest",
+      "target": "packages/vitest/src/runtime",
+      "target_kind": "tree",
+      "line": 72,
+      "destination": "packages/vitest/src/runtime/",
+      "frozen_flagged": false,
+      "current_flagged": true,
+      "current_findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 67,
+          "message": "Referenced path does not exist: dist/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 72,
+          "message": "Referenced path does not exist: packages/vitest/src/runtime/"
+        }
+      ],
+      "projection": {
+        "omitted_target": "packages/vitest/src/runtime",
+        "skipped_aliases_or_gitlinks": [
+          "test/e2e/project-references/packages/project-b/node_modules/project-a"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    }
+  ],
+  "known_generated_output": {
+    "line": 201,
+    "destination": "docs/.vitepress/contributor-names.json",
+    "repository": "vitest-dev/vitest",
+    "source_revision": "f4fdbcae08ec365f35d9e1866ce3e7d04880ea60",
+    "frozen_flagged": true,
+    "current_flagged": false,
+    "producer_context_git_verified": true
+  },
+  "known_whole_document_observations": {
+    "sveltejs/svelte": {
+      "tool": {
+        "name": "AgentConfigScore",
+        "version": "0.26.1",
+        "source_fingerprint": {
+          "format": "acs-python-source-v1",
+          "sha256": "081ab8bf7d86dd248b4ed2f9eef409f71f45bb6353ce0df64913ccad56c9ec2f",
+          "files": [
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "config.py",
+            "doctor.py",
+            "entrypoint.py",
+            "feedback.py",
+            "gitdiff.py",
+            "guardrails.py",
+            "history.py",
+            "initializer.py",
+            "provenance.py",
+            "regression.py",
+            "rules.py",
+            "sarif.py",
+            "scanner.py",
+            "scopes.py"
+          ]
+        }
+      },
+      "findings": [],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    "pnpm/pnpm": {
+      "tool": {
+        "name": "AgentConfigScore",
+        "version": "0.26.1",
+        "source_fingerprint": {
+          "format": "acs-python-source-v1",
+          "sha256": "081ab8bf7d86dd248b4ed2f9eef409f71f45bb6353ce0df64913ccad56c9ec2f",
+          "files": [
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "config.py",
+            "doctor.py",
+            "entrypoint.py",
+            "feedback.py",
+            "gitdiff.py",
+            "guardrails.py",
+            "history.py",
+            "initializer.py",
+            "provenance.py",
+            "regression.py",
+            "rules.py",
+            "sarif.py",
+            "scanner.py",
+            "scopes.py"
+          ]
+        }
+      },
+      "findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 97,
+          "message": "Referenced path does not exist: lib/"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 192,
+          "message": "Referenced path does not exist: .husky/_/"
+        }
+      ],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [
+          ".claude/skills",
+          "CLAUDE.md",
+          "pnpm/CLAUDE.md",
+          "pnpm/GEMINI.md",
+          "pnpm11/__fixtures__/has-outdated-deps-using-catalog-protocol/node_modules/is-negative",
+          "pnpm11/__fixtures__/has-outdated-deps-using-npm-alias/node_modules/is-negative-alias"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    "vitest-dev/vitest": {
+      "tool": {
+        "name": "AgentConfigScore",
+        "version": "0.26.1",
+        "source_fingerprint": {
+          "format": "acs-python-source-v1",
+          "sha256": "081ab8bf7d86dd248b4ed2f9eef409f71f45bb6353ce0df64913ccad56c9ec2f",
+          "files": [
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "config.py",
+            "doctor.py",
+            "entrypoint.py",
+            "feedback.py",
+            "gitdiff.py",
+            "guardrails.py",
+            "history.py",
+            "initializer.py",
+            "provenance.py",
+            "regression.py",
+            "rules.py",
+            "sarif.py",
+            "scanner.py",
+            "scopes.py"
+          ]
+        }
+      },
+      "findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 67,
+          "message": "Referenced path does not exist: dist/"
+        }
+      ],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [
+          "test/e2e/project-references/packages/project-b/node_modules/project-a"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    "facebook/react": {
+      "tool": {
+        "name": "AgentConfigScore",
+        "version": "0.26.1",
+        "source_fingerprint": {
+          "format": "acs-python-source-v1",
+          "sha256": "081ab8bf7d86dd248b4ed2f9eef409f71f45bb6353ce0df64913ccad56c9ec2f",
+          "files": [
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "config.py",
+            "doctor.py",
+            "entrypoint.py",
+            "feedback.py",
+            "gitdiff.py",
+            "guardrails.py",
+            "history.py",
+            "initializer.py",
+            "provenance.py",
+            "regression.py",
+            "rules.py",
+            "sarif.py",
+            "scanner.py",
+            "scopes.py"
+          ]
+        }
+      },
+      "findings": [],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    "TanStack/query": {
+      "tool": {
+        "name": "AgentConfigScore",
+        "version": "0.26.1",
+        "source_fingerprint": {
+          "format": "acs-python-source-v1",
+          "sha256": "081ab8bf7d86dd248b4ed2f9eef409f71f45bb6353ce0df64913ccad56c9ec2f",
+          "files": [
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "config.py",
+            "doctor.py",
+            "entrypoint.py",
+            "feedback.py",
+            "gitdiff.py",
+            "guardrails.py",
+            "history.py",
+            "initializer.py",
+            "provenance.py",
+            "regression.py",
+            "rules.py",
+            "sarif.py",
+            "scanner.py",
+            "scopes.py"
+          ]
+        }
+      },
+      "findings": [],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [
+          "packages/angular-query-experimental/root.oxlint.config.ts",
+          "packages/angular-query-persist-client/root.oxlint.config.ts",
+          "packages/eslint-plugin-query/root.oxlint.config.ts",
+          "packages/lit-query/root.oxlint.config.ts",
+          "packages/lit-query/root.tsdown.config.js",
+          "packages/preact-query-devtools/root.oxlint.config.ts",
+          "packages/preact-query-devtools/root.tsdown.config.js",
+          "packages/preact-query-persist-client/root.oxlint.config.ts",
+          "packages/preact-query-persist-client/root.tsdown.config.js",
+          "packages/preact-query/root.oxlint.config.ts",
+          "packages/preact-query/root.tsdown.config.js",
+          "packages/query-async-storage-persister/root.oxlint.config.ts",
+          "packages/query-async-storage-persister/root.tsdown.config.js",
+          "packages/query-broadcast-client-experimental/root.oxlint.config.ts",
+          "packages/query-broadcast-client-experimental/root.tsdown.config.js",
+          "packages/query-codemods/root.oxlint.config.ts",
+          "packages/query-core/root.oxlint.config.ts",
+          "packages/query-core/root.tsdown.config.js",
+          "packages/query-devtools/root.oxlint.config.ts",
+          "packages/query-persist-client-core/root.oxlint.config.ts",
+          "packages/query-persist-client-core/root.tsdown.config.js",
+          "packages/query-sync-storage-persister/root.oxlint.config.ts",
+          "packages/query-sync-storage-persister/root.tsdown.config.js",
+          "packages/query-test-utils/root.oxlint.config.ts",
+          "packages/react-query-devtools/root.oxlint.config.ts",
+          "packages/react-query-devtools/root.tsdown.config.js",
+          "packages/react-query-next-experimental/root.oxlint.config.ts",
+          "packages/react-query-next-experimental/root.tsdown.config.js",
+          "packages/react-query-persist-client/root.oxlint.config.ts",
+          "packages/react-query-persist-client/root.tsdown.config.js",
+          "packages/react-query/root.oxlint.config.ts",
+          "packages/react-query/root.tsdown.config.js",
+          "packages/solid-query-devtools/root.oxlint.config.ts",
+          "packages/solid-query-persist-client/root.oxlint.config.ts",
+          "packages/solid-query/root.oxlint.config.ts",
+          "packages/svelte-query-devtools/root.oxlint.config.ts",
+          "packages/svelte-query-persist-client/root.oxlint.config.ts",
+          "packages/svelte-query/root.oxlint.config.ts",
+          "packages/vue-query-devtools/root.oxlint.config.ts",
+          "packages/vue-query-devtools/root.tsdown.config.js",
+          "packages/vue-query/root.oxlint.config.ts",
+          "packages/vue-query/root.tsdown.config.js"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    }
+  },
+  "fresh_registry": [
+    {
+      "repository": "astral-sh/uv",
+      "status": "excluded",
+      "reason": "license_outside_allowlist"
+    },
+    {
+      "repository": "pydantic/pydantic",
+      "revision": "560f0f96a37d6913afdfddb2de22030ef08e68c3",
+      "status": "completed_source_smoke",
+      "selected_candidates": 0,
+      "source_url": "https://github.com/pydantic/pydantic/blob/560f0f96a37d6913afdfddb2de22030ef08e68c3/AGENTS.md",
+      "findings": [],
+      "candidates": [],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [
+          "CONTRIBUTING.md",
+          "tests/pydantic_core"
+        ],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "repository": "fastapi/fastapi",
+      "status": "excluded",
+      "reason": "registered_root_instruction_absent"
+    }
+  ],
+  "acceptance": {
+    "passed": false,
+    "scope": "known_development_contracts_only",
+    "failures": [
+      "known_natural_negative_flagged:path-11"
+    ]
+  }
+}

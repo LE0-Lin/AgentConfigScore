@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "name": "path-check-v2-fresh-source-smoke",
+  "registered_date": "2026-11-13",
+  "status": "fresh_source_smoke_not_independent_accuracy",
+  "tool_source_sha256": "081ab8bf7d86dd248b4ed2f9eef409f71f45bb6353ce0df64913ccad56c9ec2f",
+  "selection": "Fixed three-repository convenience registry after the known Vitest/pnpm development fixes and before fetching these root documents or running the changed scanner on them. First regular root AGENTS.md, then CLAUDE.md. First four distinct eligible candidates per repository, at most twelve. Keep all exclusions without replacement. Prior model training exposure and broader historical familiarity are unknown.",
+  "source_paths": [
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "target_cases": 12,
+  "per_repository": 4,
+  "maximum_source_bytes": 65536,
+  "maximum_tree_entries": 25000,
+  "allowed_licenses": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "BSD-2-Clause",
+    "ISC"
+  ],
+  "candidate_suffixes": [
+    ".md",
+    ".json",
+    ".toml",
+    ".yml",
+    ".yaml",
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".py",
+    ".rs",
+    ".go",
+    ".vue",
+    ".svelte"
+  ],
+  "reference_task": "Retain source and complete tracked-name facts, then report scanner observations. A missing tracked name alone is not a reference-positive label: generated output, examples, package roots and aliases can be ambiguous. Do not produce precision or recall without independent reference adjudication.",
+  "tool_scope": "Isolated complete selected root document, with exact source bytes and a Git-object-verified path-inventory projection of empty regular files. No native whole-repository equivalence, builds, upstream code execution, model review or maintainer contact.",
+  "reporting": "Known path-audit-v1 data are development reuse, separately reported from this fresh collection. Freeze parser identity before acquisition; any later parser change invalidates fresh-source freeze matching. No adoption, external user feedback, independent annotation or AI superiority claim.",
+  "repositories": [
+    "astral-sh/uv",
+    "pydantic/pydantic",
+    "fastapi/fastapi"
+  ]
+}

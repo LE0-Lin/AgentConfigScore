@@ -29,6 +29,7 @@ read the result, and troubleshoot a failing gate.
 ## Understanding findings
 
 - [Score contract and limitations](limitations.md)
+- [Case study: generated-output warnings and explicit directory checks](path-case-study.md) (unreleased source)
 - [Regression input consistency and file-removal checks](regression-coverage.md)
 - [Runnable design lab: scores, baseline gates and caller overrides](../examples/regression-lab/README.md) (synthetic development example)
 - [Path-reference grammar and limits](limitations.md#plain-prose-path-references)
@@ -40,6 +41,8 @@ Use `agent-config-score rules` for the installed version's actual catalog, and
 `agent-config-score rules RULE_ID` for an individual rule's evidence and penalty.
 
 ## Development and evidence
+
+- [Public maintainer feedback mapped to delivered features](feedback-to-delivery.md)
 
 - [Release acceptance and localization sequence](release-readiness.md)
 - [Maintained benchmarks](../benchmarks/README.md)

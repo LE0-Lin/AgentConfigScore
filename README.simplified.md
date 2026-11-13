@@ -1,5 +1,7 @@
 # AgentConfigScore
 
+[真实文档案例](docs/path-case-study.md)：生成文件误报的修复、目录检查的新增覆盖，以及真实文档复跑如何拦住一次新误报。新路径逻辑目前在未发布源码中，报告保留修复前后的证据。
+
 [English](README.md) | 简体中文 | [繁體中文](README.traditional.md)
 
 在合并前发现 AI 编程助手指令中的已知退化。

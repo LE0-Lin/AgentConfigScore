@@ -44,6 +44,13 @@ merged PR, where both scores stay 100.
 instruction usefulness, semantic correctness or safety.
 [Read the score contract and limitations.](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/limitations.md)
 
+[Read a public-source case study](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/path-case-study.md):
+a generated-file false positive, explicit directory checks, and a failing
+development replay that caught a new warning before merge. The new path
+behavior is currently unreleased source, with retained before/after evidence.
+The [feedback-to-delivery map](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/feedback-to-delivery.md)
+connects a public maintainer request to implemented features and their limits.
+
 ## What it helps you review
 
 | Change | Review evidence |

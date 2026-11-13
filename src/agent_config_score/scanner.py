@@ -918,10 +918,10 @@ def _normalized_line(line: str) -> str | None:
     return line
 
 
-def _looks_like_repository_path(value: str) -> bool:
+def _looks_like_repository_path(value: str, *, quoted_directory: bool = False) -> bool:
     """Reject code symbols, package names, URLs, and branch names before probing."""
     normalized = value.replace("\\", "/")
-    if normalized.startswith("@") or normalized.endswith("/"):
+    if normalized.startswith("@") or (normalized.endswith("/") and not quoted_directory):
         return False
     if normalized.lower().startswith(NON_PATH_PREFIXES):
         return False
@@ -935,6 +935,15 @@ def _looks_like_repository_path(value: str) -> bool:
         for part in PurePosixPath(normalized).parts
     ):
         return False
+
+    # A single-backtick literal ending in a slash explicitly denotes a
+    # directory. Keep unquoted and extensionless names outside this heuristic.
+    if quoted_directory and normalized.endswith("/"):
+        # Unprefixed names can be package-relative or appear after install/build.
+        # Require an explicit document/repository-relative spelling rather than
+        # expanding a list of guesses about generated directory names.
+        return (normalized.startswith(("./", "../"))
+                and bool(re.fullmatch(r"(?:[A-Za-z0-9_.+@-]+/)+", normalized)))
 
     name = PurePosixPath(normalized).name
     if name in PATH_BASENAMES:
@@ -1130,6 +1139,13 @@ def _non_required_path_reference(text: str, match: re.Match, value: str) -> bool
     if re.match(r"^[ \t]*\([ \t]*if[ \t]+(?:it[ \t]+)?exists[ \t]*"
                 r"(?:\)|[-:][^()\r\n]{1,120}\))", after, re.I):
         return True
+    # Declared generated output need not exist in an unbuilt checkout. Require
+    # a complete, immediate passive clause with a closed producer code span;
+    # do not let a distant 'generated' word exempt other references or links.
+    if re.fullmatch(r"[ \t]+is[ \t]+(?:generated|regenerated|rewritten)[ \t]+"
+                    r"(?:by|from)[ \t]+`[^`\r\n]{1,160}`[ \t]*"
+                    r"(?:\([^()\r\n]{1,160}\)[ \t]*)?[.!]?[ \t]*", after, re.I):
+        return True
     # A two-component GitHub slug may look like a source path (owner/tool.js).
     # Require a repository/remote role, not merely 'GitHub' somewhere nearby.
     slug = r"[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+"
@@ -1170,7 +1186,10 @@ def _candidate_paths(
             continue
         if "://" in value or "|" in value or any(c in value for c in "*<>{}"):
             continue
-        if not _looks_like_repository_path(value):
+        quoted_directory = bool(m.group(1) and value.replace("\\", "/").endswith("/")
+                                and text[m.start() - 1:m.start()] != "`"
+                                and text[m.end():m.end() + 1] != "`")
+        if not _looks_like_repository_path(value, quoted_directory=quoted_directory):
             continue
         if _non_required_path_reference(text, m, value):
             continue
@@ -1230,11 +1249,12 @@ def _candidate_exists(
         if target is None:
             continue
         checked = True
-        if target.exists():
+        matches = target.is_dir() if candidate.endswith("/") else target.exists()
+        if matches:
             return True
     if not checked:
         return None
-    if not explicit_relative and repository_paths is not None:
+    if not explicit_relative and not candidate.endswith("/") and repository_paths is not None:
         # lstrip('./') removes characters, not a path prefix: it previously
         # erased the significant dot in .github and dots in parent traversals.
         normalized = PurePosixPath(candidate).as_posix()

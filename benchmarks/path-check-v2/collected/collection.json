@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "collected_unscored",
+  "collected_at_utc": "2026-11-13T13:17:53.662794+00:00",
+  "protocol_sha256": "f001a50db17286fbf085cc6d57038bde66ec216781e8085f0b14eec6d253b7e4",
+  "selected_cases": 0,
+  "repositories": [
+    {
+      "repository": "astral-sh/uv",
+      "revision": "b19b0eab8b180952713c32a1562fe738ba6d6fcc",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "NOASSERTION",
+      "status": "excluded",
+      "reason": "license_outside_allowlist"
+    },
+    {
+      "repository": "pydantic/pydantic",
+      "revision": "560f0f96a37d6913afdfddb2de22030ef08e68c3",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": true
+        }
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "instruction_path": "AGENTS.md",
+      "source_file": "sources/pydantic--pydantic.txt",
+      "source_sha256": "9364a0769496f3667a4da9a0f6d8ed08d9e549e3fcd756979f52775a2502e08f",
+      "source_blob_sha": "210125cc7db996036876b2a34033c156498a4960",
+      "source_url": "https://github.com/pydantic/pydantic/blob/560f0f96a37d6913afdfddb2de22030ef08e68c3/AGENTS.md",
+      "tree_file": "trees/pydantic--pydantic.json.gz",
+      "tree_sha256": "315ab3372d59dbd16164e32ecb8ffbb20bcaac7efc05fad2aeb929eeed1becc6",
+      "tree_object_sha": "b6d35e0b9a3a2e480b3cae869b649e3ff58edbf2",
+      "tree_entries": 3783,
+      "license_file": "licenses/pydantic--pydantic.txt",
+      "license_sha256": "a9e186f3ca16b5eef84318e7a701721351a00cb7b8ae3a4394b67b49e3529ef3",
+      "license_blob_sha": "488c6260c10f2e88fa1fae58a63fccec8d600cd1",
+      "license_url": "https://github.com/pydantic/pydantic/blob/560f0f96a37d6913afdfddb2de22030ef08e68c3/LICENSE",
+      "candidates": []
+    },
+    {
+      "repository": "fastapi/fastapi",
+      "revision": "445c570ba8fc0938724df60a3a6d37366322918d",
+      "source_checks": [
+        {
+          "path": "AGENTS.md",
+          "present": false
+        },
+        {
+          "path": "CLAUDE.md",
+          "present": false
+        }
+      ],
+      "status": "excluded",
+      "reason": "registered_root_instruction_absent"
+    }
+  ]
+}

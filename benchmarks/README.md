@@ -20,6 +20,13 @@ not a complete attachment trace or independent accuracy estimate.
 
 None of these workflows claims that A 100 means semantic prompt quality.
 
+The [path-fix development replay](path-check-v2/README.md) separately compares
+the unchanged published v0.26.1 observations with the corrected source build.
+It retains the generated-output fix, eight removal controls, an introduced
+directory false positive caught before merge, and the subsequent passing run.
+A separate fixed new-source registry produced zero eligible path candidates;
+no fresh correctness estimate or external-user feedback is claimed.
+
 ## AI comparison status
 
 **No independent AI comparison has been completed.** A repository script now

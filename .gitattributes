@@ -2,3 +2,6 @@
 benchmarks/prospective-review-v1/*/licenses/* -text
 benchmarks/path-audit-v1/** -text
 benchmarks/cursor-native-v1/** -text
+benchmarks/path-check-v2/** -text
+benchmarks/path-check-v2/*.json whitespace=cr-at-eol
+benchmarks/path-check-v2/collected/*.json whitespace=cr-at-eol
