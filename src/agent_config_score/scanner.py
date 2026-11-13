@@ -939,6 +939,11 @@ def _looks_like_repository_path(value: str, *, quoted_directory: bool = False) -
     # A single-backtick literal ending in a slash explicitly denotes a
     # directory. Keep unquoted and extensionless names outside this heuristic.
     if quoted_directory and normalized.endswith("/"):
+        # Bare build-output names may be package export targets in an unbuilt
+        # workspace, rather than concrete root directories. An explicit ./ or
+        # package path still opts into an existence check.
+        if normalized in {"build/", "dist/", "target/", ".next/"}:
+            return False
         return bool(re.fullmatch(r"(?:[A-Za-z0-9_.+@-]+/)+", normalized))
 
     name = PurePosixPath(normalized).name

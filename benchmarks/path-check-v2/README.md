@@ -25,6 +25,15 @@ repository/scope base. `test/unit`, which has no trailing slash, remains a
 documented heuristic boundary. The [full grammar and scope](../../docs/limitations.md#plain-prose-path-references)
 includes package ambiguity, aliases, examples and filesystem limits.
 
+The first installed Linux replay failed its acceptance gate: the new directory
+check incorrectly treated Vitest's bare `dist/` package-export/build-output
+reference at line 67 as a required root directory. That failure is retained in
+[first-attempt.json](first-attempt.json), not recounted as a passing run. A
+follow-up narrows the rule so bare build-output names remain unasserted, while
+explicit root/package paths still receive checks. This parser change occurred
+after the fresh collection, so later reports correctly show a source-freeze
+mismatch; the collection is now development replay material.
+
 ## Replay, retain and inspect
 
 The runner preserves the original source text, Git identities, old findings and

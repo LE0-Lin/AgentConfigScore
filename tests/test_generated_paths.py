@@ -87,6 +87,14 @@ class DirectoryPathTests(unittest.TestCase):
     def test_regular_file_cannot_satisfy_directory_reference(self):
         self.assertEqual(self.scan("CLI: `pnpm11/`.\n", files=("pnpm11",)), [1])
 
+    def test_bare_build_outputs_do_not_assert_root_directory_existence(self):
+        for name in ("build", "dist", "target", ".next"):
+            with self.subTest(name=name):
+                self.assertEqual(self.scan(f"Package exports point at `{name}/`.\n"), [])
+                self.assertEqual(self.scan(f"Read `./{name}/`.\n"), [1])
+                self.assertEqual(self.scan(f"Read `packages/client/{name}/`.\n"), [1])
+                self.assertEqual(self.scan(f"Read `./{name}/`.\n", directories=(name,)), [])
+
     def test_directory_does_not_use_ambiguous_suffix_fallback(self):
         self.assertEqual(self.scan("Source: `src/`.\n", directories=("packages/client/src",)), [1])
 

@@ -252,6 +252,9 @@ extensionless names without a trailing slash, such as `test/unit`, remain outsid
 this heuristic; use an explicit trailing slash or a Markdown link when an
 existence check is intended. Branch prefixes, URLs, placeholders and out-of-root
 paths remain excluded. These checks do not infer working-directory changes.
+Bare `build/`, `dist/`, `target/` and `.next/` references also remain outside the
+check: they often denote package exports or unbuilt artifacts. Explicit `./dist/`
+or `packages/client/dist/` references still opt into a concrete existence check.
 
 Package-relative suffix lookup includes existing paths under `build`, `dist`,
 `target` and `.next`; instruction discovery still skips those trees. Dependency
