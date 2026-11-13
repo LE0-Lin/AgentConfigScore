@@ -123,6 +123,29 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  path_development:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install .
+      - name: Replay verified public source facts with the installed current build
+        shell: bash
+        run: |
+          python scripts/run_path_regression_check.py --python "$(which python)" \
+            --output "$RUNNER_TEMP/path-regression.json" --markdown "$RUNNER_TEMP/path-regression.md"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: path-development-replay
+          path: |
+            ${{ runner.temp }}/path-regression.json
+            ${{ runner.temp }}/path-regression.md
+          if-no-files-found: error
+          retention-days: 14
+
   score_history:
     if: github.event_name == 'pull_request'
     uses: ./.github/workflows/score-history.yml

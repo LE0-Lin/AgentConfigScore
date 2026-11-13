@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Avoid missing-path warnings for narrowly declared generated outputs while
+  retaining checks on generator paths, Markdown links, commands and credentials.
+- Check single-backtick directory references ending in `/` against concrete
+  repository/scope bases. Require a directory; retain the extensionless-name
+  and package-suffix boundaries.
+- Add an offline installed-build replay of the known Vitest generated-output
+  case and directory-removal controls, separate from new-source smoke and
+  external user feedback. The published v0.26.1 results remain unchanged.
+
 ## v0.26.1
 
 - Use public absolute URLs for the packaged overview's coverage and design links.
