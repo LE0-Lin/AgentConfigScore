@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "successful_run": {
+    "url": "https://github.com/LE0-Lin/AgentConfigScore/actions/runs/43470569481",
+    "artifact_id": 14060921208,
+    "source_commit": "0f7af0b63b39d3414c5a1a7266268e556d2a6552"
+  },
+  "failing_diagnostic_run": {
+    "url": "https://github.com/LE0-Lin/AgentConfigScore/actions/runs/43467592113",
+    "artifact_id": 14058938235,
+    "source_commit": "d2028c0d432733a5ef9abf6a3f37316da307d6db"
+  },
+  "broad_directory_run": {
+    "url": "https://github.com/LE0-Lin/AgentConfigScore/actions/runs/43468246857",
+    "artifact_id": 14058958947,
+    "source_commit": "4effd1c20d927faae684ff33b75a6d8f51276497"
+  },
+  "reports": {
+    "first-attempt.json": "af394bb64f626e2e9369fd9e26389e027ec9d9e9e6c437bccb9065958e52551f",
+    "broad-directory-attempt.json": "41ddd90224836f599ca2ddf7f5669a20ad03cedbc40b8abba2b975f716779801",
+    "result.json": "25fe168d5b3c88f3c8c717be5ef2029812a95a7b0e72cd15fa845f0e5c6eef83",
+    "result.md": "5549aad27ad0454a7a4d529cb87d0eb5dd0015796c256239adc945597038ab1c"
+  },
+  "status": "development_evidence_not_external_adoption"
+}

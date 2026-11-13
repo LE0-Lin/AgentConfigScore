@@ -1,4 +1,6 @@
 import importlib.util
+import hashlib
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -50,6 +52,22 @@ class PathRegressionCheckTests(unittest.TestCase):
         self.assertEqual(len(trees), 1)
         self.assertEqual(len(collection["repositories"]), 3)
         self.assertTrue(all("review_needed" not in row for row in collection["repositories"]))
+
+    def test_retained_reports_preserve_failures_and_separate_variant_counts(self):
+        evidence = json.loads((CHECK.FRESH / "evidence.json").read_text(encoding="utf-8"))
+        for name, digest in evidence["reports"].items():
+            self.assertEqual(hashlib.sha256((CHECK.FRESH / name).read_bytes()).hexdigest(), digest)
+        result = json.loads((CHECK.FRESH / "result.json").read_text(encoding="utf-8"))
+        self.assertEqual(CHECK.acceptance(result), result["acceptance"])
+        self.assertTrue(result["acceptance"]["passed"])
+        self.assertFalse(result["fresh_parser_matches_collection_freeze"])
+        self.assertEqual(sum(r["current_flagged"] for r in result["known_controls"]), 3)
+        self.assertEqual(len(result["explicit_directory_variants"]), 4)
+        self.assertTrue(all(r["current_flagged"] for r in result["explicit_directory_variants"]))
+        self.assertEqual(result["new_whole_document_warnings"], [])
+        failed = json.loads((CHECK.FRESH / "first-attempt.json").read_text(encoding="utf-8"))
+        self.assertFalse(failed["acceptance"]["passed"])
+        self.assertIn("known_natural_negative_flagged:path-11", failed["acceptance"]["failures"])
 
 
 if __name__ == "__main__":
