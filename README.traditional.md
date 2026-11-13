@@ -8,6 +8,8 @@
 
 [安裝示範](#快速開始) · [分數歷史示範](#分數歷史示範) · [完整示範圖集](docs/visual-tour.md)
 
+[刪除審批原型](docs/ai-safety-challenge.md)：重現審批要求失去涵蓋、修復涵蓋的設定檢查，再體驗獨立範例執行器對暫存檔案的審批與刪除。包含指令碼化案例與明確的主機信任邊界。
+
 示範使用 v0.24.0 掃描本機範例。新增遠端指令碼指令後，分數從 100 降到 82，工具定位到 `AGENTS.md:5`，新增錯誤閘門回傳 1。圖集也保留了取材自已合併 PR 的檔案移動示範，展示前後同為 100 分時的路徑審閱。[重現精簡 PR 範例](examples/instruction-move/README.md)。
 
 AgentConfigScore 檢查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini 等設定，並與改動前的基準比較，回答一個具體問題：**這次改動是否引入了已知規則能偵測到的風險？**

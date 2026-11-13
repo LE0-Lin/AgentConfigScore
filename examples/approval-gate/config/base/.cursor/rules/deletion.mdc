@@ -1,0 +1,5 @@
+---
+globs: "workspace/**"
+alwaysApply: false
+---
+Never delete files without approval.

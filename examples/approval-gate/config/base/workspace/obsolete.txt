@@ -1,0 +1,1 @@
+Disposable fixture content. The static comparison does not delete this file.

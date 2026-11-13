@@ -14,6 +14,7 @@ read the result, and troubleshoot a failing gate.
 - [Maintainer setup, actionable next steps and PR results](maintainer-workflow.md) (v0.24.0+)
 - [Unscored instruction-file best-practice checklist](best-practices.md)
 - [Visual tour](visual-tour.md)
+- [Deletion approval prototype: configuration review and a separate host gate](ai-safety-challenge.md)
 - [Instruction templates](../examples/README.md)
 - [Opt-in deletion safeguard review and completion](guardrail-suggestions.md) (v0.24.0+)
 - [Cursor rule activation for declared file context](cursor-scope.md) (v0.25.0+, unscored)
