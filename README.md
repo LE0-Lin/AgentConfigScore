@@ -31,6 +31,8 @@ decisions. No model API or runtime dependencies are needed.
 [Deletion approval prototype](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/ai-safety-challenge.md):
 replay a lost approval requirement, repair its coverage, and try a separate
 approval-gated executor on disposable files. Includes scripted cases and explicit host trust boundaries.
+The walkthrough now includes a [one-minute video](https://github.com/LE0-Lin/AgentConfigScore/blob/main/assets/agent-config-score-approval.mp4)
+and a separately labeled assistant-operated smoke record.
 
 The demo uses v0.24.0 on a local fixture. Adding a remote-shell instruction
 lowers the score from 100 to 82, identifies `AGENTS.md:5`, and fails the
