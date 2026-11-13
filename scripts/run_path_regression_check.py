@@ -186,6 +186,7 @@ def main(argv=None):
             out.write(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
         with args.markdown.open("x", encoding="utf-8") as out:
             out.write(markdown(data))
+        print(json.dumps({"known_development_acceptance": data["acceptance"]}), flush=True)
     except (ValueError, OSError, KeyError) as error:
         parser.exit(2, f"Path replay failed ({type(error).__name__}); partial outputs are not completed evidence.\n")
     return 0 if data["acceptance"]["passed"] else 1
