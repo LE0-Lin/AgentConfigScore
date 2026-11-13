@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "status": "native_behavior_smoke_observations_completed",
+  "completed_date": "2026-11-13",
+  "client": "Cursor desktop Windows x64 3.29.15",
+  "model_ui_label_at_setup": "Grok 4.7",
+  "per_run_model_attestation": false,
+  "operator": "User manually operated the native client; assistant prepared inputs and transcribed screenshots.",
+  "source_commit_before_behavior_queries": "c97f307",
+  "workspace_input_hashes_unchanged_after_all_queries": true,
+  "global_or_team_rules_independently_captured": false,
+  "complete_attachment_trace_available": false,
+  "independent_accuracy_established": false,
+  "cases": [
+    {
+      "id": "api-only",
+      "kind": "automatic_file_context",
+      "screenshot": "screenshots/api-only.png",
+      "visible_final_excerpt": "src/api/service.py declares health.\nACS_ALWAYS_fb4542f53803d117 ACS_API_01a00dd6d8467526",
+      "observed_visible_markers": [
+        "ACS_ALWAYS_fb4542f53803d117",
+        "ACS_API_01a00dd6d8467526"
+      ],
+      "conversation_id_sha256": "11b686d11ee999b52c669fbfa1e45a4093539e640c77f5b3313a70dfe3d0ce72",
+      "event_count": 2,
+      "observed_read_targets": [
+        "src/api/service.py"
+      ],
+      "complete_transcript_retained": false,
+      "evidence_kind": "user_supplied_native_screenshot_with_assistant_transcription"
+    },
+    {
+      "id": "web-only",
+      "kind": "automatic_file_context",
+      "screenshot": "screenshots/web-only.png",
+      "visible_final_excerpt": "src/web/app.ts declares status.\nACS_ALWAYS_fb4542f53803d117 ACS_WEB_cce8ef647b17ead1",
+      "observed_visible_markers": [
+        "ACS_ALWAYS_fb4542f53803d117",
+        "ACS_WEB_cce8ef647b17ead1"
+      ],
+      "conversation_id_sha256": "4684fa5cf1b8faec2a8071df26b17bb939be38b5086fc0185c6a43eba7880608",
+      "event_count": 2,
+      "observed_read_targets": [
+        "src/web/app.ts"
+      ],
+      "complete_transcript_retained": false,
+      "evidence_kind": "user_supplied_native_screenshot_with_assistant_transcription"
+    },
+    {
+      "id": "joint",
+      "kind": "automatic_file_context",
+      "screenshot": "screenshots/joint.png",
+      "visible_final_excerpt": "src/api/service.py declares health. src/web/app.ts declares status.\nACS_ALWAYS_fb4542f53803d117 ACS_API_01a00dd6d8467526\nACS_WEB_cce8ef647b17ead1",
+      "observed_visible_markers": [
+        "ACS_ALWAYS_fb4542f53803d117",
+        "ACS_API_01a00dd6d8467526",
+        "ACS_WEB_cce8ef647b17ead1"
+      ],
+      "conversation_id_sha256": "1c8765f0ad56bcce997a009630bf5a85f05a18d0bab04453cd4b9d7a21b004f8",
+      "event_count": 3,
+      "observed_read_targets": [
+        "src/api/service.py",
+        "src/web/app.ts"
+      ],
+      "complete_transcript_retained": false,
+      "evidence_kind": "user_supplied_native_screenshot_with_assistant_transcription"
+    },
+    {
+      "id": "root-ts",
+      "kind": "automatic_file_context",
+      "screenshot": "screenshots/root-ts.png",
+      "visible_final_excerpt": "index.ts declares rootStatus.\nACS_ALWAYS_fb4542f53803d117 ACS_ROOT_ONLY_53d10df74eb84806",
+      "observed_visible_markers": [
+        "ACS_ALWAYS_fb4542f53803d117",
+        "ACS_ROOT_ONLY_53d10df74eb84806"
+      ],
+      "conversation_id_sha256": "e0b40bc2d447a40abf5ffd5f1a56bbc5f47accb7e5fc245e235817288fc08274",
+      "event_count": 2,
+      "observed_read_targets": [
+        "index.ts"
+      ],
+      "complete_transcript_retained": false,
+      "evidence_kind": "user_supplied_native_screenshot_with_assistant_transcription"
+    },
+    {
+      "id": "manual-control",
+      "kind": "explicit_selection_of_always_rule",
+      "screenshot": "screenshots/manual-control.png",
+      "visible_final_excerpt": "ACS_ALWAYS_fb4542f53803d117",
+      "observed_visible_markers": [
+        "ACS_ALWAYS_fb4542f53803d117"
+      ],
+      "conversation_id_sha256": "2f1fd6b1ca564a41735e8166cb81838bf5fb5298c62494da5d496dfdc5e54cba",
+      "event_count": 1,
+      "observed_read_targets": [],
+      "complete_transcript_retained": false,
+      "evidence_kind": "user_supplied_native_screenshot_with_assistant_transcription"
+    }
+  ]
+}

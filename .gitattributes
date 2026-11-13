@@ -1,3 +1,4 @@
 # Preserve third-party license notices byte-for-byte on every checkout.
 benchmarks/prospective-review-v1/*/licenses/* -text
 benchmarks/path-audit-v1/** -text
+benchmarks/cursor-native-v1/** -text

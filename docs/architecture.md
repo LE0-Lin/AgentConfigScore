@@ -54,3 +54,7 @@ Native Cursor attachment fidelity, arbitrary-prose semantics, agent execution
 enforcement and independent real-world accuracy are outside the shipped static
 contract. They remain separate validation or product directions. Maintained
 acceptance cases demonstrate engineering behavior and do not establish adoption.
+
+A [separate native Cursor smoke report](../benchmarks/cursor-native-v1/README.md)
+now retains versioned behavioral observations with screenshot and hook evidence.
+It does not expand the static product's guarantees or establish complete loading.

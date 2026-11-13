@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "registered_date": "2026-11-12",
+  "status": "behavior_addendum_before_behavior_queries",
+  "reason": "Actual native hook events included an empty raw attachment list even with a visible manually selected rule chip. Export Transcript retained conversation text only. The current account UI did not visibly expose a context usage entry. Preserve these observations and use a separate behavioral smoke experiment; do not reinterpret it as a complete attachment trace.",
+  "product_version": "0.26.1",
+  "client_version_at_preparation": "Cursor desktop Windows x64 3.29.15",
+  "fixture": "New synthetic workspace separate from the earlier unchanged neutral-rule probe. Four rules keep the original metadata/globs and receive independent random 64-bit markers. Marker keys and ACS predictions remain outside the workspace, never in the user prompts or target code.",
+  "cases": ["api-only", "web-only", "joint", "root-ts"],
+  "manual_control": "Explicitly select always.mdc in a separate fresh chat. This tests whether marker behavior can be elicited with deliberate rule selection, not automatic attachment.",
+  "operator": "User operates Cursor. Use fresh chat per case, attach only the listed target file chips in automatic cases, record all replies and any tool activity. No other projects, terminal commands or edits.",
+  "measurement": "Compare reply marker occurrences with the frozen ACS activation predictions. Marker presence is behavior consistent with availability of that rule body. Missing markers can be noncompliance, not absence. Rule/manifest searches, input changes and unexpected reads are confounds, not silently discarded cases. Hook read-target observations help identify some extra reads but are not assumed exhaustive.",
+  "claims": "Versioned native behavioral smoke evidence only. No complete native context claim, general compatibility pass, independent accuracy, model superiority or adoption claim. Preserve empty attachment observations and initial sampling/observability failures.",
+  "cost": "Use the current available account/model. No subscription purchase, additional credits or security/privacy setting changes. Stop if the client requires payment."
+}

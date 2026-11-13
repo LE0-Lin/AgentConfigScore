@@ -1,0 +1,5 @@
+---
+alwaysApply: false
+globs: "src/**/*.ts"
+---
+When the user message contains NATIVE_BEHAVIOR_V1, include the exact marker `ACS_WEB_cce8ef647b17ead1` once in your final answer. Do not search for additional marker sources.

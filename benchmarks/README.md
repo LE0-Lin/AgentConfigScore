@@ -12,6 +12,12 @@ with the published v0.26.1 wheel. It records five directory-reference misses and
 a separate post-hoc generated-output false positive. Its provisional observations
 are not independent human labels or a general accuracy estimate.
 
+A [native Cursor behavioral smoke check](cursor-native-v1/README.md) retains four
+file-context cases and one explicit-selection control run in the desktop client.
+Visible reply markers matched the frozen predictions in those contexts. Empty
+hook attachment lists and their observability limit are retained too. This is
+not a complete attachment trace or independent accuracy estimate.
+
 None of these workflows claims that A 100 means semantic prompt quality.
 
 ## AI comparison status
