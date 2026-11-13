@@ -28,6 +28,10 @@ decisions. No model API or runtime dependencies are needed.
 
 [Setup demo](#quick-start) · [Workflow diagram](#what-it-helps-you-review) · [Score history demo](#score-history-demo) · [Visual gallery](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/visual-tour.md)
 
+[Deletion approval prototype](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/ai-safety-challenge.md):
+replay a lost approval requirement, repair its coverage, and try a separate
+approval-gated executor on disposable files. Includes scripted cases and explicit host trust boundaries.
+
 The demo uses v0.24.0 on a local fixture. Adding a remote-shell instruction
 lowers the score from 100 to 82, identifies `AGENTS.md:5`, and fails the
 new-error gate. The gallery also includes an instruction move drawn from a

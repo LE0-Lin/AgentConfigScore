@@ -1,0 +1,5 @@
+---
+globs: "docs/**"
+alwaysApply: false
+---
+Never delete files without approval.

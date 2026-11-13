@@ -1,5 +1,10 @@
 # Copy-ready instruction examples
 
+For an approval-gated operation alongside configuration review, try the
+[deletion approval prototype](approval-gate/README.md). Its separate host
+executor operates only on disposable files in the demo; it does not add runtime
+interception to the ACS package.
+
 For a runnable explanation of the regression gate rather than an instruction
 template, see the [design lab](regression-lab/README.md). It compares five known
 synthetic before/after scenarios under three explicitly defined gate settings;

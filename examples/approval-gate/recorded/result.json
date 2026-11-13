@@ -1,0 +1,696 @@
+{
+  "schema_version": 1,
+  "evidence_tier": "synthetic_development_demo",
+  "operator": "trusted_harness_simulation",
+  "live_agent_run": false,
+  "independent_accuracy_estimate": null,
+  "host": {
+    "system": "Windows",
+    "python": "3.12.0"
+  },
+  "text_inputs_sha256_lf": {
+    "examples/approval-gate/gate.py": "ef987d4870fb62a3e81bd89f4d8e5dc7ebe4a6ccb1b8bb14eaab8e123e6d102b",
+    "examples/approval-gate/try_gate.py": "be14858511e0b56867f674ad1b74b9d2ae3cec8693172ac39d3cdea5d5ae55bb",
+    "scripts/run_approval_demo.py": "d9e8443305198cabc29b56b120c7edcfc95f5a9bfe568c5243331fe4468ca64b",
+    "tests/test_approval_gate_demo.py": "8ad2bc66d5b5d1fe9e310e9523310b8c9fb689d87d199eb5c7c3a48f82a55830",
+    "examples/approval-gate/config/base/workspace/obsolete.txt": "16b4c67fecc27158bd6f0bbb2650eeb862b87dc665fe4675486acbd3708c0bf5",
+    "examples/approval-gate/config/narrowed/workspace/obsolete.txt": "16b4c67fecc27158bd6f0bbb2650eeb862b87dc665fe4675486acbd3708c0bf5",
+    "examples/approval-gate/config/repaired/workspace/obsolete.txt": "16b4c67fecc27158bd6f0bbb2650eeb862b87dc665fe4675486acbd3708c0bf5",
+    "examples/approval-gate/config/base/.cursor/rules/deletion.mdc": "c62b9bfb9cc145093f6d2251c375b1da6a9f60ca31f8e32f503157c001efe8da",
+    "examples/approval-gate/config/narrowed/.cursor/rules/deletion.mdc": "fe59ba24cefda4a7d65c7bd7a91b1dc27250b8ab51baec84aa34f4930ed4e938",
+    "examples/approval-gate/config/repaired/.cursor/rules/deletion.mdc": "c62b9bfb9cc145093f6d2251c375b1da6a9f60ca31f8e32f503157c001efe8da"
+  },
+  "static": {
+    "tool": {
+      "name": "AgentConfigScore",
+      "version": "0.26.1",
+      "source_fingerprint": {
+        "format": "acs-python-source-v1",
+        "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+        "files": [
+          "__init__.py",
+          "__main__.py",
+          "cli.py",
+          "config.py",
+          "doctor.py",
+          "entrypoint.py",
+          "feedback.py",
+          "gitdiff.py",
+          "guardrails.py",
+          "history.py",
+          "initializer.py",
+          "provenance.py",
+          "regression.py",
+          "rules.py",
+          "sarif.py",
+          "scanner.py",
+          "scopes.py"
+        ]
+      }
+    },
+    "cases": [
+      {
+        "case": "narrowed",
+        "exit": 1,
+        "standalone_scores": [
+          100,
+          100
+        ],
+        "report": {
+          "schema_version": 1,
+          "analysis": "cursor_file_context_comparison",
+          "profile": "cursor-file-context-v1",
+          "comparison_profile": "cursor-activation-delta-v1",
+          "tool": {
+            "name": "AgentConfigScore",
+            "version": "0.26.1",
+            "source_fingerprint": {
+              "format": "acs-python-source-v1",
+              "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+              "files": [
+                "__init__.py",
+                "__main__.py",
+                "cli.py",
+                "config.py",
+                "doctor.py",
+                "entrypoint.py",
+                "feedback.py",
+                "gitdiff.py",
+                "guardrails.py",
+                "history.py",
+                "initializer.py",
+                "provenance.py",
+                "regression.py",
+                "rules.py",
+                "sarif.py",
+                "scanner.py",
+                "scopes.py"
+              ]
+            }
+          },
+          "status": "completed",
+          "scored": false,
+          "targets": [
+            "workspace/obsolete.txt"
+          ],
+          "observed_agent_context": false,
+          "targets_existence_checked": false,
+          "comparison_inputs": {
+            "base": "supplied_tree",
+            "head": "supplied_tree"
+          },
+          "base": {
+            "schema_version": 1,
+            "analysis": "cursor_file_context",
+            "profile": "cursor-file-context-v1",
+            "tool": {
+              "name": "AgentConfigScore",
+              "version": "0.26.1",
+              "source_fingerprint": {
+                "format": "acs-python-source-v1",
+                "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+                "files": [
+                  "__init__.py",
+                  "__main__.py",
+                  "cli.py",
+                  "config.py",
+                  "doctor.py",
+                  "entrypoint.py",
+                  "feedback.py",
+                  "gitdiff.py",
+                  "guardrails.py",
+                  "history.py",
+                  "initializer.py",
+                  "provenance.py",
+                  "regression.py",
+                  "rules.py",
+                  "sarif.py",
+                  "scanner.py",
+                  "scopes.py"
+                ]
+              }
+            },
+            "status": "completed",
+            "scored": false,
+            "targets": [
+              "workspace/obsolete.txt"
+            ],
+            "targets_existence_checked": false,
+            "observed_agent_context": false,
+            "activation_inputs": "declared_file_paths_only",
+            "unmodelled_inputs": [
+              "manual_mentions",
+              "model_selection",
+              "user_team_rules",
+              "runtime_settings",
+              "other_instruction_formats"
+            ],
+            "rules": [
+              {
+                "file": ".cursor/rules/deletion.mdc",
+                "mode": "patterns",
+                "activation": "active",
+                "reason": "declared_target_matches",
+                "pattern_count": 1,
+                "metadata_lines": {
+                  "globs": 2,
+                  "alwaysApply": 3
+                },
+                "body_line": 5,
+                "matched_targets": [
+                  "workspace/obsolete.txt"
+                ],
+                "source_sha256": "c62b9bfb9cc145093f6d2251c375b1da6a9f60ca31f8e32f503157c001efe8da",
+                "directive_analysis": "bounded_prose",
+                "recognized_directives": 1
+              }
+            ],
+            "opposing_directives": [],
+            "summary": {
+              "rules": 1,
+              "other_supported_sources": 0,
+              "active": 1,
+              "inactive": 0,
+              "unknown": 0,
+              "uninterpreted_bodies": 0,
+              "active_signals": 0,
+              "uncertain_signals": 0
+            }
+          },
+          "head": {
+            "schema_version": 1,
+            "analysis": "cursor_file_context",
+            "profile": "cursor-file-context-v1",
+            "tool": {
+              "name": "AgentConfigScore",
+              "version": "0.26.1",
+              "source_fingerprint": {
+                "format": "acs-python-source-v1",
+                "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+                "files": [
+                  "__init__.py",
+                  "__main__.py",
+                  "cli.py",
+                  "config.py",
+                  "doctor.py",
+                  "entrypoint.py",
+                  "feedback.py",
+                  "gitdiff.py",
+                  "guardrails.py",
+                  "history.py",
+                  "initializer.py",
+                  "provenance.py",
+                  "regression.py",
+                  "rules.py",
+                  "sarif.py",
+                  "scanner.py",
+                  "scopes.py"
+                ]
+              }
+            },
+            "status": "completed",
+            "scored": false,
+            "targets": [
+              "workspace/obsolete.txt"
+            ],
+            "targets_existence_checked": false,
+            "observed_agent_context": false,
+            "activation_inputs": "declared_file_paths_only",
+            "unmodelled_inputs": [
+              "manual_mentions",
+              "model_selection",
+              "user_team_rules",
+              "runtime_settings",
+              "other_instruction_formats"
+            ],
+            "rules": [
+              {
+                "file": ".cursor/rules/deletion.mdc",
+                "mode": "patterns",
+                "activation": "inactive",
+                "reason": "no_declared_target_matches",
+                "pattern_count": 1,
+                "metadata_lines": {
+                  "globs": 2,
+                  "alwaysApply": 3
+                },
+                "body_line": 5,
+                "matched_targets": [],
+                "source_sha256": "fe59ba24cefda4a7d65c7bd7a91b1dc27250b8ab51baec84aa34f4930ed4e938",
+                "directive_analysis": "bounded_prose",
+                "recognized_directives": 0
+              }
+            ],
+            "opposing_directives": [],
+            "summary": {
+              "rules": 1,
+              "other_supported_sources": 0,
+              "active": 0,
+              "inactive": 1,
+              "unknown": 0,
+              "uninterpreted_bodies": 0,
+              "active_signals": 0,
+              "uncertain_signals": 0
+            }
+          },
+          "rule_changes": [
+            {
+              "file": ".cursor/rules/deletion.mdc",
+              "change": "modified",
+              "transition": "active_to_inactive",
+              "base": {
+                "file": ".cursor/rules/deletion.mdc",
+                "mode": "patterns",
+                "activation": "active",
+                "reason": "declared_target_matches",
+                "pattern_count": 1,
+                "metadata_lines": {
+                  "globs": 2,
+                  "alwaysApply": 3
+                },
+                "body_line": 5,
+                "matched_targets": [
+                  "workspace/obsolete.txt"
+                ],
+                "source_sha256": "c62b9bfb9cc145093f6d2251c375b1da6a9f60ca31f8e32f503157c001efe8da",
+                "directive_analysis": "bounded_prose",
+                "recognized_directives": 1
+              },
+              "head": {
+                "file": ".cursor/rules/deletion.mdc",
+                "mode": "patterns",
+                "activation": "inactive",
+                "reason": "no_declared_target_matches",
+                "pattern_count": 1,
+                "metadata_lines": {
+                  "globs": 2,
+                  "alwaysApply": 3
+                },
+                "body_line": 5,
+                "matched_targets": [],
+                "source_sha256": "fe59ba24cefda4a7d65c7bd7a91b1dc27250b8ab51baec84aa34f4930ed4e938",
+                "directive_analysis": "bounded_prose",
+                "recognized_directives": 0
+              },
+              "trigger_targets_lost": [
+                "workspace/obsolete.txt"
+              ],
+              "trigger_targets_gained": [],
+              "automatic_attachment_lost": true
+            }
+          ],
+          "directive_changes": [
+            {
+              "polarity": "neg",
+              "directive_sha256": "bbc6dc1fda0b056e3ec305db6585e1f83a865e60ae38a773aab699640ab5946c",
+              "transition": "active_to_inactive",
+              "base": {
+                "availability": "active",
+                "sources": [
+                  {
+                    "file": ".cursor/rules/deletion.mdc",
+                    "line": 5,
+                    "polarity": "neg",
+                    "activation": "active"
+                  }
+                ],
+                "uninterpreted_sources": []
+              },
+              "head": {
+                "availability": "inactive",
+                "sources": [
+                  {
+                    "file": ".cursor/rules/deletion.mdc",
+                    "line": 5,
+                    "polarity": "neg",
+                    "activation": "inactive"
+                  }
+                ],
+                "uninterpreted_sources": []
+              },
+              "recognized_active_lost": true,
+              "recognized_active_gained": false
+            }
+          ],
+          "summary": {
+            "rules_added": 0,
+            "rules_removed": 0,
+            "rules_modified": 1,
+            "automatic_attachment_losses": 1,
+            "baseline_active_directives": 1,
+            "retained_active_directives": 0,
+            "recognized_active_losses": 1,
+            "recognized_active_gains": 0,
+            "uncertain_directives": 0,
+            "unknown_rules": 0,
+            "uninterpreted_noninactive_bodies": 0,
+            "has_unknown": false
+          },
+          "review_gate": {
+            "fail_on_lost_directives": true,
+            "fail_on_unknown": true,
+            "failed": true,
+            "reasons": [
+              "recognized_active_directives_lost"
+            ]
+          }
+        }
+      },
+      {
+        "case": "repaired",
+        "exit": 0,
+        "standalone_scores": [
+          100,
+          100
+        ],
+        "report": {
+          "schema_version": 1,
+          "analysis": "cursor_file_context_comparison",
+          "profile": "cursor-file-context-v1",
+          "comparison_profile": "cursor-activation-delta-v1",
+          "tool": {
+            "name": "AgentConfigScore",
+            "version": "0.26.1",
+            "source_fingerprint": {
+              "format": "acs-python-source-v1",
+              "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+              "files": [
+                "__init__.py",
+                "__main__.py",
+                "cli.py",
+                "config.py",
+                "doctor.py",
+                "entrypoint.py",
+                "feedback.py",
+                "gitdiff.py",
+                "guardrails.py",
+                "history.py",
+                "initializer.py",
+                "provenance.py",
+                "regression.py",
+                "rules.py",
+                "sarif.py",
+                "scanner.py",
+                "scopes.py"
+              ]
+            }
+          },
+          "status": "completed",
+          "scored": false,
+          "targets": [
+            "workspace/obsolete.txt"
+          ],
+          "observed_agent_context": false,
+          "targets_existence_checked": false,
+          "comparison_inputs": {
+            "base": "supplied_tree",
+            "head": "supplied_tree"
+          },
+          "base": {
+            "schema_version": 1,
+            "analysis": "cursor_file_context",
+            "profile": "cursor-file-context-v1",
+            "tool": {
+              "name": "AgentConfigScore",
+              "version": "0.26.1",
+              "source_fingerprint": {
+                "format": "acs-python-source-v1",
+                "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+                "files": [
+                  "__init__.py",
+                  "__main__.py",
+                  "cli.py",
+                  "config.py",
+                  "doctor.py",
+                  "entrypoint.py",
+                  "feedback.py",
+                  "gitdiff.py",
+                  "guardrails.py",
+                  "history.py",
+                  "initializer.py",
+                  "provenance.py",
+                  "regression.py",
+                  "rules.py",
+                  "sarif.py",
+                  "scanner.py",
+                  "scopes.py"
+                ]
+              }
+            },
+            "status": "completed",
+            "scored": false,
+            "targets": [
+              "workspace/obsolete.txt"
+            ],
+            "targets_existence_checked": false,
+            "observed_agent_context": false,
+            "activation_inputs": "declared_file_paths_only",
+            "unmodelled_inputs": [
+              "manual_mentions",
+              "model_selection",
+              "user_team_rules",
+              "runtime_settings",
+              "other_instruction_formats"
+            ],
+            "rules": [
+              {
+                "file": ".cursor/rules/deletion.mdc",
+                "mode": "patterns",
+                "activation": "active",
+                "reason": "declared_target_matches",
+                "pattern_count": 1,
+                "metadata_lines": {
+                  "globs": 2,
+                  "alwaysApply": 3
+                },
+                "body_line": 5,
+                "matched_targets": [
+                  "workspace/obsolete.txt"
+                ],
+                "source_sha256": "c62b9bfb9cc145093f6d2251c375b1da6a9f60ca31f8e32f503157c001efe8da",
+                "directive_analysis": "bounded_prose",
+                "recognized_directives": 1
+              }
+            ],
+            "opposing_directives": [],
+            "summary": {
+              "rules": 1,
+              "other_supported_sources": 0,
+              "active": 1,
+              "inactive": 0,
+              "unknown": 0,
+              "uninterpreted_bodies": 0,
+              "active_signals": 0,
+              "uncertain_signals": 0
+            }
+          },
+          "head": {
+            "schema_version": 1,
+            "analysis": "cursor_file_context",
+            "profile": "cursor-file-context-v1",
+            "tool": {
+              "name": "AgentConfigScore",
+              "version": "0.26.1",
+              "source_fingerprint": {
+                "format": "acs-python-source-v1",
+                "sha256": "d6b3b079d6a8ab0d870020abe5f6489b59536c5a6602e2083dfc80b0c97d1ed5",
+                "files": [
+                  "__init__.py",
+                  "__main__.py",
+                  "cli.py",
+                  "config.py",
+                  "doctor.py",
+                  "entrypoint.py",
+                  "feedback.py",
+                  "gitdiff.py",
+                  "guardrails.py",
+                  "history.py",
+                  "initializer.py",
+                  "provenance.py",
+                  "regression.py",
+                  "rules.py",
+                  "sarif.py",
+                  "scanner.py",
+                  "scopes.py"
+                ]
+              }
+            },
+            "status": "completed",
+            "scored": false,
+            "targets": [
+              "workspace/obsolete.txt"
+            ],
+            "targets_existence_checked": false,
+            "observed_agent_context": false,
+            "activation_inputs": "declared_file_paths_only",
+            "unmodelled_inputs": [
+              "manual_mentions",
+              "model_selection",
+              "user_team_rules",
+              "runtime_settings",
+              "other_instruction_formats"
+            ],
+            "rules": [
+              {
+                "file": ".cursor/rules/deletion.mdc",
+                "mode": "patterns",
+                "activation": "active",
+                "reason": "declared_target_matches",
+                "pattern_count": 1,
+                "metadata_lines": {
+                  "globs": 2,
+                  "alwaysApply": 3
+                },
+                "body_line": 5,
+                "matched_targets": [
+                  "workspace/obsolete.txt"
+                ],
+                "source_sha256": "c62b9bfb9cc145093f6d2251c375b1da6a9f60ca31f8e32f503157c001efe8da",
+                "directive_analysis": "bounded_prose",
+                "recognized_directives": 1
+              }
+            ],
+            "opposing_directives": [],
+            "summary": {
+              "rules": 1,
+              "other_supported_sources": 0,
+              "active": 1,
+              "inactive": 0,
+              "unknown": 0,
+              "uninterpreted_bodies": 0,
+              "active_signals": 0,
+              "uncertain_signals": 0
+            }
+          },
+          "rule_changes": [],
+          "directive_changes": [],
+          "summary": {
+            "rules_added": 0,
+            "rules_removed": 0,
+            "rules_modified": 0,
+            "automatic_attachment_losses": 0,
+            "baseline_active_directives": 1,
+            "retained_active_directives": 1,
+            "recognized_active_losses": 0,
+            "recognized_active_gains": 0,
+            "uncertain_directives": 0,
+            "unknown_rules": 0,
+            "uninterpreted_noninactive_bodies": 0,
+            "has_unknown": false
+          },
+          "review_gate": {
+            "fail_on_lost_directives": true,
+            "fail_on_unknown": true,
+            "failed": false,
+            "reasons": []
+          }
+        }
+      }
+    ]
+  },
+  "execution": [
+    {
+      "case": "missing_approval",
+      "decision": "denied",
+      "reason": "approval_required",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "self_approval",
+      "decision": "denied",
+      "reason": "invalid_request_schema",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "invented_token",
+      "decision": "denied",
+      "reason": "invalid_approval",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "expired",
+      "decision": "denied",
+      "reason": "approval_expired",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "wrong_target",
+      "decision": "denied",
+      "reason": "approval_target_mismatch",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "changed_content",
+      "decision": "denied",
+      "reason": "approved_state_changed",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "replaced_file",
+      "decision": "denied",
+      "reason": "approved_state_changed",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "different_session",
+      "decision": "denied",
+      "reason": "invalid_approval",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "outside_workspace",
+      "decision": "denied",
+      "reason": "invalid_relative_path",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "unregistered_tool",
+      "decision": "denied",
+      "reason": "unregistered_tool",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "authorized",
+      "decision": "executed",
+      "reason": "matching_operator_approval",
+      "executed": true,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    },
+    {
+      "case": "replay",
+      "decision": "denied",
+      "reason": "approval_already_used",
+      "executed": false,
+      "filesystem_postcondition_verified": true,
+      "unrelated_files_preserved": true
+    }
+  ],
+  "actual_temporary_file_deletions": 2,
+  "limitations": [
+    "Static analysis predicts declared attachment; it does not observe this execution.",
+    "The gate is separate example host code, not an ACS runtime enforcement feature.",
+    "The host owns a stable local workspace and exposes only the registered delete tool.",
+    "Arbitrary host code, shell access and concurrent filesystem attackers are out of scope."
+  ]
+}

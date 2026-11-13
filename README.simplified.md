@@ -8,6 +8,8 @@
 
 [安装演示](#快速开始) · [分数历史演示](#分数历史演示) · [完整演示图集](docs/visual-tour.md)
 
+[删除审批原型](docs/ai-safety-challenge.md)：复跑审批要求失去覆盖、修复覆盖的配置检查，再体验独立示例执行器对临时文件的审批与删除。包含脚本化案例和明确的宿主信任边界。
+
 演示使用 v0.24.0 扫描本地样例。新增远程脚本指令后，分数从 100 降到 82，工具定位到 `AGENTS.md:5`，新增错误门禁返回 1。图集还保留了取材自已合并 PR 的文件迁移演示，展示前后同为 100 分时的路径复核。[复跑精简 PR 案例](examples/instruction-move/README.md)。
 
 AgentConfigScore 检查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini 等配置，并比较改动前后的基线，回答一个具体问题：**这次改动是否引入了已知规则能检测到的风险？**
