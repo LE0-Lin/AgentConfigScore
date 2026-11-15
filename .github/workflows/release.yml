@@ -167,7 +167,7 @@ jobs:
           python "$GITHUB_WORKSPACE/scripts/run_approval_demo.py" \
             --python "$wheel_python" --output-dir "$RUNNER_TEMP/release-approval-demo"
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            python "$GITHUB_WORKSPACE/scripts/run_path_regression_check.py" --python "$wheel_python" \
+            "$wheel_python" "$GITHUB_WORKSPACE/scripts/run_path_regression_check.py" --python "$wheel_python" \
               --output "$RUNNER_TEMP/release-path-replay.json" --markdown "$RUNNER_TEMP/release-path-replay.md"
           fi
       - name: Retain release path evidence
