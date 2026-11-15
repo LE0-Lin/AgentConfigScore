@@ -51,6 +51,7 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
         self.assertIn("scripts/verify_installed_package.py", workflow)
         self.assertIn("scripts/run_cursor_coverage_demo.py", workflow)
         self.assertIn("scripts/run_path_regression_check.py", workflow)
+        self.assertIn('"$wheel_python" "$GITHUB_WORKSPACE/scripts/run_path_regression_check.py"', workflow)
         self.assertIn("scripts/run_approval_demo.py", workflow)
         self.assertIn("release-cursor-coverage-${{ matrix.os }}", workflow)
         self.assertIn("needs: [build, acceptance, action-acceptance]", workflow)
