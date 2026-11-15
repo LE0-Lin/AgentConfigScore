@@ -205,7 +205,7 @@ def markdown(data):
               "The collected document's raw scanner observations remain in JSON, without human reference labels.", "",
               "## Reproduction identity", "", f"Current source: `{data['tool']['source_fingerprint']['sha256']}`.",
               f"Frozen published source: `{data['frozen_tool']['source_fingerprint']['sha256']}`.",
-              "The changed implementation is an unreleased source build even when its package version string still says 0.26.1.", ""]
+              f"Replay package version: {data['tool']['version']}. Historical source-build observations remain separate from this run.", ""]
     lines += [f"Parser matches the pre-collection freeze: {data['fresh_parser_matches_collection_freeze']}.",
               "A later parser may replay these inputs as development data; a mismatch does not preserve first-use freshness.",
               f"Known development acceptance passed: {data['acceptance']['passed']}.", ""]

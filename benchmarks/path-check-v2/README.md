@@ -1,8 +1,10 @@
 # Path checks: bounded fixes and reproducible evidence
 
 This is **development evidence**, separate from external user feedback or
-independent accuracy. The changed runtime is an unreleased source build. The
-published v0.26.1 reports and its 474-case benchmark remain unchanged.
+independent accuracy. The path changes now ship in v0.26.2. The retained
+replay identifies the pre-release source build used at collection time; its
+version string and fingerprints are preserved. The published v0.26.1 reports
+and its 474-case benchmark remain unchanged.
 
 ## Actual problems addressed
 

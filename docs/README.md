@@ -29,7 +29,7 @@ read the result, and troubleshoot a failing gate.
 ## Understanding findings
 
 - [Score contract and limitations](limitations.md)
-- [Case study: generated-output warnings and explicit directory checks](path-case-study.md) (unreleased source)
+- [Case study: generated-output warnings and explicit directory checks](path-case-study.md) (v0.26.2+)
 - [Regression input consistency and file-removal checks](regression-coverage.md)
 - [Runnable design lab: scores, baseline gates and caller overrides](../examples/regression-lab/README.md) (synthetic development example)
 - [Path-reference grammar and limits](limitations.md#plain-prose-path-references)

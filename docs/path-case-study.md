@@ -59,9 +59,10 @@ some retained repository trees require a case-sensitive filesystem.
 
 ## Apply the result
 
-The implementation is currently **unreleased source**, separate from the
-published v0.26.1 wheel. From a reviewed checkout, install with
-`python -m pip install .` and run ordinary ACS scans/comparisons. A passing
+These path checks ship in **v0.26.2**. Install with
+`python -m pip install --upgrade agent-config-score==0.26.2` and run ordinary
+ACS scans/comparisons. The retained report identifies the pre-release source
+build used for the original replay; publishing is not a new accuracy evaluation. A passing
 result means the selected deterministic checks passed; the generated-output
 declaration is not authenticated and no upstream build is executed.
 

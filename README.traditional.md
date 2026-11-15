@@ -1,6 +1,6 @@
 # AgentConfigScore
 
-[真實文件案例](docs/path-case-study.md)：產生檔案誤報的修復、目錄檢查的新增涵蓋，以及真實文件重跑如何攔下一次新誤報。新路徑邏輯目前在未發佈原始碼中，報告保留修復前後的證據。
+[真實文件案例](docs/path-case-study.md)：產生檔案誤報的修復、目錄檢查的新增涵蓋，以及真實文件重跑如何攔下一次新誤報。新路徑邏輯已納入 v0.26.2，報告保留修復前後的證據。
 
 [English](README.md) | [简体中文](README.simplified.md) | 繁體中文
 
@@ -54,7 +54,7 @@ agent-config-score diff
 
 ## 發布版本
 
-v0.26.1 Beta 包含本機檢查、基準回歸檢查、可稽核例外、報告、刪除保護審閱，以及選用的 Cursor 載入與逐檔覆蓋分析。Cursor 功能是具有明確未知狀態的靜態預測。[發布與升級說明（英文）](docs/releases/v0.26.1.md)。
+v0.26.2 Beta 包含本機檢查、基準回歸檢查、可稽核例外、報告、刪除保護審閱，以及選用的 Cursor 載入與逐檔覆蓋分析。Cursor 功能是具有明確未知狀態的靜態預測。[發布與升級說明（英文）](docs/releases/v0.26.2.md)。
 
 ## Cursor 載入變化審閱
 
@@ -65,7 +65,7 @@ v0.26.1 Beta 包含本機檢查、基準回歸檢查、可稽核例外、報告�
 在原始碼儲存庫目錄中執行合成範例：
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.26.1"
+python -m pip install --upgrade "agent-config-score==0.26.2"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown
@@ -144,10 +144,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: LE0-Lin/AgentConfigScore@v0.26.1
+      - uses: LE0-Lin/AgentConfigScore@v0.26.2
 ```
 
-固定使用 `@v0.26.1` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
+固定使用 `@v0.26.2` 較容易重現；`@v0` 是會隨後續版本更新的滾動參照。PR 留言是[選用整合（英文）](docs/pr-comments.md)，檢查工具預設不會替你留言。
 
 ## 支援的指令檔
 
@@ -171,4 +171,4 @@ jobs:
 
 圖中的三次評分由 `agent-config-score history` 讀取。[歷史工作流程（英文）](docs/score-history.md)
 
-專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.26.1.md)目前為英文。
+專案採用 [MIT 授權](LICENSE)。[發布與升級說明](docs/releases/v0.26.2.md)目前為英文。

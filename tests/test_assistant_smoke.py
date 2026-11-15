@@ -49,9 +49,14 @@ class AssistantBridgeTests(unittest.TestCase):
                     self.assertTrue(send("obsolete.txt", token)["result"]["executed"])
                     self.assertEqual(json.loads(process.stdout.readline())["event"], "fixture_reset")
                     self.assertEqual(send("obsolete.txt", token)["result"]["reason"], "approval_already_used")
+                    # Keep reading through the same TextIOWrapper: readline()
+                    # can prefetch the completion line, while communicate()
+                    # may drain the underlying fd without that buffered text.
+                    completed = json.loads(process.stdout.readline())
+                    self.assertEqual(completed["status"], "completed")
                     remaining, error = process.communicate(timeout=10)
                     self.assertEqual(process.returncode, 0, error)
-                    self.assertEqual(json.loads(remaining)["status"], "completed")
+                    self.assertEqual(remaining.strip(), "")
                 finally:
                     if process.poll() is None:
                         process.kill()
