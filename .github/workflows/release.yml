@@ -164,6 +164,22 @@ jobs:
             --python "$wheel_python" --expected-version "$VERSION"
           python "$GITHUB_WORKSPACE/scripts/run_cursor_coverage_demo.py" \
             --python "$wheel_python" --output "$RUNNER_TEMP/cursor-coverage-demo.json"
+          python "$GITHUB_WORKSPACE/scripts/run_approval_demo.py" \
+            --python "$wheel_python" --output-dir "$RUNNER_TEMP/release-approval-demo"
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            python "$GITHUB_WORKSPACE/scripts/run_path_regression_check.py" --python "$wheel_python" \
+              --output "$RUNNER_TEMP/release-path-replay.json" --markdown "$RUNNER_TEMP/release-path-replay.md"
+          fi
+      - name: Retain release path evidence
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-path-replay
+          path: |
+            ${{ runner.temp }}/release-path-replay.json
+            ${{ runner.temp }}/release-path-replay.md
+          if-no-files-found: error
+          retention-days: 14
       - name: Retain release coverage evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

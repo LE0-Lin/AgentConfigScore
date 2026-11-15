@@ -47,7 +47,7 @@ instruction usefulness, semantic correctness or safety.
 [Read a public-source case study](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/path-case-study.md):
 a generated-file false positive, explicit directory checks, and a failing
 development replay that caught a new warning before merge. The new path
-behavior is currently unreleased source, with retained before/after evidence.
+behavior is included in v0.26.2, with retained before/after evidence.
 The [feedback-to-delivery map](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/feedback-to-delivery.md)
 connects a public maintainer request to implemented features and their limits.
 
@@ -94,10 +94,10 @@ covers setup, exits and troubleshooting.
 
 ## Release status
 
-v0.26.1 Beta includes local lint, baseline-governed regression checks, auditable
+v0.26.2 Beta includes local lint, baseline-governed regression checks, auditable
 exceptions, reports, safeguard review and opt-in Cursor attachment/coverage
 analysis. The Cursor profile is a bounded static prediction with explicit
-unknowns. See the [release and upgrade notes](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/releases/v0.26.1.md).
+unknowns. See the [release and upgrade notes](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/releases/v0.26.2.md).
 
 ## Cursor attachment changes
 
@@ -115,7 +115,7 @@ For a declared API-only task:
 From a repository checkout, install the package and run the synthetic example:
 
 ```bash
-python -m pip install --upgrade "agent-config-score==0.26.1"
+python -m pip install --upgrade "agent-config-score==0.26.2"
 agent-config-score scope compare \
   examples/cursor-scope-impact/base examples/cursor-scope-impact/narrowed \
   --target src/api/service.py --fail-on-lost-directives --fail-on-unknown

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.26.2
+
 - Avoid missing-path warnings for narrowly declared generated outputs while
   retaining checks on generator paths, Markdown links, commands and credentials.
 - Check single-backtick directory references with `./` or `../` and a trailing `/` against concrete
