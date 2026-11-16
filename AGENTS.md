@@ -17,3 +17,8 @@ Keep the runtime dependency-free on Python 3.10+.
 
 - Never print the full value of a detected credential.
 - Keep contradiction detection conservative; do not claim semantic conflicts without strong evidence.
+
+## Deletion and overwrite safeguards
+
+- Before deleting existing files, overwriting user changes, or discarding uncommitted work, explain the exact targets and impact and obtain explicit user approval.
+- This instruction does not authorize destructive commands; follow any stricter repository rules.
