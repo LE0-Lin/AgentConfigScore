@@ -43,6 +43,7 @@ Use `agent-config-score rules` for the installed version's actual catalog, and
 ## Development and evidence
 
 - [Public maintainer feedback mapped to delivered features](feedback-to-delivery.md)
+- [Self-use acceptance: working checks and high-score semantic blind spots](self-use-check.md)
 
 - [Release acceptance and localization sequence](release-readiness.md)
 - [Maintained benchmarks](../benchmarks/README.md)

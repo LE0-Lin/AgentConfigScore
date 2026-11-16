@@ -108,6 +108,17 @@ jobs:
             --python "$wheel_python" --output "$RUNNER_TEMP/cursor-coverage-demo.json"
           python "$GITHUB_WORKSPACE/scripts/run_approval_demo.py" \
             --python "$wheel_python" --output-dir "$RUNNER_TEMP/approval-demo"
+          python "$GITHUB_WORKSPACE/scripts/run_self_acceptance.py" \
+            --python "$wheel_python" --ref "$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/self-use-acceptance.json"
+      - name: Retain self-use acceptance and observed semantic limitations
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: self-use-acceptance-${{ matrix.os }}
+          path: ${{ runner.temp }}/self-use-acceptance.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Retain the deletion approval replay
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
