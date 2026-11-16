@@ -28,6 +28,20 @@ to a reviewed commit. Do not install multiple copies of this workflow.
 
 ## How the comment behaves
 
+**Unreleased enhancement:** the updated Action exports `new-rule-counts`, and
+the updated recipe shows newly introduced rule IDs, severities and counts.
+Errors appear before warnings/info; at most five rule types are displayed,
+with an explicit remaining-types count and a link to the complete report.
+The comment includes commands for local recheck and individual rule inspection.
+A passed gate with new findings explicitly asks for review. See the
+[synthetic rendering preview](pr-comment-preview.md).
+
+The new recipe works with older Action revisions: if the output is unavailable,
+the comment retains the numeric summary and says the breakdown is unavailable.
+An explicit `[]` means zero new rule matches; missing output does not mean zero.
+Upgrade/review the Action reference and generated workflow independently. These
+enhancements are not in the published v0.26.2 Action or CLI-generated recipe.
+
 - The first completed scan creates a comment. Reruns update the same comment.
 - The lookup paginates, so long PR conversations do not hide the existing comment.
 - Only a `github-actions[bot]` comment with the dedicated marker is updated.
@@ -48,11 +62,18 @@ Do not switch this recipe to `pull_request_target` to enable comments on forks.
 The recipe checks out the candidate repository, and that event has different
 privileges. It would require a separately designed workflow.
 
-The comment script uses validated numeric outputs rather than instruction text,
+The comment script uses validated numeric outputs and, in unreleased source,
+bounded rule IDs/severities/counts rather than instruction text,
 filenames, suppression reasons, or PR titles. See the
 [GitHub script documentation](https://github.com/actions/github-script#passing-inputs-to-the-script)
 for why values are passed through environment variables rather than inserted
 into JavaScript. Bot-owned comment behavior assumes the standard GitHub.com
 `GITHUB_TOKEN`; custom comment identities need their own ownership check.
 
-For the action's output contract, see **Action outputs** in the main README.
+The new payload has a maximum of 64 distinct rule IDs and 16 KiB. Counts must
+match the numeric totals; duplicate IDs, unexpected fields and malformed data
+stop the comment step before GitHub reads/writes. Comment failure still cannot
+turn a failed regression into success. Paths, messages and remediation text are
+not accepted in this payload; detailed source locations remain in the run report.
+
+For the output contract, see [Action outputs](reference.md#action-outputs).

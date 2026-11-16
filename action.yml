@@ -62,6 +62,9 @@ outputs:
   new-errors:
     description: "Number of newly introduced error-severity findings."
     value: ${{ steps.regression.outputs.new-errors }}
+  new-rule-counts:
+    description: "Compact JSON array of new rule IDs, severities and counts; contains no instruction text, file paths or messages."
+    value: ${{ steps.regression.outputs.new-rule-counts }}
   resolved-findings:
     description: "Number of findings resolved by the candidate revision."
     value: ${{ steps.regression.outputs.resolved-findings }}
@@ -168,10 +171,23 @@ runs:
           python - "$result_json" "$GITHUB_OUTPUT" <<'PY'
         import json
         import sys
+        from collections import Counter
+        from agent_config_score.rules import RULES_BY_CODE
 
         result_path, output_path = sys.argv[1:]
         with open(result_path, encoding="utf-8") as handle:
             data = json.load(handle)
+
+        counts = Counter()
+        for finding in data["new_findings"]:
+            rule = RULES_BY_CODE.get(finding["code"])
+            if rule is None or finding["severity"] != rule.severity:
+                raise ValueError("Unexpected finding rule metadata")
+            counts[(rule.severity, rule.code)] += 1
+        severity_order = {"error": 0, "warning": 1, "info": 2}
+        rule_counts = [{"code": code, "severity": severity, "count": count}
+                       for (severity, code), count in sorted(
+                           counts.items(), key=lambda row: (severity_order[row[0][0]], row[0][1]))]
 
         outputs = {
             "base-score": data["base"]["score"],
@@ -179,6 +195,7 @@ runs:
             "delta": data["delta"],
             "new-findings": len(data["new_findings"]),
             "new-errors": sum(1 for finding in data["new_findings"] if finding["severity"] == "error"),
+            "new-rule-counts": json.dumps(rule_counts, separators=(",", ":")),
             "resolved-findings": len(data["resolved_findings"]),
         }
 

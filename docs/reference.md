@@ -381,6 +381,7 @@ Repository-level findings remain repository-level SARIF results instead of recei
 | `delta` | Candidate minus baseline score |
 | `new-findings` | Number of newly introduced active findings |
 | `new-errors` | Number of newly introduced active error findings |
+| `new-rule-counts` | Unreleased: compact JSON array of `{code, severity, count}` for newly introduced active findings; no source text, paths or messages |
 | `resolved-findings` | Number of active findings resolved by the candidate |
 
 ```yaml

@@ -35,6 +35,7 @@ jobs:
           ACS_DELTA: ${{ steps.acs.outputs.delta }}
           ACS_NEW_FINDINGS: ${{ steps.acs.outputs.new-findings }}
           ACS_NEW_ERRORS: ${{ steps.acs.outputs.new-errors }}
+          ACS_NEW_RULE_COUNTS: ${{ steps.acs.outputs.new-rule-counts }}
           ACS_RESOLVED: ${{ steps.acs.outputs.resolved-findings }}
           ACS_OUTCOME: ${{ steps.acs.outcome }}
         with:
@@ -61,6 +62,47 @@ jobs:
             if (!['success', 'failure'].includes(outcome)) {
               throw new Error('Missing regression outcome');
             }
+            // Optional for compatibility with older Action revisions. Only
+            // structural IDs/counts are accepted; never render source text.
+            const rawRules = process.env.ACS_NEW_RULE_COUNTS || '';
+            let rules = null;
+            if (rawRules) {
+              if (rawRules.length > 16384) throw new Error('Invalid rule breakdown');
+              try { rules = JSON.parse(rawRules); }
+              catch { throw new Error('Invalid rule breakdown'); }
+              if (!Array.isArray(rules) || rules.length > 64) throw new Error('Invalid rule breakdown');
+              const seen = new Set();
+              let total = 0;
+              let totalErrors = 0;
+              for (const row of rules) {
+                if (!row || typeof row !== 'object' || Array.isArray(row) ||
+                    Object.keys(row).sort().join(',') !== 'code,count,severity' ||
+                    typeof row.code !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(row.code) ||
+                    seen.has(row.code) || !['error', 'warning', 'info'].includes(row.severity) ||
+                    !Number.isSafeInteger(row.count) || row.count < 1) {
+                  throw new Error('Invalid rule breakdown');
+                }
+                seen.add(row.code);
+                total += row.count;
+                if (row.severity === 'error') totalErrors += row.count;
+              }
+              if (!Number.isSafeInteger(total) || total !== added || totalErrors !== errors) {
+                throw new Error('Inconsistent rule breakdown');
+              }
+              const rank = {error: 0, warning: 1, info: 2};
+              rules.sort((a, b) => rank[a.severity] - rank[b.severity] ||
+                (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+            }
+            const breakdown = rules === null
+              ? ['Rule breakdown unavailable with this Action revision.']
+              : rules.length === 0
+                ? ['No new rule matches.']
+                : [
+                    '#### New findings by rule', '',
+                    '| Severity | Rule | Count |', '|---|---|---:|',
+                    ...rules.slice(0, 5).map(row => `| ${row.severity} | \`${row.code}\` | ${row.count} |`),
+                    ...(rules.length > 5 ? ['', `${rules.length - 5} additional rule types in the full report.`] : []),
+                  ];
             const marker = '<!-- agent-config-score:regression -->';
             const runUrl = `${process.env.GITHUB_SERVER_URL}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const body = [
@@ -73,8 +115,18 @@ jobs:
               '|---:|---:|---:|',
               `| ${added} | ${errors} | ${resolved} |`,
               '',
+              ...breakdown,
+              '',
               `[View findings and policy result](${runUrl})`,
               '',
+              ...(added > 0 ? [
+                'Review the source locations and suggested next steps in the full report.',
+                'Reproduce locally with `agent-config-score diff --explain` using the same baseline; inspect a rule with `agent-config-score rules RULE_ID`.',
+                '',
+              ] : []),
+              ...(outcome === 'success' && added > 0 ? [
+                'The configured gate passed with new findings; passing does not mean no review is needed.', '',
+              ] : []),
               'The score covers detected rule matches; review individual findings.',
             ].join('\n');
             const comments = await github.paginate(github.rest.issues.listComments, {
