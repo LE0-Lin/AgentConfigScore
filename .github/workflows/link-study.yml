@@ -25,7 +25,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install only the hash-pinned published study packages
-        run: python -m pip install --require-hashes --only-binary=:all: -r scripts/requirements-link-study.txt
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r scripts/requirements-link-study.txt
       - name: Verify the independent reference method
         run: python -m unittest discover -s scripts -p test_link_study.py -v
       - name: Replay retained sources without network access or upstream execution
