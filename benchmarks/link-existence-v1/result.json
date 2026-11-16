@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "status": "completed_objective_component_check",
+  "completed_at_utc": "2026-11-16T07:34:14.715597+00:00",
+  "protocol_sha256": "3f6c2f6c7e902fa89738d443b0a109d3cf7e229ab51639b1b280ebc3f85736ac",
+  "collection_sha256": "d43368c003c52cb228c6e97eb7c7f2353ab9e317f89f64eede4011f9aae53b73",
+  "parser": {
+    "markdown-it-py": "3.0.0",
+    "mdurl": "0.1.2"
+  },
+  "tool": {
+    "name": "AgentConfigScore",
+    "version": "0.26.2",
+    "source_fingerprint": {
+      "format": "acs-python-source-v1",
+      "sha256": "5cd84e53c40b581b70edbbee36f868f23b32a25bb40b7186a8841ddca8267cc9",
+      "files": [
+        "__init__.py",
+        "__main__.py",
+        "cli.py",
+        "config.py",
+        "doctor.py",
+        "entrypoint.py",
+        "feedback.py",
+        "gitdiff.py",
+        "guardrails.py",
+        "history.py",
+        "initializer.py",
+        "provenance.py",
+        "regression.py",
+        "rules.py",
+        "sarif.py",
+        "scanner.py",
+        "scopes.py"
+      ]
+    }
+  },
+  "host": "linux",
+  "natural_summary": {
+    "cases": 2,
+    "TP": 0,
+    "FP": 0,
+    "TN": 2,
+    "FN": 0,
+    "missing_target_recall": null,
+    "warning_precision": null
+  },
+  "control_summary": {
+    "cases": 2,
+    "TP": 2,
+    "FP": 0,
+    "TN": 0,
+    "FN": 0,
+    "missing_target_recall": 1.0,
+    "warning_precision": 1.0
+  },
+  "control_shortfall": 4,
+  "natural_cases": [
+    {
+      "href": "docs/src/contribute/ai-policy.md",
+      "line": 7,
+      "block_end_line": 7,
+      "destination": "docs/src/contribute/ai-policy.md",
+      "resolved_target": "docs/src/contribute/ai-policy.md",
+      "target_exists": true,
+      "source_line": "ESLint's [AI Usage Policy](docs/src/contribute/ai-policy.md) requires that AI-assisted contributions be disclosed. Whenever you (an AI) create content on GitHub for this project, you **must** include a disclosure, using the name of the model actually producing the content (for example, `Claude Opus 5`):",
+      "selected": true,
+      "id": "link-001",
+      "repository": "eslint/eslint",
+      "instruction_path": "AGENTS.md",
+      "source_url": "https://github.com/eslint/eslint/blob/97efadd5eff8e3eb673f8746f7bb3ba2f3941251/AGENTS.md",
+      "tool_flagged": false
+    },
+    {
+      "href": ".github/CONTRIBUTING.md",
+      "line": 10,
+      "block_end_line": 10,
+      "destination": ".github/CONTRIBUTING.md",
+      "resolved_target": ".github/CONTRIBUTING.md",
+      "target_exists": true,
+      "source_line": "1. Read [CONTRIBUTING](.github/CONTRIBUTING.md), the canonical contribution policy.",
+      "selected": true,
+      "id": "link-002",
+      "repository": "cli/cli",
+      "instruction_path": "AGENTS.md",
+      "source_url": "https://github.com/cli/cli/blob/3d5a9e355a837f2f5ee78d7484c118cc1342ad1a/AGENTS.md",
+      "tool_flagged": false
+    }
+  ],
+  "removal_controls": [
+    {
+      "parent_case": "link-001",
+      "repository": "eslint/eslint",
+      "removed_target": "docs/src/contribute/ai-policy.md",
+      "destination": "docs/src/contribute/ai-policy.md",
+      "target_exists": false,
+      "tool_flagged": true,
+      "findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 7,
+          "message": "Referenced path does not exist: docs/src/contribute/ai-policy.md"
+        }
+      ],
+      "projection": {
+        "omitted_target": "docs/src/contribute/ai-policy.md",
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "parent_case": "link-002",
+      "repository": "cli/cli",
+      "removed_target": ".github/CONTRIBUTING.md",
+      "destination": ".github/CONTRIBUTING.md",
+      "target_exists": false,
+      "tool_flagged": true,
+      "findings": [
+        {
+          "file": "AGENTS.md",
+          "line": 10,
+          "message": "Referenced path does not exist: .github/CONTRIBUTING.md"
+        },
+        {
+          "file": "AGENTS.md",
+          "line": 69,
+          "message": "Referenced path does not exist: .github/CONTRIBUTING.md"
+        }
+      ],
+      "projection": {
+        "omitted_target": ".github/CONTRIBUTING.md",
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    }
+  ],
+  "scans": [
+    {
+      "repository": "eslint/eslint",
+      "instruction_path": "AGENTS.md",
+      "tool": {
+        "name": "AgentConfigScore",
+        "version": "0.26.2",
+        "source_fingerprint": {
+          "format": "acs-python-source-v1",
+          "sha256": "5cd84e53c40b581b70edbbee36f868f23b32a25bb40b7186a8841ddca8267cc9",
+          "files": [
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "config.py",
+            "doctor.py",
+            "entrypoint.py",
+            "feedback.py",
+            "gitdiff.py",
+            "guardrails.py",
+            "history.py",
+            "initializer.py",
+            "provenance.py",
+            "regression.py",
+            "rules.py",
+            "sarif.py",
+            "scanner.py",
+            "scopes.py"
+          ]
+        }
+      },
+      "findings": [],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    },
+    {
+      "repository": "cli/cli",
+      "instruction_path": "AGENTS.md",
+      "tool": {
+        "name": "AgentConfigScore",
+        "version": "0.26.2",
+        "source_fingerprint": {
+          "format": "acs-python-source-v1",
+          "sha256": "5cd84e53c40b581b70edbbee36f868f23b32a25bb40b7186a8841ddca8267cc9",
+          "files": [
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "config.py",
+            "doctor.py",
+            "entrypoint.py",
+            "feedback.py",
+            "gitdiff.py",
+            "guardrails.py",
+            "history.py",
+            "initializer.py",
+            "provenance.py",
+            "regression.py",
+            "rules.py",
+            "sarif.py",
+            "scanner.py",
+            "scopes.py"
+          ]
+        }
+      },
+      "findings": [],
+      "projection": {
+        "omitted_target": null,
+        "skipped_aliases_or_gitlinks": [],
+        "non_instruction_file_contents": "empty placeholders, not upstream contents"
+      }
+    }
+  ],
+  "limitations": "This is a maintainer-run objective component check with an independent parser, not independent human review, general safety accuracy, random sampling, AI comparison or evidence of external adoption. Report TP/FP/TN/FN for snapshot target existence only, missing-target recall unavailable when no natural missing targets exist. Preserve misses and mismatches. Later fixes turn this corpus into development data and require a separate new study for validation."
+}

@@ -29,6 +29,14 @@ no fresh correctness estimate or external-user feedback is claimed.
 
 ## AI comparison status
 
+A separate [local-link target-existence pilot](link-existence-v1/README.md)
+uses an independent CommonMark parser and verified Git trees with the frozen
+published v0.26.2 wheel. Its fixed eight-repository registry yielded only two
+eligible natural links (neither falsely flagged) and two separate target-removal
+controls (both detected). All exclusions and the control shortfall are retained.
+This small objective component check does not complete the human accuracy study
+or establish external adoption.
+
 **No independent AI comparison has been completed.** A repository script now
 exports label-blinded packets and scores imported AI reviews, the local tool,
 and a three-valued OR combination. It reports coverage, false positives, misses,
