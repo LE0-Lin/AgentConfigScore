@@ -4,6 +4,20 @@
 
 [English](README.md) | [简体中文](README.simplified.md) | 繁體中文
 
+<!-- acs-safety-overview:start -->
+## 安全方案與驗證：從這裡開始
+
+**AI Safety Challenge 評審入口：**[觀看一分鐘演示](assets/agent-config-score-approval.mp4) · [查看證據與限制](#safety-review-evidence) · [重跑演示](docs/ai-safety-challenge.md#run-and-inspect)。
+
+具體場景是：設定變更移除了刪除授權保護，代理隨後請求刪除檔案。專案演示兩道檢查：
+
+- **合併前：**ACS 將指令與可信基準比較；即使前後分數都是 100，也能針對已識別的保護遺失拒絕變更。
+- **刪除前：**獨立範例宿主在允許單檔操作前，核驗操作員簽發的授權是否與確切目標及已審核檔案狀態相符。
+
+發布的 CLI 負責靜態審查，安裝後不會攔截代理行為。執行器原型依賴受控宿主與穩定工作區。證據分別標註腳本測試、呼叫端操作觀察和仍未驗證的實際使用成效。
+
+<!-- acs-safety-overview:end -->
+
 在合併前發現 AI 程式開發助手指令中的已知退化。
 
 ![遠端指令碼指令使範例分數從 100 降至 82，新增錯誤閘門回傳 1](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-demo.gif?v=terminal-024)
@@ -26,6 +40,22 @@ AgentConfigScore 檢查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini �
 ![工作流程圖，展示儲存庫初始化、基準回歸檢查與報告保存](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg?v=0.24.0)
 
 它是確定性的檢查工具，不是 AI 評審。**A 100 只表示沒有命中生效的規則，不代表指令實用、語意完美或完全安全。** 提供中文文件也不表示檢查工具已經能理解任意中文指令。
+
+<!-- acs-challenge-review:start -->
+<a id="safety-review-evidence"></a>
+
+## 安全證據與重跑入口
+
+AgentConfigScore 審查持久化代理指令的變更。安全演示將靜態檢查與一個**獨立、由宿主控制的刪除授權門禁**結合，實際操作僅涉及一個可拋棄的示範檔案。
+
+| 評審內容 | 方案與證據 |
+|---|---|
+| 專案與問題 | 指令變更可能移除授權要求，或使它不再涵蓋目標，而前後分數仍是 100。[設定回歸演示](docs/ai-safety-challenge.md#1-catch-the-configuration-regression)展示約束失去涵蓋、審查失敗與修復。 |
+| 安全機制 | 設定好的 CI 使用已審核的基準策略阻止已識別的退化。獨立範例宿主要求 `delete_file` 提供與目標及已審核檔案狀態相符、未過期且未使用的授權；授權由操作員簽發，代理填寫 `approved: true` 無法自行授權。[執行器與信任邊界](examples/approval-gate/README.md)。 |
+| 演示與支持證據 | [一分鐘渲染影片](assets/agent-config-score-approval.mp4)、[12 個腳本化宿主操作案例及保留結果](examples/approval-gate/recorded/result.md)、[重跑指令](docs/ai-safety-challenge.md#run-and-inspect)。[儲存庫自測](docs/self-use-check.md)另行保留具體檢出與高分盲區。報告記錄工具版本與輸入；影片由保留報告渲染，並非即時代理操作錄影。 |
+| 限制 | 安裝 ACS 不會攔截代理行為。執行器是獨立的單檔原型，需要穩定工作區，以及禁止其他執行通道的宿主；它不是作業系統沙箱。腳本案例與另行標註的呼叫端操作紀錄，均不證明獨立代理安全、通用準確率或外部持續使用成效。[完整範圍與限制](docs/ai-safety-challenge.md#scope-of-the-prototype)。 |
+
+<!-- acs-challenge-review:end -->
 
 ## 快速開始
 
