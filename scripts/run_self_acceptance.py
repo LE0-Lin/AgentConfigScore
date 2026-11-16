@@ -43,13 +43,22 @@ def git(*args: str) -> bytes:
     return result.stdout
 
 
-def replay(python: Path, ref: str) -> dict:
+def replay(python: Path, ref: str, *, require_current_fixes: bool = False) -> dict:
     revision = git("rev-parse", "--verify", ref + "^{commit}").decode().strip()
     archive = git("archive", "--format=zip", revision)
     env = {key: value for key, value in os.environ.items() if key not in {"PYTHONPATH", "PYTHONHOME"}}
     env.update(PYTHONNOUSERSITE="1", PYTHONIOENCODING="utf-8")
     identity = None
     rows, failures = [], []
+    cases = [dict(case) for case in CASES]
+    if require_current_fixes:
+        fixes = {"semantic-database-risk": "deletion-approval-bypass", "chinese-false-success": "false-success-report"}
+        for case in cases:
+            if case["id"] in fixes:
+                case.pop("probe")
+                case.update(codes=[fixes[case["id"]]], gate=1)
+        cases.append({"id": "inline-link-example", "text": "Example syntax: `[Guide](docs/acs-acceptance-missing-guide.md)`.\n",
+                      "codes": [], "gate": 0})
     with TemporaryDirectory(prefix="acs-self-acceptance-") as directory:
         base, head = Path(directory) / "base", Path(directory) / "head"
         base.mkdir()
@@ -96,7 +105,7 @@ def replay(python: Path, ref: str) -> dict:
         if baseline_exit != 0 or baseline["findings"]:
             raise ValueError("self-use baseline already has findings; review it before mutation acceptance")
         _, safeguards = invoke(["guardrails", str(base)], scored=False)
-        for case in CASES:
+        for case in cases:
             if "replace" in case:
                 content = case["replace"].encode()
             else:
@@ -122,8 +131,9 @@ def replay(python: Path, ref: str) -> dict:
             "completed_at_utc": datetime.now(timezone.utc).isoformat(), "source_revision": revision,
             "source_archive_sha256": hashlib.sha256(archive).hexdigest(), "tool": identity,
             "baseline": baseline, "baseline_guardrails_unscored": safeguards,
-            "contract_cases": sum("codes" in case for case in CASES), "failed_contracts": failures,
-            "limitation_probes": sum("probe" in case for case in CASES), "cases": rows,
+            "profile": "v0.27-corrections-required" if require_current_fixes else "original-self-use",
+            "contract_cases": sum("codes" in case for case in cases), "failed_contracts": failures,
+            "limitation_probes": sum("probe" in case for case in cases), "cases": rows,
             "boundary": "Known project-authored acceptance cases on copies of our own tracked repository; not independent accuracy, external adoption, runtime safety or semantic quality evidence. Source instructions are never executed."}
 
 
@@ -131,11 +141,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--python", type=Path, default=Path(sys.executable), help="Python with ACS installed")
     parser.add_argument("--ref", default="HEAD", help="Local Git revision for the self-use snapshot")
+    parser.add_argument("--require-current-fixes", action="store_true", help="Require v0.27 safety-prose and inline-link example corrections")
     parser.add_argument("--output", type=Path, required=True, help="New JSON result; never overwrite retained runs")
     args = parser.parse_args()
     if args.output.exists():
         parser.error("output must be new")
-    report = replay(args.python.absolute(), args.ref)
+    report = replay(args.python.absolute(), args.ref, require_current_fixes=args.require_current_fixes)
     with args.output.open("x", encoding="utf-8", newline="\n") as output:
         json.dump(report, output, ensure_ascii=False, indent=2)
         output.write("\n")

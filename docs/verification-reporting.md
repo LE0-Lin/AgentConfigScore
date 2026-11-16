@@ -8,7 +8,7 @@ the scanner has established what tests actually ran or failed.
 
 ## Supported evidence
 
-The released English grammar is described below. **Unreleased source** also
+The released English grammar is described below. **v0.27.0+** also
 recognizes finite Simplified/Traditional Chinese clauses, for example:
 
 ```text

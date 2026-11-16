@@ -42,7 +42,7 @@ summary automatically. It does not publish a comment unless a caller workflow
 opts in. Generated comments contain validated numeric results and a link to
 details, not raw instruction text or arbitrary finding messages.
 
-Unreleased source adds a compact rule/severity/count table and local recheck
+v0.27.0+ adds a compact rule/severity/count table and local recheck
 commands to the optional comment. The detailed report remains the source for
 file/line evidence and static remediation guidance. A passing gate with new
 findings still asks for review; see the [updated recipe and compatibility](pr-comments.md).

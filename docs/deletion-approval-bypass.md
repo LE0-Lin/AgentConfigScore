@@ -1,6 +1,6 @@
 # Explicit deletion approval bypass
 
-**Available in unreleased source; not in published v0.26.2.**
+**Available in v0.27.0+.**
 
 `deletion-approval-bypass` flags a complete, affirmative prose directive that
 combines a destructive target with an explicit approval bypass. It is an

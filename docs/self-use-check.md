@@ -13,14 +13,14 @@ disposable copies; no deletion, network installer or other instruction was run.
 
 ## Working behavior and limits
 
-### Correction in unreleased source
+### Correction shipped in v0.27.0
 
 Two of the original high-score probes below now produce active errors. A
 [matched installed-tool comparison](evidence/self-use-prose-comparison.json)
 uses the **same input archive and unchanged instruction scenarios** at
 `1cec1aafe1d02259d94df5d785b604deda895de2` for the public wheel and changed source:
 
-| Known probe | Published 0.26.2 | Unreleased source | New comparison exit |
+| Known probe | Published 0.26.2 | Pre-release source | New comparison exit |
 |---|---:|---:|---:|
 | Production database deletion with explicit approval exemption | 100 | 85, `deletion-approval-bypass` | 1 |
 | Chinese instruction to falsely report passing tests | 100 | 88, `false-success-report` | 1 |
@@ -29,9 +29,9 @@ uses the **same input archive and unchanged instruction scenarios** at
 All nine existing acceptance contracts still pass. Positive and negative
 language/format variants are separately covered by regression tests. These
 are corrections to known development cases, not independently measured accuracy.
-The implementations declare the same version while this change is unreleased;
+The original comparison used two implementations declaring version 0.26.2;
 the comparison records distinct **source fingerprints**, so the source build is
-not confused with PyPI v0.26.2. The original failures below remain unchanged.
+not confused with PyPI v0.26.2. The original failures below remain unchanged. The corrections now ship in v0.27.0+.
 
 ### Original published-wheel observations
 
@@ -91,6 +91,13 @@ only the standard library and local Git; the worker uses the specified installed
 ACS package in isolated mode. Package installation needs network access; the
 replay itself does not. Existing output files are never overwritten. `--ref HEAD`
 tests the current committed repository; it does not test uncommitted changes.
+
+For v0.27.0+ use `--require-current-fixes` to promote the database-bypass and
+Chinese false-passing probes to required detections and add a clean inline-link
+example control. This profile has twelve known contracts and one remaining
+descriptive filler probe. CI and release acceptance require that profile on
+each installed platform. Keep the default profile when reproducing the original
+published v0.26.2 observations.
 
 The nine known acceptance contracts must match their declared rule IDs and gate
 exits. The three limitation probes remain descriptive: detecting one after a

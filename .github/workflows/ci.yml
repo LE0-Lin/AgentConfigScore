@@ -109,7 +109,7 @@ jobs:
           python "$GITHUB_WORKSPACE/scripts/run_approval_demo.py" \
             --python "$wheel_python" --output-dir "$RUNNER_TEMP/approval-demo"
           python "$GITHUB_WORKSPACE/scripts/run_self_acceptance.py" \
-            --python "$wheel_python" --ref "$GITHUB_SHA" \
+            --python "$wheel_python" --ref "$GITHUB_SHA" --require-current-fixes \
             --output "$RUNNER_TEMP/self-use-acceptance.json"
       - name: Retain self-use acceptance and observed semantic limitations
         if: always()

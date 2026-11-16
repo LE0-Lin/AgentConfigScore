@@ -254,7 +254,7 @@ passed without running them. Merely skipping tests, prohibitions, and quoted/cod
 examples are not sufficient evidence. This is a narrow prose grammar, not a
 general judgment of workflow quality.
 
-Unreleased source adds finite Simplified/Traditional Chinese false-reporting
+v0.27.0+ adds finite Simplified/Traditional Chinese false-reporting
 clauses and the [`deletion-approval-bypass` error](deletion-approval-bypass.md)
 for explicit destructive directives that waive approval. Qualified prior
 authorization, disposable cleanup and examples are distinct from a bypass;
@@ -381,7 +381,7 @@ Repository-level findings remain repository-level SARIF results instead of recei
 | `delta` | Candidate minus baseline score |
 | `new-findings` | Number of newly introduced active findings |
 | `new-errors` | Number of newly introduced active error findings |
-| `new-rule-counts` | Unreleased: compact JSON array of `{code, severity, count}` for newly introduced active findings; no source text, paths or messages |
+| `new-rule-counts` | v0.27.0+: compact JSON array of `{code, severity, count}` for newly introduced active findings; no source text, paths or messages |
 | `resolved-findings` | Number of active findings resolved by the candidate |
 
 ```yaml

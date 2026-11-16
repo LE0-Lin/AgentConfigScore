@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.27.0
+
 - Add privacy-minimized `new-rule-counts` Action output and an optional PR
   comment breakdown with at most five rule types, a remaining-types count,
   repair/recheck commands, and explicit review guidance when a gate passes
