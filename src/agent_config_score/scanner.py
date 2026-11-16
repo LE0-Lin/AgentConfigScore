@@ -73,7 +73,8 @@ BLOCK_PROHIBITION = re.compile(
     r"(?:(?:never|do\s+not|don't|must\s+not)\s+"
     r"(?:run|execute|use|follow)\s+(?:(?:any\s+of\s+)?(?:the\s+)?following|these)\s+"
     r"(?:commands|instructions)(?:\s+under\s+any\s+circumstances)?"
-    r"|(?:the\s+)?following\s+(?:commands|instructions)\s+are\s+(?:forbidden|prohibited))\s*:",
+    r"|(?:the\s+)?following\s+(?:commands|instructions)\s+are\s+(?:forbidden|prohibited)"
+    r"|(?:禁止|不得|切勿)(?:执行|執行|运行|運行|使用|遵循)(?:以下|这些|這些)(?:命令|指令))\s*[:：]",
     re.I,
 )
 
@@ -99,6 +100,47 @@ FALSE_SUCCESS_DIRECTIVE = re.compile(
     r"|(?:if|when)\s+(?:" + _EXPLICIT_TEST_FAILURE + r"),\s*"
     + _PROSE_DIRECTIVE_PREFIX + r"(?:still\s+)?(?:" + _SUCCESS_CLAIM + r")",
     re.I,
+)
+
+# Explicit failed/unrun tests plus a demanded passing claim, not sentiment or
+# language detection. Variants remain finite and must form a complete clause.
+_ZH_TEST = r"(?:(?:所有|全部))?(?:测试|測試)(?:用例|案例|套件)?"
+_ZH_FAILURE = r"(?:失败|失敗|未通过|未通過|没有通过|沒有通過)"
+_ZH_REPORT = r"(?:报告|報告|宣称|宣稱|声称|聲稱|告诉|告訴)(?:用户|使用者)?"
+_ZH_PASS = r"(?:" + _ZH_TEST + r"(?:全部|全都|都|均|已)?(?:通过|通過)|(?:全部|全都|都)(?:通过|通過)|成功)"
+_ZH_REPORT_PREFIX = r"(?:(?:你)?(?:必须|必須|务必|務必)|请|請)?"
+_ZH_STILL = r"(?:也(?:要|必须|必須)|仍然?(?:要|必须|必須)|都要)"
+_ZH_FALSE_CLAIM = _ZH_REPORT_PREFIX + _ZH_REPORT + _ZH_PASS
+CHINESE_FALSE_SUCCESS = re.compile(
+    r"(?:(?:(?:即使|即便|哪怕|就算)" + _ZH_TEST + _ZH_FAILURE
+    + r"|" + _ZH_TEST + r"(?:即使|即便|哪怕|就算)" + _ZH_FAILURE
+    + r"|(?:没有|沒有|未)(?:运行|運行|执行|執行)(?:任何)?" + _ZH_TEST + r")[，,]?" + _ZH_STILL
+    + r"|(?:如果|若|当|當)" + _ZH_TEST + _ZH_FAILURE + r"[，,]"
+    + r"|(?:忽略|无视|無視)" + _ZH_TEST + _ZH_FAILURE + r"(?:并|並|然后|然後))"
+    + _ZH_FALSE_CLAIM
+    + r"(?:[，,](?:不要|不得|无需|無需)(?:提到|报告|報告|说明|說明)(?:测试|測試)?(?:失败|失敗))?"
+)
+
+_BYPASS_PREFIX = r"(?:(?:you\s+(?:may|can|must|should)|please|always|directly)\s+)?"
+_DELETION_TARGET = r"(?:(?:the\s+)?production\s+database|(?:existing|user|all|any)\s+files)"
+_USER_APPROVAL = r"(?:(?:explicit\s+)?(?:user\s+)?(?:approval|confirmation|consent))"
+_DELETE_ACTION = r"(?:delete|remove|drop|wipe)\s+" + _DELETION_TARGET
+DELETION_APPROVAL_BYPASS = re.compile(
+    _BYPASS_PREFIX + _DELETE_ACTION + r"\s+without\s+"
+    r"(?:(?:asking|waiting|requesting|obtaining)\s+(?:for\s+)?)?" + _USER_APPROVAL
+    + r"|" + _BYPASS_PREFIX + _DELETE_ACTION
+    + r"(?:\s+(?:if needed|when necessary|whenever needed|whenever it helps complete the task))?"
+    r"[;,]\s*(?:no\s+" + _USER_APPROVAL + r"\s+is\s+required|" + _USER_APPROVAL
+    + r"\s+is\s+not\s+required|do\s+not\s+ask\s+for\s+" + _USER_APPROVAL + r")"
+    + r"|(?:do\s+not|never)\s+ask\s+for\s+" + _USER_APPROVAL
+    + r"\s+before\s+(?:deleting|removing|dropping|wiping)\s+" + _DELETION_TARGET,
+    re.I,
+)
+CHINESE_DELETION_BYPASS = re.compile(
+    r"(?:(?:你)?(?:可以|必须|必須)|请|請|直接)?(?:删除|刪除|移除|清空)"
+    r"(?:(?:生产|生產)(?:数据库|資料庫)|(?:现有|既有|用户的?|使用者的?)(?:文件|檔案))"
+    r"(?:时|時)?[，,]?(?:无需|無需|不必)(?:先)?(?:征求|徵求|取得|获得|獲得)?"
+    r"(?:用户|使用者)(?:的)?(?:确认|確認|授权|授權|同意)"
 )
 
 _ENVIRONMENT_VARIABLES = r"(?:environment\s+variables?|env\s+vars?)(?:\s+values?)?"
@@ -713,7 +755,7 @@ def _active_prose_lines(context: _InstructionContext):
         # Quoted examples can contain sentence separators; do not split them
         # into seemingly active fragments. Literal-credential rules remain
         # independent of these conservative prose-only eligibility checks.
-        if any(char in body for char in '`"\'“”‘’«»'):
+        if any(char in body for char in '`"\'“”‘’«»「」『』'):
             continue
         if context.command_is_prohibited(start):
             continue
@@ -721,7 +763,7 @@ def _active_prose_lines(context: _InstructionContext):
 
 
 def _guardrail_policy_context(text: str) -> tuple[list[tuple[int, str]], bool]:
-    """Bounded prose candidates for the opt-in review, not scored danger rules.
+    """Bounded policy prose for opt-in review and scoped prose checks.
 
     Do not interpret HTML layouts at all. Explicit example headings exclude
     their section through the next equal/shallower heading. This intentionally
@@ -851,6 +893,36 @@ def _false_success_lines(context: _InstructionContext):
                 continue
             clause = sentence.group(1).strip()
             if len(clause) <= 512 and FALSE_SUCCESS_DIRECTIVE.fullmatch(clause):
+                yield number
+                break
+
+
+def _bounded_active_policy_lines(context: _InstructionContext):
+    # Intersect structural eligibility with the existing active/prohibited
+    # checks. Frontmatter, comments and explicit example sections stay data.
+    candidates = {number for number, _ in _guardrail_policy_context(context.text)[0]}
+    for number, body in _active_prose_lines(context):
+        if number in candidates and len(body) <= 512 and ":" not in body and "：" not in body:
+            yield number, re.sub(r"[*_]", "", body)
+
+
+def _chinese_false_success_lines(context: _InstructionContext):
+    for number, body in _bounded_active_policy_lines(context):
+        for sentence in re.finditer(r"([^。.!?！？]+)([。.!?！？]|$)", body):
+            if sentence.group(2) not in {"?", "？"} and CHINESE_FALSE_SUCCESS.fullmatch(sentence.group(1).strip()):
+                yield number
+                break
+
+
+def _deletion_approval_bypass_lines(context: _InstructionContext):
+    for number, body in _bounded_active_policy_lines(context):
+        # A semicolon may connect a destructive directive to its explicit
+        # approval exemption; never carry evidence across sentence boundaries.
+        for sentence in re.finditer(r"([^。.!?！？]+)([。.!?！？]|$)", body):
+            clause = sentence.group(1).strip()
+            if sentence.group(2) not in {"?", "？"} and (
+                DELETION_APPROVAL_BYPASS.fullmatch(clause) or CHINESE_DELETION_BYPASS.fullmatch(clause)
+            ):
                 yield number
                 break
 
@@ -1790,8 +1862,10 @@ def _analyze_with_texts(
                     continue
                 findings.append(_finding(pattern_rule.rule.code, rel, _line(text, index)))
 
-        for lineno in _false_success_lines(context):
+        for lineno in sorted(set(_false_success_lines(context)) | set(_chinese_false_success_lines(context))):
             findings.append(_finding("false-success-report", rel, lineno))
+        for lineno in _deletion_approval_bypass_lines(context):
+            findings.append(_finding("deletion-approval-bypass", rel, lineno))
         for lineno in _broad_environment_upload_lines(context):
             findings.append(_finding("broad-environment-upload", rel, lineno))
 

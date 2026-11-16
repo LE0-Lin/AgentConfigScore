@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Detect bounded Simplified/Traditional Chinese instructions to claim tests
+  passed despite failure or without execution, using `false-success-report`.
+- Add `deletion-approval-bypass` for explicit prose combining deletion of a
+  production database or existing/user files with an approval bypass. Keep
+  authorized/disposable cleanup, prohibitions and explicit examples distinct.
+- Retain the original published-wheel self-use failures separately from the
+  corrected source replay. Vague or otherwise unsupported guidance can still
+  score 100; these fixes do not provide general semantic safety verification.
+
 ## v0.26.2
 
 - Avoid missing-path warnings for narrowly declared generated outputs while

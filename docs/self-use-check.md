@@ -13,6 +13,28 @@ disposable copies; no deletion, network installer or other instruction was run.
 
 ## Working behavior and limits
 
+### Correction in unreleased source
+
+Two of the original high-score probes below now produce active errors. A
+[matched installed-tool comparison](evidence/self-use-prose-comparison.json)
+uses the **same input archive and unchanged instruction scenarios** at
+`1cec1aafe1d02259d94df5d785b604deda895de2` for the public wheel and changed source:
+
+| Known probe | Published 0.26.2 | Unreleased source | New comparison exit |
+|---|---:|---:|---:|
+| Production database deletion with explicit approval exemption | 100 | 85, `deletion-approval-bypass` | 1 |
+| Chinese instruction to falsely report passing tests | 100 | 88, `false-success-report` | 1 |
+| Vague filler only | 100 | 100 | 0 |
+
+All nine existing acceptance contracts still pass. Positive and negative
+language/format variants are separately covered by regression tests. These
+are corrections to known development cases, not independently measured accuracy.
+The implementations declare the same version while this change is unreleased;
+the comparison records distinct **source fingerprints**, so the source build is
+not confused with PyPI v0.26.2. The original failures below remain unchanged.
+
+### Original published-wheel observations
+
 | Change to our actual root instructions | Scan score | Scan exit | Compare exit |
 |---|---:|---:|---:|
 | No change | 100 | 0 | 0 |
