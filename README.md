@@ -2,6 +2,24 @@
 
 English | [简体中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.simplified.md) | [繁體中文](https://github.com/LE0-Lin/AgentConfigScore/blob/main/README.traditional.md)
 
+<!-- acs-safety-overview:start -->
+## Safety review: start here
+
+**AI Safety Challenge reviewers:** [watch the one-minute walkthrough](https://github.com/LE0-Lin/AgentConfigScore/blob/main/assets/agent-config-score-approval.mp4) · [inspect evidence and limitations](#safety-review-evidence) · [rerun the demo](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/ai-safety-challenge.md#run-and-inspect).
+
+The concrete scenario is an agent requesting deletion after a configuration
+change has removed its approval protection. The project demonstrates two checks:
+
+- **Before merging:** ACS compares instructions with a trusted baseline and can reject a recognized loss of protection, even when both scores remain 100.
+- **Before deletion:** a separate example host checks operator-issued approval against the exact target and reviewed file state before allowing a one-file operation.
+
+The released CLI performs static review; installing it does not intercept agent
+actions. The executor prototype needs a controlled host and stable workspace.
+The linked evidence separates scripted tests, caller-operated observations and
+unverified real-world outcomes.
+
+<!-- acs-safety-overview:end -->
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score.svg?v=0.24.0" alt="AgentConfigScore compares baseline and candidate coding-agent instructions" width="100%" />
 </p>
@@ -50,6 +68,24 @@ development replay that caught a new warning before merge. The new path
 behavior is included in v0.26.2, with retained before/after evidence.
 The [feedback-to-delivery map](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/feedback-to-delivery.md)
 connects a public maintainer request to implemented features and their limits.
+
+<!-- acs-challenge-review:start -->
+<a id="safety-review-evidence"></a>
+
+## Safety evidence and reproduction
+
+AgentConfigScore reviews changes to persistent agent instructions. The safety
+demo pairs that static check with a **separate, host-controlled approval gate**
+for deleting one disposable file.
+
+| Review topic | Approach and evidence |
+|---|---|
+| Project and problem | Instruction changes can remove an approval requirement or stop it covering a target while both scores remain 100. The [configuration regression walkthrough](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/ai-safety-challenge.md#1-catch-the-configuration-regression) shows the lost directive, a failing review and its repair. |
+| Safety approach | Configured CI gates block recognized regressions using the reviewed baseline policy. Separately, the example host refuses `delete_file` without a matching, unexpired, single-use approval bound to the target and reviewed file state. The operator issues approval; an agent's `approved: true` cannot issue it. [Executor and trust boundary](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/approval-gate/README.md). |
+| Demo and supporting evidence | [One-minute rendered video](https://github.com/LE0-Lin/AgentConfigScore/blob/main/assets/agent-config-score-approval.mp4), [12 scripted host-operation cases and retained results](https://github.com/LE0-Lin/AgentConfigScore/blob/main/examples/approval-gate/recorded/result.md), and [rerun commands](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/ai-safety-challenge.md#run-and-inspect). [Self-use checks](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/self-use-check.md) separately retain concrete detections and high-score blind spots. Reports identify their tool versions and inputs; the video renders retained reports rather than recording a live agent session. |
+| Limitations | Installing ACS does not intercept agent actions. The executor is a separate one-file prototype, requiring a stable workspace and a host that denies other execution channels; it is not an OS sandbox. Scripted cases and the separately labelled caller-operated smoke do not establish independent agent safety, general accuracy or sustained external use. [Full scope and limitations](https://github.com/LE0-Lin/AgentConfigScore/blob/main/docs/ai-safety-challenge.md#scope-of-the-prototype). |
+
+<!-- acs-challenge-review:end -->
 
 ## What it helps you review
 
