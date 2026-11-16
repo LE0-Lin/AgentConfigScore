@@ -254,6 +254,12 @@ passed without running them. Merely skipping tests, prohibitions, and quoted/cod
 examples are not sufficient evidence. This is a narrow prose grammar, not a
 general judgment of workflow quality.
 
+Unreleased source adds finite Simplified/Traditional Chinese false-reporting
+clauses and the [`deletion-approval-bypass` error](deletion-approval-bypass.md)
+for explicit destructive directives that waive approval. Qualified prior
+authorization, disposable cleanup and examples are distinct from a bypass;
+neither rule provides complete semantic safety review.
+
 The [`broad-environment-upload` warning](environment-upload.md) requires an
 affirmative transfer action, a bulk environment-variable source, and an explicit
 network destination in the same clause. Names-only reports, qualified redaction,
