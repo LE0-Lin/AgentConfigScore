@@ -191,6 +191,13 @@ anchor-only links, fenced examples, absolute paths, and paths escaping the
 repository are skipped. Nested parentheses in inline link destinations are not
 currently parsed. This is a limited link check, not a full Markdown validator.
 
+Unreleased source also excludes inline-link syntax inside matched backtick code
+spans, including multiline spans, and links with an escaped opening bracket.
+Real links next to code and links containing code only in their labels stay
+active. An unclosed backtick does not turn the rest of the document into an
+example. These exclusions do not apply to ordinary backtick path literals or
+independent command/credential rules. This correction is not in PyPI v0.26.2.
+
 v0.25.0+ builds additionally check simple full `[Guide][setup]` and
 collapsed `[setup][]` reference links, including images, when a matching
 single-line definition such as `[setup]: GUIDE.md` exists in the same instruction

@@ -1180,8 +1180,13 @@ def _local_markdown_links(
 ):
     """Extract local inline and supported reference destinations, never fetch."""
     links = list(reference_links)
+    code_index = _markdown_span_index(_markdown_code_spans(text, context))
     for match in MARKDOWN_LINK.finditer(text):
-        if context.inside_fence(match.start()):
+        # Escape status belongs to '['. An escaped '!' still leaves a real
+        # link, whereas an escaped '[' makes the markup literal text.
+        opener = match.start() + int(match.group(0).startswith("!"))
+        if (context.inside_fence(match.start()) or _markdown_escaped(text, opener)
+                or _markdown_span_overlaps(code_index, opener, opener + 1)):
             continue
         destination = match.group(1) or match.group(2)
         links.append((destination, _line(text, match.start())))

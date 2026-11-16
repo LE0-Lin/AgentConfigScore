@@ -24,6 +24,7 @@ jobs:
           DELTA: ${{ steps.acs.outputs.delta }}
           NEW_FINDINGS: ${{ steps.acs.outputs.new-findings }}
           NEW_ERRORS: ${{ steps.acs.outputs.new-errors }}
+          NEW_RULE_COUNTS: ${{ steps.acs.outputs.new-rule-counts }}
           RESOLVED_FINDINGS: ${{ steps.acs.outputs.resolved-findings }}
         run: |
           set -euo pipefail
@@ -35,3 +36,12 @@ jobs:
           [[ "$RESOLVED_FINDINGS" =~ ^[0-9]+$ ]]
           (( DELTA == HEAD_SCORE - BASE_SCORE ))
           echo "AgentConfigScore outputs: $BASE_SCORE -> $HEAD_SCORE ($DELTA), $NEW_ERRORS new errors"
+          python - <<'PY'
+          import json
+          import os
+          rows = json.loads(os.environ['NEW_RULE_COUNTS'])
+          assert isinstance(rows, list)
+          assert sum(row['count'] for row in rows) == int(os.environ['NEW_FINDINGS'])
+          assert sum(row['count'] for row in rows if row['severity'] == 'error') == int(os.environ['NEW_ERRORS'])
+          assert all(set(row) == {'code', 'severity', 'count'} for row in rows)
+          PY

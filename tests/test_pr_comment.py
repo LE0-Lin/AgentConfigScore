@@ -114,3 +114,58 @@ const github = {
                 result = self.run_script(overrides=overrides)
                 self.assertIsNotNone(result["error"])
                 self.assertEqual(result["calls"], [])
+
+    def test_rule_breakdown_is_sorted_and_keeps_review_actionable(self):
+        rows = [{"code": "dead-path", "severity": "warning", "count": 2},
+                {"code": "rm-rf", "severity": "error", "count": 1}]
+        result = self.run_script(overrides={"ACS_NEW_FINDINGS": "3", "ACS_NEW_RULE_COUNTS": json.dumps(rows)})
+        self.assertIsNone(result["error"])
+        body = result["calls"][-1]["body"]
+        self.assertIn("| error | `rm-rf` | 1 |", body)
+        self.assertIn("| warning | `dead-path` | 2 |", body)
+        self.assertLess(body.index("`rm-rf`"), body.index("`dead-path`"))
+        self.assertIn("agent-config-score diff --explain", body)
+        self.assertIn("same baseline", body)
+
+    def test_legacy_action_remains_usable_without_breakdown(self):
+        result = self.run_script()
+        self.assertIsNone(result["error"])
+        self.assertIn("Rule breakdown unavailable", result["calls"][-1]["body"])
+
+    def test_passing_with_new_warnings_still_asks_for_review(self):
+        result = self.run_script(overrides={"ACS_BASE_SCORE": "100", "ACS_HEAD_SCORE": "96", "ACS_DELTA": "-4",
+            "ACS_NEW_ERRORS": "0", "ACS_OUTCOME": "success",
+            "ACS_NEW_RULE_COUNTS": json.dumps([{"code": "dead-path", "severity": "warning", "count": 1}])})
+        self.assertIsNone(result["error"])
+        body = result["calls"][-1]["body"]
+        self.assertIn("**Passed**", body)
+        self.assertIn("gate passed with new findings", body)
+
+    def test_empty_and_large_breakdowns_are_not_misrepresented(self):
+        clean = self.run_script(overrides={"ACS_NEW_FINDINGS": "0", "ACS_NEW_ERRORS": "0", "ACS_NEW_RULE_COUNTS": "[]"})
+        self.assertIn("No new rule matches", clean["calls"][-1]["body"])
+        rows = [{"code": code, "severity": "warning", "count": 1} for code in
+                ("sudo", "dead-path", "chmod-777", "duplication", "high-duplication", "context-large", "context-too-large")]
+        large = self.run_script(overrides={"ACS_NEW_FINDINGS": "7", "ACS_NEW_ERRORS": "0", "ACS_NEW_RULE_COUNTS": json.dumps(rows)})
+        self.assertIsNone(large["error"])
+        body = large["calls"][-1]["body"]
+        self.assertIn("2 additional rule types", body)
+        self.assertEqual(body.count("| warning |"), 5)
+
+    def test_invalid_rule_payloads_stop_before_github_reads_or_writes(self):
+        good = {"code": "rm-rf", "severity": "error", "count": 1}
+        payloads = ("not JSON", "null", "{}", "[]", "x" * 16385,
+            json.dumps([good] * 65), json.dumps([good, good]),
+            json.dumps([{**good, "code": "@someone"}]),
+            json.dumps([{**good, "code": "[link](https://example.invalid)"}]),
+            json.dumps([{**good, "severity": "critical"}]),
+            json.dumps([{**good, "count": True}]), json.dumps([{**good, "count": 1.5}]),
+            json.dumps([{**good, "count": -1}]), json.dumps([{**good, "count": 9007199254740992}]),
+            json.dumps([{**good, "severity": "warning"}]),
+            json.dumps([{**good, "file": "sensitive-file", "message": "must never be rendered"}]))
+        for payload in payloads:
+            with self.subTest(payload=payload[:80]):
+                result = self.run_script(overrides={"ACS_NEW_RULE_COUNTS": payload})
+                self.assertIsNotNone(result["error"])
+                self.assertEqual(result["calls"], [])
+                self.assertNotIn("must never be rendered", result["error"])
