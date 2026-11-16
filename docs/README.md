@@ -46,6 +46,7 @@ Use `agent-config-score rules` for the installed version's actual catalog, and
 
 - [Release acceptance and localization sequence](release-readiness.md)
 - [Maintained benchmarks](../benchmarks/README.md)
+- [Frozen local-link existence pilot and sampling limits](../benchmarks/link-existence-v1/README.md)
 - [AI-comparison protocol and limitations](review-comparison.md)
 - [Unreviewed prospective corpus](../benchmarks/prospective-review-v1/README.md)
 - [Changelog](../CHANGELOG.md), [contribution guide](../CONTRIBUTING.md), and [license](../LICENSE)

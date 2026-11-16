@@ -1,0 +1,39 @@
+name: frozen-link-study
+
+on:
+  push:
+    paths:
+      - 'scripts/*link*study*'
+      - 'benchmarks/link-existence-v1/**'
+      - '.github/workflows/link-study.yml'
+  pull_request:
+    paths:
+      - 'scripts/*link*study*'
+      - 'benchmarks/link-existence-v1/**'
+      - '.github/workflows/link-study.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install only the hash-pinned published study packages
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r scripts/requirements-link-study.txt
+      - name: Verify the independent reference method
+        run: python -m unittest discover -s scripts -p test_link_study.py -v
+      - name: Replay retained sources without network access or upstream execution
+        run: python scripts/run_link_study.py replay --output "$RUNNER_TEMP/link-study.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: frozen-link-study
+          path: ${{ runner.temp }}/link-study.json
+          if-no-files-found: error
+          retention-days: 30

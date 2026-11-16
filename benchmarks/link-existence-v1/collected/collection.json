@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "status": "reference_collected_before_scanner",
+  "collected_at_utc": "2026-11-16T07:31:23.933869+00:00",
+  "protocol_sha256": "3f6c2f6c7e902fa89738d443b0a109d3cf7e229ab51639b1b280ebc3f85736ac",
+  "parser": {
+    "markdown-it-py": "3.0.0",
+    "mdurl": "0.1.2"
+  },
+  "selected_cases": 2,
+  "repositories": [
+    {
+      "repository": "microsoft/TypeScript",
+      "revision": "6bdcb54d23f41bc7098c1f3488ac599c75b852ca",
+      "tree_object_sha": "d7a6ba36baa2450fed6303395837778e84d3a51d",
+      "status": "excluded",
+      "reason": "incomplete_recursive_tree"
+    },
+    {
+      "repository": "eslint/eslint",
+      "revision": "97efadd5eff8e3eb673f8746f7bb3ba2f3941251",
+      "tree_object_sha": "a99ade4af0200076956abe58f86c61fbef46dea0",
+      "selected_documents": [
+        "AGENTS.md"
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "tree_file": "trees/eslint--eslint.json.gz",
+      "tree_sha256": "dd213ea4d6735c5654bc7bd8130b5fbf3a7a4a21daeecc216e72d40ed5b7cc7a",
+      "tree_entries": 2748,
+      "license_file": "licenses/eslint--eslint.txt",
+      "license_sha256": "3b6be04f862a077a4b97929dbf247299360824d9365f8603c263769303ace18c",
+      "license_blob_sha": "b607bb36e96c33fd8ef50897db0336c585b6137a",
+      "license_url": "https://github.com/eslint/eslint/blob/97efadd5eff8e3eb673f8746f7bb3ba2f3941251/LICENSE",
+      "documents": [
+        {
+          "instruction_path": "AGENTS.md",
+          "status": "collected",
+          "source_file": "sources/eslint--eslint-00.txt",
+          "source_sha256": "db64c94ebcd5fca8120c2aad64ce600da6d5886643d885af34052df32cfb3c05",
+          "source_blob_sha": "9d305f00d7f06b0ef4b11e4b7a1da324852a2f75",
+          "source_url": "https://github.com/eslint/eslint/blob/97efadd5eff8e3eb673f8746f7bb3ba2f3941251/AGENTS.md",
+          "candidates": [
+            {
+              "href": "docs/src/contribute/ai-policy.md",
+              "line": 7,
+              "block_end_line": 7,
+              "destination": "docs/src/contribute/ai-policy.md",
+              "resolved_target": "docs/src/contribute/ai-policy.md",
+              "target_exists": true,
+              "source_line": "ESLint's [AI Usage Policy](docs/src/contribute/ai-policy.md) requires that AI-assisted contributions be disclosed. Whenever you (an AI) create content on GitHub for this project, you **must** include a disclosure, using the name of the model actually producing the content (for example, `Claude Opus 5`):",
+              "selected": true,
+              "id": "link-001"
+            }
+          ],
+          "exclusions": []
+        }
+      ]
+    },
+    {
+      "repository": "rust-lang/cargo",
+      "revision": "f93c676e3e7ab1aee08dc95d869700f6b99a1a20",
+      "tree_object_sha": "14d67b19c6e1b77c69b6916c8fc1c25d2bc1a16a",
+      "selected_documents": [],
+      "status": "excluded",
+      "reason": "no_registered_instruction_file"
+    },
+    {
+      "repository": "psf/requests",
+      "revision": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+      "tree_object_sha": "0c8b989695d73c087123936657c0fbfe3034471f",
+      "selected_documents": [],
+      "status": "excluded",
+      "reason": "no_registered_instruction_file"
+    },
+    {
+      "repository": "cli/cli",
+      "revision": "3d5a9e355a837f2f5ee78d7484c118cc1342ad1a",
+      "tree_object_sha": "7c7ef3fae5009b046038f18314c2d7342a03d5d2",
+      "selected_documents": [
+        "AGENTS.md"
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "tree_file": "trees/cli--cli.json.gz",
+      "tree_sha256": "1d1917b390f7b0cb218fa8584dea1f885a70971d710c4a46be6f2213b1535c4e",
+      "tree_entries": 2083,
+      "license_file": "licenses/cli--cli.txt",
+      "license_sha256": "6da4adc42392c8485e40b4251c7e332fc3352df1947c9ffade71dd60b14a7a4f",
+      "license_blob_sha": "b6a58a9572cbd7e4550f8205a9c4fd199cd442f2",
+      "license_url": "https://github.com/cli/cli/blob/3d5a9e355a837f2f5ee78d7484c118cc1342ad1a/LICENSE",
+      "documents": [
+        {
+          "instruction_path": "AGENTS.md",
+          "status": "collected",
+          "source_file": "sources/cli--cli-00.txt",
+          "source_sha256": "179a501db24f15b63384b82433594b666877a6d391bd98efc4bf0cdd5c7b1af3",
+          "source_blob_sha": "beecee95e228dead1bfbf5f4a92a887a6e2761da",
+          "source_url": "https://github.com/cli/cli/blob/3d5a9e355a837f2f5ee78d7484c118cc1342ad1a/AGENTS.md",
+          "candidates": [
+            {
+              "href": ".github/CONTRIBUTING.md",
+              "line": 10,
+              "block_end_line": 10,
+              "destination": ".github/CONTRIBUTING.md",
+              "resolved_target": ".github/CONTRIBUTING.md",
+              "target_exists": true,
+              "source_line": "1. Read [CONTRIBUTING](.github/CONTRIBUTING.md), the canonical contribution policy.",
+              "selected": true,
+              "id": "link-002"
+            }
+          ],
+          "exclusions": [
+            {
+              "href": ".github/SECURITY.md",
+              "line": 37,
+              "block_end_line": 41,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "docs/README.md",
+              "line": 58,
+              "block_end_line": 60,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "docs/command-development.md",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "docs/testing.md",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "docs/api-and-hosts.md",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "acceptance/README.md",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/skills/writing-acceptance-tests/SKILL.md",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "docs/project-layout.md",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/CONTRIBUTING.md#building-the-project",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "go.mod",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/workflows/copilot-setup-steps.yml",
+              "line": 62,
+              "block_end_line": 69,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": "docs/testing.md#local-validation",
+              "line": 80,
+              "block_end_line": 85,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/PULL_REQUEST_TEMPLATE.md",
+              "line": 95,
+              "block_end_line": 99,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/skills/code-review/SKILL.md",
+              "line": 101,
+              "block_end_line": 104,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/skills/ghmock/SKILL.md",
+              "line": 101,
+              "block_end_line": 104,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/skills/tech-debt-burndown/SKILL.md",
+              "line": 101,
+              "block_end_line": 104,
+              "excluded": "multiline_inline_block"
+            },
+            {
+              "href": ".github/skills/vhs-demo/SKILL.md",
+              "line": 101,
+              "block_end_line": 104,
+              "excluded": "multiline_inline_block"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "golang/go",
+      "revision": "3c6d0928959aa02598fa073f2747a1b563d3a852",
+      "tree_object_sha": "859ca91b34e85f21d7b5e2c51dde96071164b087",
+      "selected_documents": [
+        "src/simd/AGENTS.md",
+        "src/simd/internal/spec/AGENTS.md"
+      ],
+      "license_spdx": "NOASSERTION",
+      "status": "excluded",
+      "reason": "license_outside_allowlist"
+    },
+    {
+      "repository": "neovim/neovim",
+      "revision": "f1d176d1ab6ef728996e6de75135b067465b8ece",
+      "tree_object_sha": "5b0a9f49b96b211aeaa2f5f0e0b72ee4a2992b42",
+      "selected_documents": [
+        "AGENTS.md"
+      ],
+      "license_spdx": "NOASSERTION",
+      "status": "excluded",
+      "reason": "license_outside_allowlist"
+    },
+    {
+      "repository": "rails/rails",
+      "revision": "23cac06228d12c229c20288fe311a3b2d4321f80",
+      "tree_object_sha": "f2be11695d6cad2d809beba62c25eaaee43841de",
+      "selected_documents": [
+        "AGENTS.md"
+      ],
+      "license_spdx": "MIT",
+      "status": "collected",
+      "tree_file": "trees/rails--rails.json.gz",
+      "tree_sha256": "58f9e5aa57b66194ee1235ca1a8e311aed9a3608ce2031c61f8ff64953887d99",
+      "tree_entries": 6148,
+      "license_file": "licenses/rails--rails.txt",
+      "license_sha256": "717ba1949502290f8e47688ae2e323acd06c8ca47aec9f7596b15f678c1af4a2",
+      "license_blob_sha": "f12cfa766c55541c9d8e008e310c95a721e70a97",
+      "license_url": "https://github.com/rails/rails/blob/23cac06228d12c229c20288fe311a3b2d4321f80/MIT-LICENSE",
+      "documents": [
+        {
+          "instruction_path": "AGENTS.md",
+          "status": "collected",
+          "source_file": "sources/rails--rails-00.txt",
+          "source_sha256": "5be0ca7612ee8198e6c73a01fe47a1f42d1c0ec463d5d8b4e8e7597df8bb1586",
+          "source_blob_sha": "6fb1d5c1ff9b0347dc66c74442af89a9c4fbad1f",
+          "source_url": "https://github.com/rails/rails/blob/23cac06228d12c229c20288fe311a3b2d4321f80/AGENTS.md",
+          "candidates": [],
+          "exclusions": []
+        }
+      ]
+    }
+  ]
+}
