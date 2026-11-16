@@ -28,7 +28,7 @@ to a reviewed commit. Do not install multiple copies of this workflow.
 
 ## How the comment behaves
 
-**Unreleased enhancement:** the updated Action exports `new-rule-counts`, and
+**v0.27.0+ enhancement:** the updated Action exports `new-rule-counts`, and
 the updated recipe shows newly introduced rule IDs, severities and counts.
 Errors appear before warnings/info; at most five rule types are displayed,
 with an explicit remaining-types count and a link to the complete report.
@@ -40,7 +40,7 @@ The new recipe works with older Action revisions: if the output is unavailable,
 the comment retains the numeric summary and says the breakdown is unavailable.
 An explicit `[]` means zero new rule matches; missing output does not mean zero.
 Upgrade/review the Action reference and generated workflow independently. These
-enhancements are not in the published v0.26.2 Action or CLI-generated recipe.
+enhancements require v0.27.0+ for both the Action and CLI-generated recipe.
 
 - The first completed scan creates a comment. Reruns update the same comment.
 - The lookup paginates, so long PR conversations do not hide the existing comment.
@@ -62,7 +62,7 @@ Do not switch this recipe to `pull_request_target` to enable comments on forks.
 The recipe checks out the candidate repository, and that event has different
 privileges. It would require a separately designed workflow.
 
-The comment script uses validated numeric outputs and, in unreleased source,
+The comment script uses validated numeric outputs and, from v0.27.0,
 bounded rule IDs/severities/counts rather than instruction text,
 filenames, suppression reasons, or PR titles. See the
 [GitHub script documentation](https://github.com/actions/github-script#passing-inputs-to-the-script)

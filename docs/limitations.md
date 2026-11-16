@@ -162,13 +162,13 @@ sentences or lines, inspect actual test execution, or judge arbitrary workflow
 intent. Other harmful prose can still pass. See the [supported grammar and
 negative controls](verification-reporting.md).
 
-Unreleased source additionally recognizes finite Simplified/Traditional Chinese
+v0.27.0+ additionally recognizes finite Simplified/Traditional Chinese
 false-passing claims and explicit [deletion approval bypass](deletion-approval-bypass.md)
 directives in English and Chinese. The former requires explicit failed/unrun
 tests and a passing claim; the latter requires a destructive target and an
 attached approval exemption. Neither infers missing rules from silence or
 generalizes to arbitrary prose, language variants, live authorization or runtime
-behavior. These additions are not present in published v0.26.2.
+behavior. These additions require v0.27.0+.
 
 ## Bulk environment transfers
 
@@ -191,12 +191,12 @@ anchor-only links, fenced examples, absolute paths, and paths escaping the
 repository are skipped. Nested parentheses in inline link destinations are not
 currently parsed. This is a limited link check, not a full Markdown validator.
 
-Unreleased source also excludes inline-link syntax inside matched backtick code
+v0.27.0+ also excludes inline-link syntax inside matched backtick code
 spans, including multiline spans, and links with an escaped opening bracket.
 Real links next to code and links containing code only in their labels stay
 active. An unclosed backtick does not turn the rest of the document into an
 example. These exclusions do not apply to ordinary backtick path literals or
-independent command/credential rules. This correction is not in PyPI v0.26.2.
+independent command/credential rules. This correction requires v0.27.0+.
 
 v0.25.0+ builds additionally check simple full `[Guide][setup]` and
 collapsed `[setup][]` reference links, including images, when a matching

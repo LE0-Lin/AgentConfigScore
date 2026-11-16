@@ -35,7 +35,7 @@ read the result, and troubleshoot a failing gate.
 - [Path-reference grammar and limits](limitations.md#plain-prose-path-references)
 - [Instruction context and prohibition scopes](instruction-context.md)
 - [False success-reporting checks](verification-reporting.md)
-- [Explicit destructive-action approval bypass](deletion-approval-bypass.md) (unreleased source)
+- [Explicit destructive-action approval bypass](deletion-approval-bypass.md) (v0.27.0+)
 - [Bulk environment-transfer checks](environment-upload.md)
 
 Use `agent-config-score rules` for the installed version's actual catalog, and

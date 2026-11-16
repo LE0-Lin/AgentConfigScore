@@ -15,11 +15,11 @@ and maintainer-confirmed effectiveness remain unverified.
 
 ## How to use this evidence
 
-Unreleased maintenance strengthens two of these interfaces: Markdown link syntax
+v0.27.0 strengthens two of these interfaces: Markdown link syntax
 inside matched inline code is no longer treated as a live reference, and the
 optional PR comment adds a validated per-rule breakdown plus recheck commands.
 The [comment preview and compatibility guide](pr-comments.md) distinguish these
-source changes from the released v0.26.2 behavior. Neither change establishes
+changes from the older v0.26.2 behavior. Neither change establishes
 adoption by Jason or expands prompt-injection detection into a general defense.
 
 The defensible project story is a concrete feedback loop: a public maintainer
