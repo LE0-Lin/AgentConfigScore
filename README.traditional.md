@@ -1,7 +1,5 @@
 # AgentConfigScore
 
-[真實文件案例](docs/path-case-study.md)：產生檔案誤報的修復、目錄檢查的新增涵蓋，以及真實文件重跑如何攔下一次新誤報。新路徑邏輯已納入 v0.26.2，報告保留修復前後的證據。
-
 [English](README.md) | [简体中文](README.simplified.md) | 繁體中文
 
 <!-- acs-safety-overview:start -->
@@ -39,7 +37,7 @@ AgentConfigScore 檢查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini �
 
 ![工作流程圖，展示儲存庫初始化、基準回歸檢查與報告保存](https://raw.githubusercontent.com/LE0-Lin/AgentConfigScore/main/assets/agent-config-score-workflow.svg?v=0.24.0)
 
-它是確定性的檢查工具，不是 AI 評審。**A 100 只表示沒有命中生效的規則，不代表指令實用、語意完美或完全安全。** 提供中文文件也不表示檢查工具已經能理解任意中文指令。
+它是確定性靜態檢查器，不是 AI 評審。**A 100 只表示沒有命中生效規則，不代表指令有用或絕對安全**（中文文件也不代表規則能理解任意中文語意）。另見[真實文件路徑案例（英文）](docs/path-case-study.md)。
 
 <!-- acs-challenge-review:start -->
 <a id="safety-review-evidence"></a>
