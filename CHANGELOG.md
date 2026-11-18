@@ -10,6 +10,9 @@
   defensive refusals, untrusted-data handling rules, and labeled examples
   (English and Simplified/Traditional Chinese) that quote an override phrase
   without exception words, double negatives, or trailing active directives.
+- Support single-quoted and parenthesized CommonMark titles on inline Markdown
+  links consistently with reference-link definitions, including escaped/in-code
+  link examples.
 
 ## v0.27.0
 

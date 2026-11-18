@@ -1095,7 +1095,10 @@ def _looks_like_repository_path(value: str, *, quoted_directory: bool = False) -
     return False
 
 
-MARKDOWN_LINK = re.compile(r'!?\[[^\]\n]*\]\(\s*(?:<([^>\n]+)>|([^\s()]+))(?:\s+"[^"\n]*")?\s*\)')
+MARKDOWN_LINK = re.compile(
+    r'''!?\[[^\]\n]*\]\(\s*(?:<([^>\n]+)>|([^\s()]+))'''
+    r'''(?:\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\s*\)'''
+)
 MARKDOWN_REFERENCE = re.compile(r'!?\[([^\[\]\n]{0,999})\]\[([^\[\]\n]{0,999})\]')
 REFERENCE_HEADER = re.compile(r' {0,3}\[([^\[\]\\\n]{1,999})\]:')
 REFERENCE_DEFINITION = re.compile(

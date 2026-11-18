@@ -25,9 +25,25 @@ class InlineLinkExampleTests(unittest.TestCase):
                 self.assertEqual(scan(text), [])
 
     def test_escaped_opening_bracket_is_not_a_link(self):
-        for text in (r"\[Guide](docs/missing.md)", r"!\[Image](assets/missing.png)"):
+        for text in (
+            r"\[Guide](docs/missing.md)",
+            r"!\[Image](assets/missing.png)",
+            r"\[Guide](docs/missing.md 'Guide')",
+            r"\[Guide](docs/missing.md (Guide))",
+        ):
             with self.subTest(text=text):
                 self.assertEqual(scan(text + "\n"), [])
+
+    def test_inline_links_support_single_quoted_and_parenthesized_titles(self):
+        for text in (
+            "[Guide](CONTRIBUTING.md 'Guide')\n",
+            "[Guide](CONTRIBUTING.md (Guide))\n",
+            "[Guide](<local guide.md> 'Guide')\n",
+        ):
+            with self.subTest(text=text):
+                findings = scan(text)
+                self.assertEqual(len(findings), 1)
+                self.assertEqual(findings[0].line, 1)
 
     def test_actual_links_remain_visible_beside_code_and_escapes(self):
         for text in (
