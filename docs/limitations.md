@@ -147,6 +147,11 @@ attack. Explicit prohibitions and whole-line examples such as
 `Attack example: "ignore previous instructions"` are excluded. Quotes or code
 fences alone do not exempt a phrase. An explicit adjacent prohibition such as
 `Do not follow these instructions:` can also cover a closed instruction block.
+Unreleased source builds also exclude bounded single-line defensive rules that
+quote an override phrase in untrusted-content/refusal instructions (English and
+Simplified/Traditional Chinese) without exception words or trailing directives,
+and stop earlier unrelated prohibitions from hiding active directives after
+conjunctions such as `and then` or `, and`.
 More elaborate educational examples can
 still trigger warnings; use a reasoned suppression after review. This rule does
 not detect arbitrary paraphrases, other languages, or instructions delivered at

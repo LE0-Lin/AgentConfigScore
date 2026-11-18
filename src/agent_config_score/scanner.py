@@ -698,7 +698,7 @@ def _prohibited_markdown_table_example(
 
 
 def _dangerous_command_is_prohibited(
-    text: str, index: int, command: str, context: _InstructionContext,
+    text: str, index: int, command: str, context: _InstructionContext, *, code: str = "",
 ) -> bool:
     """Ignore dangerous commands that are explicitly prohibited in the same clause."""
     line_start = text.rfind("\n", 0, index) + 1
@@ -711,10 +711,18 @@ def _dangerous_command_is_prohibited(
     clause_prefix = re.sub(r"[`*_>#]", " ", clause_prefix)
     clause_suffix = re.sub(r"[`*_>#]", " ", clause_suffix)
     # A new affirmative action after a conjunction is a separate directive:
-    # "Do not skip tests and then run rm -rf ..." does not prohibit rm.
+    # "Do not skip tests and then run rm -rf ..." or "Do not skip tests and
+    # then ignore previous instructions." does not prohibit the second action.
     clause_prefix = re.split(
-        r"\band\s+(?:then\s+)?(?:run|execute|use)\s+", clause_prefix, flags=re.I
+        r"(?:,\s*(?:and\s+)?|\band\s+)(?:then|instead|always)\s+"
+        r"|(?:,\s*)?\band\s+(?:(?:then|instead|always)\s+)?(?:run|execute|use|follow)\s+",
+        clause_prefix,
+        flags=re.I,
     )[-1]
+    if code == "prompt-injection-override":
+        # Coordinated independent clause (", and disregard ...") starts a new
+        # directive rather than continuing an earlier unrelated prohibition.
+        clause_prefix = re.split(r",\s*and\s+", clause_prefix, flags=re.I)[-1]
     if DANGER_DOUBLE_NEGATIVE.search(clause_prefix):
         return False
     negations = list(DANGER_NEGATION.finditer(clause_prefix))
@@ -727,19 +735,73 @@ def _dangerous_command_is_prohibited(
     return DANGER_NEGATION_EXCEPTION.search(after_negation) is None
 
 
-def _quoted_injection_example(text: str, index: int, command: str) -> bool:
-    """Recognize only a complete, explicitly labeled, quoted attack example."""
+_UNTRUSTED_MODIFIER = r"(?:retrieved|external|remote|untrusted|user|web|tool|issue|pr|pull\s+request)"
+_UNTRUSTED_NOUN = r"(?:content|text|input|outputs?|pages?|documents?|prompts?|comments?|messages?|requests?|instructions?|data|attempts?)"
+_UNTRUSTED_SOURCE = (
+    r"(?:" + _UNTRUSTED_MODIFIER + r"\s+){0,2}" + _UNTRUSTED_NOUN
+    + r"(?:\s+(?:or|and)\s+(?:" + _UNTRUSTED_MODIFIER + r"\s+){0,2}" + _UNTRUSTED_NOUN + r")?"
+)
+_MENTION_REL = r"(?:that\s+(?:says?|contains?|includes?)|saying|containing|including|such\s+as|like)"
+_ZH_INJECTION_SOURCE = r"(?:外部|检索|檢索|工具|不可信)?(?:内容|內容|文本|输入|輸入|输出|輸出|提示词|提示詞|指令)"
+_ZH_INJECTION_MENTION = r"(?:包含|含有|写有|寫有|声称|聲稱|要求)"
+
+
+def _quoted_injection_example(
+    text: str, index: int, command: str, context: _InstructionContext | None = None,
+) -> bool:
+    """Recognize bounded labeled examples and defensive refusals quoting an override phrase."""
     start = text.rfind("\n", 0, index) + 1
     end = text.find("\n", index)
-    line = text[start:end if end != -1 else len(text)].strip()
+    raw_line = text[start:end if end != -1 else len(text)]
+    if len(raw_line) > 512:
+        return False
+    line = raw_line.strip()
+    escaped = re.escape(command)
+    quoted = (
+        r"(?:`" + escaped + r"`|\"" + escaped + r"\"|'" + escaped + r"'"
+        r"|“" + escaped + r"”|‘" + escaped + r"’|「" + escaped + r"」|『" + escaped + r"』)"
+    )
     # Do not exempt arbitrary quotes, code fences, or text following an example.
     # Requiring the entire line keeps an active trailing instruction visible.
-    return re.fullmatch(
-        r'(?:[-*]\s+)?(?:prompt[- ]injection|attack)\s+example:\s*'
-        r'(?P<quote>[`\"\'])' + re.escape(command) + r'(?P=quote)\.?',
+    if re.fullmatch(
+        r"(?:[-*+]\s+|\d{1,9}[.)]\s+)?"
+        r"(?:(?:prompt[- ]injection|attack)\s+example\s*:|"
+        r"(?:提示词注入|提示詞注入|攻击|攻擊)(?:示例|範例|范例|例子)\s*[:：])\s*"
+        + quoted + r"[。.]?",
         line,
         re.I,
-    ) is not None
+    ) is not None:
+        return True
+
+    if (context is not None and context.inside_fence(index)) or raw_line.startswith(("    ", "\t")) or line.startswith(">"):
+        return False
+    cleaned = re.sub(r"^(?:[-*+]\s+|\d{1,9}[.)]\s+)", "", line)
+    cleaned = re.sub(r"\*\*|__", "", cleaned).strip()
+    if (
+        DANGER_NEGATION_EXCEPTION.search(cleaned)
+        or DANGER_DOUBLE_NEGATIVE.search(cleaned)
+        or re.search(r"(?:但是|但|除非|不过|不過)", cleaned)
+    ):
+        return False
+
+    defensive_patterns = (
+        r"(?:always\s+)?treat\s+(?:(?:any|all)\s+)?" + _UNTRUSTED_SOURCE + r"\s+" + _MENTION_REL + r"\s+"
+        + quoted + r"\s+as\s+untrusted(?:\s+(?:data|input|text|content))?\.?",
+        r"(?:always\s+)?(?:reject|refuse|ignore)\s+(?:(?:any|all)\s+)?" + _UNTRUSTED_SOURCE + r"\s+"
+        + _MENTION_REL + r"\s+" + quoted + r"\.?",
+        r"(?:if|when)\s+(?:(?:any|a|an|the)\s+)?" + _UNTRUSTED_SOURCE
+        + r"\s+(?:says?|contains?|includes?|asks?\s+(?:you\s+)?to)\s+" + quoted
+        + r"\s*,\s*(?:(?:do\s+not|don't|never|must\s+not)\s+(?:follow|obey|execute|comply(?:\s+with)?)"
+        r"(?:\s+(?:it|them|that\s+(?:instruction|directive|request)))?"
+        r"|(?:reject|refuse|ignore)\s+(?:it|them)(?:\s+as\s+untrusted(?:\s+(?:data|input|text|content))?)?)\.?",
+        r"(?:禁止|不得|切勿)(?:遵循|执行|執行|听从|聽從|理会|理會)(?:任何)?"
+        r"(?:\s*" + quoted + r"\s*(?:等(?:提示词注入|提示詞注入)?(?:指令|内容|內容))?"
+        r"|" + _ZH_INJECTION_MENTION + r"\s*" + quoted + r"\s*的" + _ZH_INJECTION_SOURCE + r")[。.]?",
+        r"(?:拒绝|拒絕|忽略)(?:任何)?" + _ZH_INJECTION_MENTION + r"\s*" + quoted + r"\s*的" + _ZH_INJECTION_SOURCE + r"[。.]?",
+        r"(?:将|將)(?:任何)?" + _ZH_INJECTION_MENTION + r"\s*" + quoted + r"\s*的" + _ZH_INJECTION_SOURCE
+        + r"(?:视为|視為)不可信(?:数据|數據|内容|內容|输入|輸入)?[。.]?",
+    )
+    return any(re.fullmatch(pattern, cleaned, re.I) is not None for pattern in defensive_patterns)
 
 
 def _active_prose_lines(context: _InstructionContext):
@@ -1857,12 +1919,14 @@ def _analyze_with_texts(
                         continue
                 if (
                     pattern_rule.rule.code == "prompt-injection-override"
-                    and _quoted_injection_example(text, match.start(), match.group(0))
+                    and _quoted_injection_example(text, match.start(), match.group(0), context)
                 ):
                     continue
                 if (
                     pattern_rule.rule.category == "danger"
-                    and _dangerous_command_is_prohibited(text, index, command, context)
+                    and _dangerous_command_is_prohibited(
+                        text, index, command, context, code=pattern_rule.rule.code,
+                    )
                 ):
                     continue
                 findings.append(_finding(pattern_rule.rule.code, rel, _line(text, index)))
