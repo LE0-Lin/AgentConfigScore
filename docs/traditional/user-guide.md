@@ -2,13 +2,13 @@
 
 [English](../user-guide.md) | [简体中文](../simplified/user-guide.md) | 繁體中文 · [專案首頁](../../README.traditional.md)
 
-AgentConfigScore 是在本機執行、結果確定的開發助手指令檢查工具與 PR 回歸檢查。它不呼叫 AI 服務，也不執行指令檔內的命令。100 分不代表指令實用、始終安全或優於 AI 審查。
+AgentConfigScore 是在本機執行的確定性程式開發助手指令檢查器與 PR 回歸門禁。它不呼叫 AI 服務，不執行指令檔內的命令，也不是檔案系統沙箱。100 分只表示沒有命中生效規則，不代表指令完整或絕對安全。
 
-[可執行的設計示範（英文）](../../examples/regression-lab/README.md) 展示僅看分數變化與採用基準新錯誤檢查的差異。正常通過的對照及明確呼叫端覆寫都是合成開發範例，不是真實使用者案例或 AI 對照評測；示範腳本需要原始碼儲存庫。
+若想直觀對比「只看分數變化」與「基準新錯誤門禁」的差異，可在原始碼儲存庫中執行[回歸設計示範（英文）](../../examples/regression-lab/README.md)。
 
-## 1. 安裝並確認版本
+## 1. 安裝
 
-需要 Python 3.10+。`diff` 需要 Git；一般目錄掃描和兩個目錄之間的 `compare` 不需要 Git。
+需要 Python 3.10+。`diff` 還需要 Git；一般目錄掃描和 `compare` 不需要 Git。
 
 ```bash
 python -m pip install agent-config-score
@@ -16,9 +16,9 @@ agent-config-score --version
 agent-config-score --help
 ```
 
-`acs` 是較短的命令別名。v0.23.0+ 支援相同功能的 `python -m agent_config_score`，不依賴主命令的 PATH 設定。舊版本沒有此模組入口。請查看[已發布版本](https://github.com/LE0-Lin/AgentConfigScore/releases)，不要假設 `main` 的改動已經出現在 PyPI 或滾動 `v0` 參照。
+也可以使用短別名 `acs`，或在 `PATH` 未設定時直接執行 `python -m agent_config_score`。PyPI 與 `main` 分支的差異請以[已發布版本](https://github.com/LE0-Lin/AgentConfigScore/releases)為準。
 
-## 2. 在自己的儲存庫初始化
+## 2. 初始化儲存庫
 
 ```bash
 agent-config-score init --dry-run
@@ -26,17 +26,15 @@ agent-config-score init
 agent-config-score doctor
 ```
 
-`init` 建立 `.agentconfigscore.json` 和 `.github/workflows/agent-config-score.yml`，不建立或改寫指令檔。既有衝突檔案預設不覆寫；使用 `--force` 前請先檢查。若內容與產生的設定相同，重複初始化不會改動檔案。
+`init` 會建立 `.agentconfigscore.json` 與 `.github/workflows/agent-config-score.yml`，不會改動你的指令檔。既有衝突檔案預設不覆寫（須明確加 `--force`），內容一致時重複執行不會修改檔案。審閱後提交產生的檔案即可；若只需要本機檢查，使用 `init --no-workflow`。
 
-審閱後提交產生的設定與工作流程。只想在本機使用時選 `init --no-workflow`；缺少標準工作流程只會成為 doctor 的提示性警告，不是錯誤。
+設定注意事項：
 
-v0.25.0+拒絕設定中重複的欄位名稱（包括巢狀物件及跳脫拼寫）、`NaN`/`Infinity` 常數與布林型別的格式 `version`，不會悄悄採用覆蓋後的值。請審閱並為每個欄位保留一個值。掃描、`feedback`、`diff` 與 `compare` 返回 `2` 且不產生成功報告；doctor 提供 `config` 錯誤並返回 `1`。命令列門檻覆寫不能略過設定驗證；缺少設定時的預設行為不變。這些變更從 v0.25.0 起可用。[設定解析細節（英文）](../doctor.md#configuration-decoding)。
+- `.agentconfigscore.json` 必須是嚴格有效的 JSON（不允許重複鍵名、`NaN`/`Infinity` 或布林型別 `version`），且必須解析為儲存庫根目錄內的一般檔案。檔案缺失時回退到預設值；損壞、失效連結或越界設定會直接回傳退出碼 `2`（`doctor` 回傳 `1`）。
+- 詳見[設定解析與邊界（英文）](../doctor.md#configuration-decoding)。
+- 若 `doctor` 未找到支援的指令檔，可依儲存庫實際情況撰寫，或參考[範本（英文）](../../examples/README.md)與[掃描範圍（英文）](../../README.md#what-it-scans)。
 
-v0.25.0+ 設定來源檢查也要求 `.agentconfigscore.json` 解析為選定儲存庫根目錄內的一般檔案。只有目錄項目不存在時才使用預設值；失效、越界、循環或無法讀取的來源均報錯。儲存庫內的檔案連結與使用者明確指定的根目錄別名仍受支援。共享設定宜使用指向已追蹤檔案的相對連結，確保每個 Git 基準都有自己的儲存庫內目標。檢查期間保持目錄穩定；這不是原子檔案系統沙箱。無效連結須明確修復，不要刪除連結來繞過策略。[設定邊界與遷移（英文）](../doctor.md#configuration-file-boundary)。升級時請分別審閱所選套件與 Action 版本。
-
-若沒有找到支援的指令檔，請撰寫符合儲存庫實際需求的指令，或使用[範本（英文）](../../examples/README.md)。不要只為提高分數添加詞句。[完整探索範圍（英文）](../../README.md#what-it-scans)。
-
-## 3. 檢查目前目錄
+## 3. 本機掃描
 
 ```bash
 agent-config-score .
@@ -44,13 +42,13 @@ agent-config-score rules
 agent-config-score rules curl-pipe-shell
 ```
 
-一般掃描預設回報結果，不會只因有發現就自動阻擋後續操作。需要絕對分數門檻時，在策略中設定 `fail_under` 或明確傳入：
+一般掃描預設只輸出發現項目並回傳 `0`。如需絕對分數門檻，可在 `.agentconfigscore.json` 中設定 `fail_under` 或透過命令列傳入：
 
 ```bash
 agent-config-score . --fail-under 90
 ```
 
-儲存庫不必先達到 90 分才能導入回歸檢查。請依規則、位置與上下文審閱結果，不要把分數當成整體品質排名。
+不必先把儲存庫做到 90 分再導入 PR 回歸門禁。請結合規則 ID、位置與上下文檢視結果，不要把分數當成整體品質排名。
 
 ## 4. 推送前檢查改動
 
@@ -58,40 +56,33 @@ agent-config-score . --fail-under 90
 agent-config-score diff
 ```
 
-包含尚未提交的工作目錄改動。盡可能使用本機已存在的安全預設分支基準，不會自動 fetch。也能明確指定：
+`diff` 會把目前工作目錄（含未提交改動）與本機既有的預設分支對比，不會自動 `git fetch`。也可明確指定基準參照：
 
 ```bash
 agent-config-score diff origin/main
 ```
 
-如果參照不存在，請自行取得該分支。應選專案真正的預設分支，而不是已經包含改動的功能分支。淺層複製需要足夠的歷史；產生的 Actions 工作流程使用 `fetch-depth: 0`。
-
-沒有 Git 時，可以比較兩個已存在的目錄：
+淺層複製請先拉取足夠歷史（產生的 GitHub Actions 工作流程預設使用 `fetch-depth: 0`）。沒有 Git 時可直接對比兩個目錄：
 
 ```bash
 agent-config-score compare ../repo-base . --max-drop 0 --fail-on-new-errors
 ```
 
-兩側都套用基準策略與排除設定。候選改動不能藉由增加自己的降分預算或排除新錯誤來核准自身；受信任呼叫端若要覆寫命令列設定，必須明確傳入。
+兩側統一套用**基準**的策略與排除設定，因此候選 PR 無法靠調低自身門檻或替自己加例外來放行。搬移指令檔只有在「同目錄、一對一、原文完全一致、目標為新增支援檔案」時才不會觸發 `instruction-file-removed`（詳見[回歸涵蓋範圍（英文）](../regression-coverage.md)）。
 
-v0.24.0+ 僅豁免同一目錄內、一對一配對、文字完全相同且目標為新增檔案的搬移；既有副本或把根目錄規則搬入子目錄不能掩蓋刪除。比較重用掃描時讀取的文字，不再重新開啟指令檔；請保持兩側目錄穩定，編輯後重新檢查。[回歸涵蓋範圍（英文）](../regression-coverage.md)。兩邊都是 `100` 分仍可能有回歸專用錯誤；上述範例啟用了新錯誤阻擋，沒有策略的裸 CLI 預設仍只檢查降分。
+## 5. 退出碼與處理方式
 
-## 5. 理解失敗並處理
+- **回傳 `1`（`diff` / `compare`）**：未通過回歸門禁。修正指令改動；若確認屬於合理例外，則在基準設定中加入附規則 ID、原因與到期日的排除項目（[可稽核例外（英文）](../../README.md#auditable-exceptions)）。
+- **回傳 `2`**：執行失敗（設定錯誤、Git 參照缺失、檔案無法讀取、報告無法寫入等）。**切勿把退出碼 `2` 當成通過。**
 
-- `diff` / `compare` 返回 `1`：設定的回歸檢查未通過。檢查新增發現與允許的降分幅度，處理實際指令問題。
-- 疑似誤報仍須審閱。接受的例外可以使用經基準審查的排除設定，指定穩定規則 ID、原因與到期日；結果仍保留稽核紀錄。[例外細節（英文）](../../README.md#auditable-exceptions)。
-- 返回 `2`：檢查無法完成，例如設定無效、Git 參照不存在或報告無法寫入。**這不是乾淨的結果**，不能因為沒有 JSON 就核准改動。
-
-| 命令 | 返回 0 | 返回 1 | 返回 2 |
+| 命令 | 回傳 0 | 回傳 1 | 回傳 2 |
 |---|---|---|---|
-| 掃描（`agent-config-score .`） | 掃描完成，符合選用門檻 | 低於設定的分數門檻 | 輸入無效或操作錯誤 |
-| `diff`、`compare` | 基準策略通過 | 新錯誤或降分檢查未通過 | 無法完成比較 |
-| `doctor` | 無錯誤項目，可能有警告 | 有錯誤檢查項目 | 參數或呼叫錯誤 |
-| `scope` | 建議性分析完成，可包含未知 | 不使用 | 輸入無效或讀取失敗 |
-| `scope compare`、`scope diff`、`scope coverage` | 分析完成或已啟用檢查通過 | 已啟用的遺失／未知審閱檢查觸發 | 輸入、讀取或資源限制錯誤 |
-| 其他命令 | 要求的操作完成 | 不是 lint 門檻檢查 | 輸入無效或操作錯誤 |
-
-非預期的程式錯誤不會被通用例外處理隱藏。分享堆疊資訊前請移除私人內容；回歸測試通過不保證程式沒有 bug。
+| 掃描（`agent-config-score .`） | 掃描完成，符合選用門檻 | 低於設定的分數門檻 | 輸入無效或執行失敗 |
+| `diff`、`compare` | 基準策略通過 | 新錯誤或降分門禁未通過 | 無法完成比較 |
+| `doctor` | 無錯誤項目（允許警告） | 存在錯誤項目 | 參數或呼叫錯誤 |
+| `scope` | 建議性分析完成 | 不使用 | 輸入無效或讀取失敗 |
+| `scope compare`、`scope diff`、`scope coverage` | 分析完成或已啟用門禁通過 | 已啟用的遺失／未知門禁觸發 | 輸入、讀取或限額錯誤 |
+| 其他命令 | 操作完成 | 不使用 | 輸入無效或執行失敗 |
 
 ## 6. 在本機儲存報告
 
@@ -101,60 +92,48 @@ agent-config-score . --html .agent-config-score/report.html --badge .agent-confi
 agent-config-score diff --markdown .agent-config-score/regression.md
 ```
 
-不要將報告放在會被視為指令檔掃描的位置。JSON、HTML、SARIF 與回歸報告可能包含儲存庫路徑和檢查資訊，分享前請先檢查。輸出路徑不要選擇原始碼或策略檔案，以免覆寫。多份報告寫入不是交易：後一份寫入失敗時，前一份可能已經產生。
+請把報告寫到不會被視為指令檔掃描的位置。JSON、HTML、SARIF 與 Markdown 報告可能包含儲存庫路徑與發現訊息，對外分享前請先檢查。每份報告都會記錄工具版本與原始碼 SHA-256 指紋（[報告身分（英文）](../report-identity.md)）。
 
-v0.24.0+ 也會在 JSON、HTML、SARIF 與新的歷史快照中保留宣告版本及盡力讀取的工具原始碼 SHA-256；`compare` / `diff` JSON 分別保留兩次掃描的身分。它用來區分同版本號的不同實作，本身不證明準確率或可重現性。工具原始碼缺失時指紋不可用，但不使掃描失效。涵蓋範圍、相容性及環境／輸入限制見[報告身分說明（英文）](../report-identity.md)；不會為舊報告補標新的身分。
+本機歷史索引損壞時，`history` 會直接回傳 `2` 而不會悄悄重設資料（[本機歷史與復原（英文）](../score-history-cli.md)）。
 
-本機快照方面，v0.25.0+會區分歷史不存在和歷史損壞／無法讀取。歷史索引無效時，`history` 返回 `2` 且沒有成功輸出；Python 附加介面不會將它重設。請先備份並修復索引。舊版部分欄位記錄仍可讀取，缺失分數表示未知，不是零分。介面採用完整檔案替換，但要求呼叫端循序寫入，不提供並行交易；一般掃描不會自動附加本機歷史。[本機歷史與復原說明（英文）](../score-history-cli.md)。這些變更從 v0.25.0 起可用，也不修改不可變的 CI 成品。
-
-需要盡量減少私人資訊的草稿時：
+如需產生隱私最小化的問題草稿（不會自動上傳）：
 
 ```bash
 agent-config-score feedback . --output .agent-config-score/case.md
 ```
 
-不會上傳任何內容。請自行審閱並移除敏感資訊後再分享。
-
-## 選用：檢查刪除保護缺項（v0.24.0+）
+## 選用：刪除保護檢查
 
 ```bash
 agent-config-score guardrails . --file AGENTS.md
 agent-config-score guardrails . --file AGENTS.md --template-language simplified --json
 ```
 
-此獨立命令僅提供選定檔案的不計分建議。「未識別到保護」表示需要審閱，不等於不安全。預設預覽不改檔案；審閱完整策略脈絡及補全文字後，使用列出的確切確認值，以同一命令加上 `--apply TOKEN` 追加。輸入改變須重新預覽；有歧義的標記與檔案別名需手動合併。英文、簡體及繁體補全文字不改變 CLI 介面語言。[語法、範圍、隱私及非原子／部分寫入限制（英文）](../guardrail-suggestions.md)。既有評分與 CI 預設行為不變。
+`guardrails` 只檢查單一指定檔案是否包含刪除確認保護語句，不計分，也不會觸發全儲存庫掃描。預設僅預覽建議文字；確認無誤後用輸出的 `--apply TOKEN` 追加（權杖與目前檔案內容綁定）。範例章節、HTML 標記或衝突的繞過語句需要手動合併，詳見[刪除保護建議（英文）](../guardrail-suggestions.md)。
 
-明確標示的範例章節不算有效策略；如果該章節延續到檔案末尾，就不能自動追加。少數明確要求略過刪除確認的句式會產生只含行號與類型的 `review_signals`，即使其他位置已識別到保護，也不能自動追加。請先手動處理這些策略；這不是通用的矛盾偵測器。
-
-v0.25.0+ 可直接選擇 `--file`，不先遍歷整個儲存庫，因此無關指令檔的失效連結不會阻止這次單檔審閱。相關排除規則及所選路徑的祖先目錄檢查仍生效；目錄別名或大小寫有歧義的目錄須手動整合。其他檔案不會因此被驗證或修復，一般掃描／doctor 的失敗仍須另行處理；追加成功不代表整個儲存庫已完整掃描或安全。此範圍修正從 v0.25.0 起可用。
-
-## 選用：Cursor 檔案上下文分析（v0.25.0+）
+## 選用：Cursor 檔案上下文與覆蓋檢查
 
 ```bash
 agent-config-score scope . --target src/web/app.ts
 agent-config-score scope . --target src/web/app.ts --target src/api/service.py --json
 ```
 
-v0.25.0+ 可根據你宣告在上下文中的邏輯檔案路徑，預測根目錄 `.cursor/rules/` 專案規則的自動載入條件。不會檢查目標檔案是否存在。手動引用、模型選擇和不支援的中繼資料保留為未知；inactive 僅表示這些路徑未觸發規則，不代表實際未載入。多個檔案可以觸發不同 glob 的規則共同載入。
+`scope` 根據宣告的目標路徑靜態預測根目錄 `.cursor/rules/` 的自動載入情況（不計分，手動／模型選擇規則保持 `unknown`，詳見[模型與限制（英文）](../cursor-scope.md)與[執行範例（英文）](../../examples/cursor-scope/README.md)）。
 
-這是帶來源行號、不計分的審閱建議，不是實際 Agent 軌跡或阻斷門禁。分析完成回傳 `0`，包括存在訊號／未知的情況；輸入或讀取失敗回傳 `2`。原有掃描和回歸評分不變。此命令仍使用全儲存庫支援來源預先檢查，無關的失效指令連結也可能導致失敗。詳見[模型與限制（英文）](../cursor-scope.md)及[可執行的合成範例（英文）](../../examples/cursor-scope/README.md)。此命令從 v0.25.0 起可用，需要明確呼叫 CLI。
-
-比較修改前後同一組宣告的上下文：
+對比同一上下文的改動前後變化，或逐一檢查目錄下所有一般檔案：
 
 ```bash
 agent-config-score scope compare ../repo-base . --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown
 agent-config-score scope diff origin/main --target src/web/app.ts --fail-on-lost-directives --fail-on-unknown --json
 ```
 
-對於實際檔案，可將每個列舉到的路徑作為獨立上下文檢查。[逐檔覆蓋、排除範圍與完整重現（英文）](../cursor-coverage.md)。
-
 ```bash
 agent-config-score scope coverage --base-ref origin/main --under src --fail-on-lost-directives --fail-on-unknown --json
 ```
 
-這些 v0.25.0+ 命令分別報告檔案變化、觸發路徑減少，以及精確識別的指令失去全部預測活動來源。另一條活動規則中的相同指令，或仍符合的其他任務檔案，可以保留可用性。兩個旗標明確啟用呼叫端設定的審閱門禁：遺失或未知回傳 `1`，操作失敗回傳 `2`；不帶旗標時，完成的比較仍為建議性結果（`0`）。基準未識別到活動指令，就沒有受保護的指令身分。詳見[比較約定與 CI 範例（英文）](../cursor-scope-impact.md)及[四個合成對照（英文）](../../examples/cursor-scope-impact/README.md)。
+不加 `--fail-on-*` 時為建議模式（回傳 `0`）；加上後，基準生效指令遺失或出現未知規則會回傳 `1`。詳見[範圍對比（英文）](../cursor-scope-impact.md)、[逐檔覆蓋（英文）](../cursor-coverage.md)與[四個對照範例（英文）](../../examples/cursor-scope-impact/README.md)。
 
-## 選用：面向維護者的具體建議（v0.24.0+）
+## 選用：`--explain` 與 PR 評論
 
 ```bash
 agent-config-score . --explain
@@ -162,28 +141,28 @@ agent-config-score diff --explain --markdown .agent-config-score/regression.md
 agent-config-score init --pr-comment --dry-run
 ```
 
-`--explain` 在文字／Markdown 中為掃描的有效發現、回歸比較的新增發現補充靜態處理建議，不改變 JSON、評分或退出策略；不執行命令、不修復檔案。[最佳實務清單（英文）](../best-practices.md)也不計分。`init --pr-comment` 明確選擇產生同儲存庫 PR 評論工作流程，並提示 `pull-requests: write` 權限；預設 `init` 產生的工作流程仍僅申請 GitHub 唯讀權限。先預覽、審閱，只提交一份工作流程；既有衝突須主動審閱，不能自動覆寫。Fork PR 保留工作摘要，不發評論。產生的 Action 參照仍為 `v0`，解釋摘要需要 v0.24.0+ 或包含該功能的已驗證 Action 版本。升級本機 CLI 不會改變既有工作流程固定的 Action 版本。詳見[維護者流程（英文）](../maintainer-workflow.md)。
+`--explain` 在文字與 Markdown 輸出中附帶靜態處理建議，不改變分數、JSON 或退出碼（另見不計分的[最佳實務清單（英文）](../best-practices.md)）。`init --pr-comment` 會產生附 `pull-requests: write` 權限的同儲存庫 PR 評論工作流程（Fork PR 仍只輸出唯讀工作摘要）。詳見[維護者流程（英文）](../maintainer-workflow.md)。
 
-僅更新 CI、不讀取或重設自訂策略時（v0.24.0+）：
+如需只更新 CI 工作流程而不觸碰 `.agentconfigscore.json`：
 
 ```bash
 agent-config-score init --workflow-only --pr-comment --force --dry-run
 agent-config-score init --workflow-only --pr-comment --force
 ```
 
-執行第二條命令前，先將範例與既有工作流程的自訂內容比較；`--force` 會替換該工作流程，不會合併 YAML。策略檔案不在操作範圍內，即使缺少或無效也不會讀取，請另行執行 `doctor`。選定目標涉及連結、reparse point 或共用檔案時須手動整合。初始化會提示產生的 Action 參照，它可能與本機 CLI 版本不同，也不會更新遠端參照。寫入有預先檢查，但不是原子檔案系統交易。
+`--force` 會整體替換工作流程檔案（不會合併 YAML）；請先核對既有自訂設定，並單獨執行 `doctor` 驗證策略。
 
 ## 常見問題
 
 | 現象 | 檢查方法 |
 |---|---|
-| 找不到命令 | 確認安裝在目前 Python 環境，並檢查 Scripts/bin 的 PATH。v0.23.0+ 可用 `python -m agent_config_score`。 |
-| 設定或工作流程編碼錯誤 | 儲存為 UTF-8，不要以 UTF-16 檔案取代。 |
-| `Unable to read repository path index` | 執行 `doctor`，檢查 `repository-paths` 錯誤並修正目錄存取或 I/O 問題。部分索引不會產生成功報告。 |
-| 掃描來源解析或讀取錯誤 | 在本機檢查已選取的指令檔與忽略檔連結，目標必須是儲存庫內的一般檔案；修正失效、循環連結或權限問題。`doctor` 提供 `instructions` 錯誤，不要將不完整掃描當成通過。 |
-| 報告無法寫入 | 選擇可寫入的檔案路徑，不是既有目錄；檢查父目錄權限。 |
-| 無法偵測基準 | 執行 `doctor`，再指定本機已存在的預設分支參照。 |
-| 禁止範例被判為危險指令 | 對照[支援的禁止語法（英文）](../instruction-context.md)檢查上下文；工具不理解任意語言和改寫。 |
-| 舊 GitHub 執行紀錄是紅色 | 查看目前提交對應的執行結果。後續修正不會抹除歷史失敗紀錄。 |
+| 找不到命令 | 確認目前 Python 環境的 `Scripts`/`bin` 在 `PATH` 中，或改用 `python -m agent_config_score`。 |
+| 設定或工作流程編碼錯誤 | 儲存為 UTF-8，不要使用 UTF-16。 |
+| 報告無法寫入 | 選擇可寫檔案路徑（不是既有目錄），並檢查父目錄權限。 |
+| `Unable to read repository path index` | 執行 `doctor`，依 `repository-paths` 錯誤排查無法讀取的目錄。 |
+| 掃描來源解析或讀取錯誤 | 檢查指令檔與忽略檔的符號連結，目標必須是儲存庫內的一般檔案（`doctor` 會報 `instructions`）。 |
+| `diff` 無法偵測基準 | 執行 `doctor`，再明確指定本機既有的預設分支參照。 |
+| 禁止範例被判為危險指令 | 對照[支援的禁止語法（英文）](../instruction-context.md)核對上下文。 |
+| 舊 GitHub 執行紀錄為紅色 | 查看最新提交對應的執行；後續修正不會清除歷史失敗紀錄。 |
 
-使用前閱讀[限制說明](limitations.md)。發現是審查訊號，不代替程式碼審查或安全評估。[翻譯範圍](../translations.md)。
+用作 CI 門禁前請先閱讀[限制說明](limitations.md)。[翻譯範圍](../translations.md)。
