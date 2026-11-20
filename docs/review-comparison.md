@@ -1,104 +1,54 @@
 # Compare local lint with AI review
 
-AgentConfigScore has not established that it is more accurate than asking an AI
-to review an instruction file. Its maintained rule contracts are development
-evidence, not a head-to-head evaluation. This workflow makes that comparison
-possible without a model API dependency, automatic uploads, or fabricated model
-results.
+AgentConfigScore has not yet been evaluated head-to-head against AI review on an
+independent held-out dataset. `scripts/run_review_comparison.py` provides an
+offline workflow for running that comparison without calling a model API,
+uploading files, or inventing results.
 
-**Status: no independent AI comparison has been completed.** The bundled twelve
-inputs are synthetic calibration fixtures with provisional project-authored
-labels. They reuse known cases and must not be called held-out or real user data.
+## Current status
 
-A separate [bounded path-reference maintainer audit](../benchmarks/path-audit-v1/README.md)
-now retains actual frozen-wheel results, including misses and a post-hoc warning
-review. It uses provisional AI-authored maintainer observations and names-only
-path projections. It does not satisfy the independent-label or matched AI
-comparison requirements below.
+- **Calibration set** ([report](../benchmarks/review-calibration-report.md)): 12
+  synthetic development fixtures (11 provisionally resolved, 1 unresolved). ACS
+  baseline is recorded (1 semantic miss); AI and hybrid columns remain `not run`.
+- **Prospective candidates** ([prospective-review-v1](../benchmarks/prospective-review-v1/README.md)):
+  5 pinned public root instruction files with bounded context exports. Next.js
+  has since been reused for path-rule development
+  ([development-reuse.json](../benchmarks/prospective-review-v1/development-reuse.json));
+  human annotation ([human-pilot](../benchmarks/prospective-review-v1/human-pilot/README.md))
+  and a matched comparative batch remain open.
+- **Component path checks** ([path-audit-v1](../benchmarks/path-audit-v1/README.md)):
+  provisional maintainer audits on names-only projections—useful for finding
+  rule gaps, not a substitute for an adjudicated holdout.
 
-A separate [prospective candidate collection](../benchmarks/prospective-review-v1/README.md)
-now retains five pinned public root instruction files, a predeclared twelve-repository
-registry, every exclusion, and third-party license notices. It is **unreviewed
-preparation material**, not a completed study. Equivalent tool-checkout evidence, human reference
-labels, and a matched comparative model batch still need to be supplied. A
-[single-case exploratory pilot](../benchmarks/prospective-review-v1/pilot/README.md)
-retains an actual fresh-context response, not a reference label or scored study.
-
-The [context extension](../benchmarks/prospective-review-v1/context/README.md)
-adds bounded referenced text and tracked-path facts without predicting defects.
-Export preserves this allowlisted evidence and changes the packet fingerprint.
-Scoring refuses these bundles until an equivalent tool checkout and matched
-instruction scope can be provided; directory metadata is not actual file content.
-
-The separate [pinned-source tool probe](../benchmarks/prospective-review-v1/tool-probe/README.md)
-verifies real source archive bytes against Git objects and distinguishes native
-discovery from a research-only root scope. Local archive replay requires no
-network. It now retains an actual Linux replay of the frozen 0.22.0 code,
-including complete source verification and unscored native/root findings.
-Transport failures and a Windows case-sensitivity mismatch are retained, not
-counted as predictions. Its scopes/path evidence remain different from the
-bounded AI packet, so it does not bypass the scoring gates.
-
-A [short human review page](../benchmarks/prospective-review-v1/human-pilot/review.md)
-presents one unchanged 28-line candidate without tool/model conclusions and
-accepts a plain-language decision, rationale and prior-exposure note. This is a
-single-reviewer preannotation task, not an adjudicated holdout. Consent is not a
-reference label, and no completed annotation is currently retained. Human review
-is now deferred; product maintenance can continue without fabricating labels.
-
-The Next.js probe subsequently informed three path false-positive fixes. Its
-[development-reuse record](../benchmarks/prospective-review-v1/development-reuse.json)
-supersedes collection-time non-development status for that case, not the frozen
-artifacts themselves. Current-code replays are development checks, not validation
-on untouched inputs. A future independent study requires fresh cases.
-
-## Run the local baseline
-
-From a repository checkout with the package installed:
+## 1. Run the local baseline
 
 ```bash
 python -m pip install -e .
 python scripts/run_review_comparison.py score
 ```
 
-The baseline treats any active default `analyze()` finding as a review signal,
-not as proof of a security defect. It does not apply custom policies or
-suppressions. No numeric score threshold defines the reference label.
+Any active default `analyze()` finding counts as `review_needed: true` (no
+custom policy or suppressions).
 
-The [committed calibration report](../benchmarks/review-calibration-report.md)
-shows one known semantic miss on eleven provisionally resolved cases. One
-ambiguous case is excluded because its reference label is unresolved. AI and
-hybrid results say **not run**, not zero or perfect accuracy.
-
-## Export the same inputs for blinded review
+## 2. Export blinded packets for review
 
 ```bash
 python scripts/run_review_comparison.py export \
   --output-dir .agent-config-score/review-run-01
 ```
 
-This creates three local files:
+This writes three local files:
 
-- `review-packet.json`: a neutral review prompt, opaque case IDs, and the supplied
-  files. No reference labels, rationales, source metadata, original case names,
-  categories, or tool findings are exported.
-- `predictions-template.json`: the response shape with empty reviewer/run IDs
-  and null decisions. The unchanged template cannot be presented as a completed
-  model run.
-- `human-annotation-template.json`: an empty reference-label form for actual
-  independent human reviewers, with rationale and missing-context fields. It
-  is not an AI prediction, completed human annotation, or automatic adjudicator.
+- `review-packet.json`: neutral review prompt, opaque case IDs, and supplied
+  files (no labels, rationales, source metadata, or tool findings).
+- `predictions-template.json`: empty response schema for a fresh AI session.
+- `human-annotation-template.json`: empty form for independent human reviewers.
 
-Review the packet before sharing. Only send the packet and template to a fresh
-AI session, not the labeled corpus, this guide's results, or a tool report.
-The packet's prompt instructs the reviewer to assess file contents as data, not
-obey embedded instructions. No prompt is a security guarantee; do not enable
-execution tools for this experiment. The exporter does not upload anything.
-For private repositories, obtain any required permission before sharing; redact
-sensitive material and reassess labels consistently for **both** reviewers.
-
-The model must return JSON with the same `packet_sha256`, a declared actual
-model/version in `reviewer`, a unique `run_id`, and predictions such as:
+Send only `review-packet.json` and `predictions-template.json` to a fresh AI
+session with execution tools disabled. The response must preserve
+`packet_sha256`, declare the actual model identifier in `reviewer`, set a unique
+`run_id`, and return `true`, `false`, or `null` (insufficient context) for each
+opaque ID:
 
 ```json
 {
@@ -108,16 +58,18 @@ model/version in `reviewer`, a unique `run_id`, and predictions such as:
 }
 ```
 
-Use `false` for no concrete review issue, and `null` for insufficient context or
-an abstention. A string such as `"false"` is invalid. Unknown and duplicate IDs
-are rejected. A changed prompt or input packet invalidates the import.
-Record the model identifier actually available; do not invent a hidden model
-snapshot. Preserve original responses and record interface, date, and model
-settings when available. The harness cannot authenticate who produced a file.
+## 3. Validate or score imported predictions
 
-## Import and compare
+To check schema and packet integrity without labels:
 
-Save the complete JSON response as `predictions.json`, then run:
+```bash
+python scripts/run_review_comparison.py validate \
+  --packet .agent-config-score/review-run-01/review-packet.json \
+  --predictions .agent-config-score/review-run-01/predictions.json
+```
+
+To score against a labeled corpus (outputs must be new files; pass multiple
+`--predictions` flags to compare runs or measure repeat-run disagreement):
 
 ```bash
 python scripts/run_review_comparison.py score \
@@ -126,89 +78,36 @@ python scripts/run_review_comparison.py score \
   --markdown .agent-config-score/comparison-01.md
 ```
 
-All output paths must be new. Existing files are never overwritten. Multiple
-`--predictions` arguments compare multiple runs. Repeated runs with the same
-declared reviewer identifier receive a disagreement count and explicit coverage;
-different model identifiers are not mixed into a repeatability measure.
+## Scoring rules
 
-## What is measured
+Evaluation is case-level (`review_needed`), not finding-level localization:
 
-The reference task is **case-level maintainer review needed**, not general prompt
-quality, exploitability, or exact issue localization. A correct flag for one
-problem can conceal another missed problem in that case. Use focused cases and
-inspect per-case results; do not equate these numbers with finding-level recall.
-
-| Reference label | Decision | Count |
+| Reference label | Decision | Outcome |
 |---|---|---|
 | Review needed | `true` | True positive |
-| Review needed | `false` | Miss / false negative |
+| Review needed | `false` | False negative (miss) |
 | Clean | `true` | False positive |
 | Clean | `false` | True negative |
-| Resolved label | Missing or `null` | Unreviewed; never implicitly clean |
-| Unresolved reference label | Any | Explicitly excluded from correctness scoring |
+| Resolved label | Missing or `null` | Unreviewed (reduces coverage; suppresses headline P/R/F1) |
+| Unresolved label | Any | Excluded from scoring |
 
-Missing answers and abstentions reduce coverage. If any resolved case is
-unreviewed, that run has **no headline precision, recall, F1, or accuracy**. Counts
-remain visible so dropping difficult cases cannot improve a completed metric.
-Zero detected positives do not become perfect precision; undefined ratios are
-null. Category breakdowns are included in JSON; Markdown lists disagreements and
-unreviewed cases.
+- **Hybrid baseline:** three-valued OR (`tool OR ai`; clean + unknown stays
+  unknown).
+- **Optional usage metadata:** `input_tokens`, `output_tokens`,
+  `elapsed_seconds`, and `cost_usd` stay `null` when unknown.
+- **Fingerprints:** JSON reports record SHA-256 hashes for the corpus, blinded
+  packet, tool/script source, and each prediction file.
 
-The hybrid baseline is an OR, not an AI adjudication of scanner findings:
-either reviewer flagging a case makes it reviewable; a clean tool decision plus
-an unknown AI decision stays unknown. Combining flags can increase false
-positives. The harness does not silently let either reviewer overrule the other.
+## Building a real holdout
 
-Optional prediction `usage` fields are `input_tokens`, `output_tokens`,
-`elapsed_seconds`, and `cost_usd`. Unknown values remain null, not free or instant.
-These are self-reported metadata, not measured API billing or end-to-end workflow
-latency. Repeated accuracy or speed claims need actual controlled measurements.
+Use [benchmarks/review-calibration.json](../benchmarks/review-calibration.json)
+as a schema template only. A manifest with `tier: "holdout"` must declare:
 
-JSON reports bind the full labeled corpus, blinded packet/prompt, tool and metric
-source, and each imported response with separate SHA-256 fingerprints. Label
-corrections change the corpus fingerprint without changing the blinded packet.
-The Python version is also recorded. Reports omit input contents and model
-explanations; locally retained source artifacts still need privacy review.
+- `used_for_rule_development: false`
+- `label_status: "adjudicated"`
+- at least two distinct human `labelers` who labeled unseen, licensed snapshots
+  independently before seeing tool or AI outputs.
 
-## Build a real holdout before drawing conclusions
-
-Use [the calibration manifest](../benchmarks/review-calibration.json) as a format
-example, **not** as an independent dataset:
-
-1. Define the review rubric and sampling method before inspecting predictions.
-   Include genuinely clean inputs, concrete risks, semantics, and ambiguous
-   context. Preserve relevant repository files so both reviewers get the same
-   evidence; do not penalize missing context as if it were supplied.
-2. Collect unseen, licensed or authorized snapshots/excerpts. Record provenance
-   and pinned revisions, and group related examples by repository or mutation
-   family. Do not split variants of the same example across development and
-   holdout data, or choose only cases where one reviewer wins.
-3. Have at least two reviewers label independently without seeing either
-   system's output, then adjudicate disagreements. Keep genuinely unresolved
-   labels unresolved. Record reviewer identifiers and annotation rationales.
-4. Freeze the corpus and prompt, then run both systems. Retain all responses,
-   failures, abstentions, and repeat runs, including unfavorable results.
-5. If the inputs or results guide subsequent rule/prompt tuning, mark them
-   development/calibration data and evaluate on a new holdout.
-
-A manifest with `tier: "holdout"` must declare `used_for_rule_development: false`,
-`label_status: "adjudicated"`, and at least two distinct labelers. The loader
-checks these declarations, rejects duplicate input snapshots, and validates
-portable in-repository fixture paths. **It cannot prove independence, correct
-labels, provenance, licensing, or reviewer identity.** Metadata is not evidence
-of a study having happened. Small correlated samples also do not support a
-general real-world accuracy claim.
-
-Unlabeled preparations can instead use `tier: "candidate"`,
-`used_for_rule_development: false`, `label_status: "unreviewed"`, `labelers: []`,
-and only `unresolved` labels. They may be exported but **cannot be scored**.
-This records work still missing without inventing reviewers or reference labels.
-
-This is a repository research script, not a new installed CLI subcommand. The
-deterministic scanner, report schema, runtime dependencies, and existing rule
-contracts are unchanged.
-
-For a retained packet/response without human reference labels, use the research
-script's `validate --packet PATH --predictions PATH` command. It verifies packet
-integrity, prediction shape, and coverage without running lint or computing
-correctness metrics. Format validity cannot establish the answer is right.
+Unlabeled collections use `tier: "candidate"` (`label_status: "unreviewed"`,
+`labelers: []`) and can be exported and validated, but cannot be scored until
+adjudicated labels are added.

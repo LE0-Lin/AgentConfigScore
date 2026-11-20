@@ -1,112 +1,74 @@
 # Can ACS catch problems in its own instructions?
 
-We tested the published **v0.26.2** wheel against copies of our own complete
-tracked repository at `b782906aeea0dbfc3e99d1d7e95a81a699741c97`.
-The untouched baseline scores **100**, with no active findings in five supported
-instruction files: root `AGENTS.md` and the Claude, Cursor, Copilot and Gemini
-examples. Ordinary README files are not treated as agent instructions.
+We tested the published **v0.26.2** wheel against disposable copies of this
+repository at `b782906aeea0dbfc3e99d1d7e95a81a699741c97` (without executing any
+commands written in the instruction files). The untouched repository scores
+**100** across its five supported instruction files (`AGENTS.md` plus the
+Claude, Cursor, Copilot, and Gemini examples). Full raw outputs are retained in
+[evidence/self-use-0262.json](evidence/self-use-0262.json).
 
-The [retained raw report](evidence/self-use-0262.json) includes the source revision,
-archive hash, installed tool identity, original case text, scan findings,
-comparison findings and actual process exits. All modifications took place in
-disposable copies; no deletion, network installer or other instruction was run.
+## Fixes shipped in v0.27.0
 
-## Working behavior and limits
+Two of the original high-score misses below were fixed in v0.27.0. A matched
+comparison on the same archive (`1cec1aafe1d02259d94df5d785b604deda895de2`) is
+retained in [evidence/self-use-prose-comparison.json](evidence/self-use-prose-comparison.json):
 
-### Correction shipped in v0.27.0
-
-Two of the original high-score probes below now produce active errors. A
-[matched installed-tool comparison](evidence/self-use-prose-comparison.json)
-uses the **same input archive and unchanged instruction scenarios** at
-`1cec1aafe1d02259d94df5d785b604deda895de2` for the public wheel and changed source:
-
-| Known probe | Published 0.26.2 | Pre-release source | New comparison exit |
+| Known probe | Published v0.26.2 | v0.27.0+ | Compare exit |
 |---|---:|---:|---:|
-| Production database deletion with explicit approval exemption | 100 | 85, `deletion-approval-bypass` | 1 |
-| Chinese instruction to falsely report passing tests | 100 | 88, `false-success-report` | 1 |
-| Vague filler only | 100 | 100 | 0 |
+| Production database deletion with explicit approval bypass | 100 | 85 (`deletion-approval-bypass`) | 1 |
+| Chinese instruction to falsely report passing tests | 100 | 88 (`false-success-report`) | 1 |
+| Vague filler only (`"Do a good job."`) | 100 | 100 | 0 |
 
-All nine existing acceptance contracts still pass. Positive and negative
-language/format variants are separately covered by regression tests. These
-are corrections to known development cases, not independently measured accuracy.
-The original comparison used two implementations declaring version 0.26.2;
-the comparison records distinct **source fingerprints**, so the source build is
-not confused with PyPI v0.26.2. The original failures below remain unchanged. The corrections now ship in v0.27.0+.
+These fix known development cases; vague or arbitrary prose can still score 100.
 
-### Original published-wheel observations
+## Original published-wheel results (v0.26.2)
 
-| Change to our actual root instructions | Scan score | Scan exit | Compare exit |
+| Change to root `AGENTS.md` | Scan score | Scan exit | Compare exit |
 |---|---:|---:|---:|
 | No change | 100 | 0 | 0 |
 | Recommend `rm -rf build` | 89 | 1 | 1 |
-| Prohibit that same deletion command | 100 | 0 | 0 |
+| Prohibit `rm -rf build` | 100 | 0 | 0 |
 | Link to a nonexistent guide | 96 | 0 | 1 |
-| Correct the link to the existing user guide | 100 | 0 | 0 |
-| Require claiming that failed tests passed | 88 | 1 | 1 |
-| Recommend piping a remote installer into bash | 82 | 1 | 1 |
-| Recommend deletion and weaken the candidate policy | 89 | 0 | 1 |
+| Fix link to existing user guide | 100 | 0 | 0 |
+| Require claiming failed tests passed | 88 | 1 | 1 |
+| Recommend piping a remote installer into `bash` | 82 | 1 | 1 |
+| Recommend deletion and weaken candidate policy | 89 | 0 | 1 |
 | Empty the root instruction file | 70 | 1 | 1 |
 
-The standalone scan applies its candidate's score floor, which our fixture sets
-to 90. A missing guide is only a four-point warning, so the standalone command
-returns success at 96. **Use baseline comparison for a PR gate**: the baseline's
-zero-drop and new-error policies reject that regression. A PR lowering its own
-threshold to zero also cannot authorize the deletion regression against the
-unchanged baseline. Exit 0 never means every instruction is safe.
+A broken link only deducts 4 points, so a standalone scan with a floor of 90
+still exits `0` at 96—**use baseline comparison (`diff` / `compare`) for PR
+gates**, where the baseline's zero-drop and new-error rules reject both the
+broken link and a candidate that tries to weaken its own policy.
 
-We also ran three explicit limitation probes. These are **observations, not
-passing detection tests**:
+### Original limitation probes (v0.26.2)
 
-| Instruction change | Observed score | Observed gate |
+| Instruction change | Score | Gate |
 |---|---:|---|
-| Replace useful root guidance with “Do a good job.” | 100 | Pass |
-| Authorize removing the production database without confirmation, using prose rather than a recognized command | 100 | Pass |
+| Replace root guidance with `"Do a good job."` | 100 | Pass |
+| Authorize removing the production database without confirmation (prose, no shell command) | 100 | Pass |
 | Require falsely claiming tests passed, written in Chinese | 100 | Pass |
 
-These results directly rule out using ACS as a complete instruction safety or
-semantic quality reviewer. A 100 means no active deterministic rule matched;
-it cannot distinguish all useful instructions from vague or unsafe ones.
-Localized documentation/output does not imply semantic detection in those
-languages. A maintainer should review important policy changes and use other
-checks for behavior outside the documented rule grammar.
-
-The separate, **unscored** `guardrails` review also notices that the original
-root `AGENTS.md` does not state deletion/overwrite approval safeguards, despite
-its 100 score. We used that finding to add explicit approval guidance to our own
-root file in this maintenance change. This improves our instructions; it is not
-runtime enforcement, and it does not solve the semantic probes above.
+The separate, unscored `guardrails` check also flagged that our original root
+`AGENTS.md` lacked explicit deletion/overwrite approval wording, which we added
+as part of this maintenance pass.
 
 ## Reproduce locally
 
-Create an isolated environment, install ACS 0.26.2, then run from a local ACS
-checkout containing the pinned source revision:
+Install the target wheel in an isolated venv, then run from a local checkout:
 
 ```bash
 python scripts/run_self_acceptance.py --python /path/to/venv/bin/python \
   --ref b782906aeea0dbfc3e99d1d7e95a81a699741c97 --output self-use-new.json
 ```
 
-On Windows, pass the environment's `Scripts/python.exe`. The controller uses
-only the standard library and local Git; the worker uses the specified installed
-ACS package in isolated mode. Package installation needs network access; the
-replay itself does not. Existing output files are never overwritten. `--ref HEAD`
-tests the current committed repository; it does not test uncommitted changes.
+On Windows, pass `Scripts/python.exe`. `--ref HEAD` tests the current committed
+snapshot (ignoring uncommitted edits), and `--output` must be a new file.
 
-For v0.27.0+ use `--require-current-fixes` to promote the database-bypass and
-Chinese false-passing probes to required detections and add a clean inline-link
-example control. This profile has twelve known contracts and one remaining
-descriptive filler probe. CI and release acceptance require that profile on
-each installed platform. Keep the default profile when reproducing the original
-published v0.26.2 observations.
+For v0.27.0+, pass `--require-current-fixes` to enforce the 12 known contracts
+(including the database-bypass, Chinese false-passing, and inline-link example
+cases) while keeping the vague-filler probe descriptive. CI and release
+acceptance run this profile on Linux, Windows, and macOS.
 
-The nine known acceptance contracts must match their declared rule IDs and gate
-exits. The three limitation probes remain descriptive: detecting one after a
-future improvement must not fail the runner. A failed contract is retained in
-the JSON result and returns exit 1. Operational failures do not produce a clean
-report. Installed-wheel CI replays these checks on Linux, Windows and macOS.
-
-This is **maintainer-authored development acceptance**, not independent accuracy
-or evidence that another maintainer uses ACS. It supports a small read-only trial
-of the bounded linter; it does not justify promising a comprehensive security
-audit. See [rule and score limitations](limitations.md) and the
-[maintainer workflow](maintainer-workflow.md) before selecting a gate policy.
+This is maintainer self-acceptance on our own repository—not an independent
+accuracy benchmark or external adoption metric. See [limitations.md](limitations.md)
+and [maintainer-workflow.md](maintainer-workflow.md).
