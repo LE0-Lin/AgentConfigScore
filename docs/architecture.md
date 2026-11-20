@@ -1,60 +1,54 @@
-# Design and shipped product boundary
+# Architecture and scope
 
-AgentConfigScore ships a dependency-free Python CLI and GitHub Action for local
-instruction lint and deterministic change review. A complete supported journey
-is installation, safe setup, a baseline comparison, source-located findings,
-reviewed correction or audited exception, rerun and retained CI evidence.
+AgentConfigScore is a dependency-free Python CLI and GitHub Action for local
+instruction linting and deterministic PR regression checks.
 
 ```mermaid
 flowchart LR
   A[Selected repository trees] --> B[Discovery and source validation]
   B --> C[Captured instruction text]
   C --> D[Rule findings and baseline-governed score gate]
-  C --> E[Optional bounded Cursor attachment model]
-  E --> F[Same-task or independent-file comparisons]
+  C --> E[Optional Cursor attachment model]
+  E --> F[Declared-context or per-file comparisons]
   D --> G[CLI decision and review evidence]
   F --> G
   G --> H[JSON / Markdown / CI summary / artifacts]
 ```
 
-## Decisions that matter
+## Core design decisions
 
-- **Baseline ownership.** Normal score comparisons apply the reviewed baseline
-  policy and suppression set to both trees. A candidate cannot use its own
-  weaker threshold or new exception to authorize that same change. Explicit
-  CLI/Action overrides and workflow/tool revisions remain caller trust boundaries.
-- **Captured source.** Instruction text that produced a scan is reused for its
-  regression checks. Cursor sources are captured once per side and evaluated
-  repeatedly without reopening each rule for each target. Filesystem checks
-  reduce accidental boundary violations while requiring stable trees.
-- **Two context questions.** A declared multi-file task can retain a rule through
-  any matching file. Per-file coverage independently evaluates each selected
-  existing name and can reveal an API-only loss. This does not infer a user's
-  real task or establish native attachment.
-- **Explicit uncertainty.** Manual/model loading, unsupported metadata and
-  opaque potentially active bodies stay unknown. Unknowns have a separate review
-  flag. An empty recognized baseline protects zero identities and stays visible.
-- **Reproducible decisions.** Stable rule IDs, input/source identities, original
-  line evidence and typed exit behavior make specified decisions reviewable.
-  Scores describe active rule matches. Tool fingerprints identify covered
-  source bytes and do not authenticate a whole execution environment.
+- **Baseline ownership:** `diff` and `compare` apply the baseline repository's
+  policy and suppressions to both trees. A candidate PR cannot lower its own
+  threshold or suppress its own new errors. Explicit CLI/Action overrides remain
+  caller-owned.
+- **Captured source:** instruction text read during a scan is reused for
+  regression checks (`instruction-file-removed`, `directive-polarity-flip`), and
+  Cursor rules are parsed once per tree rather than reopened per target file.
+- **Two Cursor context views:** `scope compare`/`diff` evaluates a declared
+  multi-file task context; `scope coverage` evaluates each inventoried regular
+  file independently so an API-only rule loss is not masked by a matching
+  frontend file.
+- **Explicit uncertainty:** manual/model-selected rules, unsupported metadata,
+  and uninterpreted rule bodies stay `unknown` rather than being treated as
+  clean.
+- **Reproducible decisions:** stable rule IDs, source-line locations, typed exit
+  codes (`0` pass, `1` gate failed, `2` operational failure), and tool source
+  fingerprints make CI decisions auditable.
 
-## Product acceptance
+## Shipped surfaces and verification
 
-| Surface | Shipped behavior | Acceptance evidence |
-| --- | --- | --- |
-| Installation | Wheel, source distribution, two aliases and module entrypoint | Isolated installed acceptance on three operating systems |
-| Setup | Dry run, conflict refusal, idempotence, explicit overwrite and workflow-only scope | Disposable repositories and input-byte preservation checks |
-| Review | Scored regressions plus opt-in unscored coverage, with source locations | Positive, repair, rename, unchanged and unknown controls |
-| CI | Ordinary gate plus optional strict coverage, summaries and retained reports | Actual composite Action on disposable Git fixtures |
-| Failure handling | Operational failures use exit `2`, without successful coverage evidence | Empty/invalid/unreadable inputs and report-write failures |
-| Recovery | Documented policy migration, history recovery and audited exceptions | Core guides, installed checks and explicit compatibility notes |
+| Surface | Shipped behavior | Verification |
+|---|---|---|
+| Packaging | Wheel, sdist, `agent-config-score`, `acs`, and `python -m agent_config_score` | Installed-package acceptance on Linux, Windows, and macOS |
+| Setup | `init` with dry-run, conflict refusal, idempotence, `--force`, and `--workflow-only` | Disposable repo tests and input-byte preservation checks |
+| Review | Scored regressions plus opt-in unscored Cursor coverage with source lines | Positive, repair, rename, unchanged, and unknown controls |
+| CI | Read-only Action gate, optional PR comment recipe, summaries, and artifacts | Composite Action tests on disposable Git fixtures |
+| Failure handling | Operational errors exit `2` without emitting a success report | Invalid/unreadable inputs and report-write failure tests |
 
-Native Cursor attachment fidelity, arbitrary-prose semantics, agent execution
-enforcement and independent real-world accuracy are outside the shipped static
-contract. They remain separate validation or product directions. Maintained
-acceptance cases demonstrate engineering behavior and do not establish adoption.
+## Out of scope
 
-A [separate native Cursor smoke report](../benchmarks/cursor-native-v1/README.md)
-now retains versioned behavioral observations with screenshot and hook evidence.
-It does not expand the static product's guarantees or establish complete loading.
+Runtime agent enforcement, native Cursor attachment observation, arbitrary-prose
+semantics, and independent real-world accuracy benchmarks are outside the
+shipped static CLI contract. See the separate
+[native Cursor smoke report](../benchmarks/cursor-native-v1/README.md) and
+[limitations](limitations.md) for details.

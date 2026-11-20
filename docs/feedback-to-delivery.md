@@ -1,40 +1,19 @@
-# Public maintainer feedback and delivered behavior
+# Maintainer feedback to delivered features
 
 In [issue #46](https://github.com/LE0-Lin/AgentConfigScore/issues/46),
-JasonLandbridge described four capabilities he would find useful. This is
-public, externally authored **requirements feedback**. It establishes the
-origin of a request. External installation, sustained use, measured time saved
-and maintainer-confirmed effectiveness remain unverified.
+JasonLandbridge listed four capabilities he wanted from an instruction linter.
+The table below maps those requests to what is currently shipped and where the
+boundaries remain. (This tracks requirements feedback—not external adoption or
+measured time saved.)
 
-| Requested capability, paraphrased | Delivered surface | Verification and boundary |
+| Requested capability | Shipped surface | Scope and limits |
 |---|---|---|
-| Check whether instruction-file references remain valid | `dead-path`, Markdown link resolution, repository/scope path checks | Released checks have deterministic tests. The [new path case study](path-case-study.md) adds a generated-output correction and explicit relative-directory handling in v0.26.2. Generated and package-relative ambiguity remain bounded. |
-| Give practical instruction-file guidance | [Advisory checklist](best-practices.md), [maintainer workflow](maintainer-workflow.md), opt-in [safeguard review](guardrail-suggestions.md) | Documentation and narrowly recognized review suggestions are available. They do not constitute a general semantic reviewer or a scored best-practice certification. |
-| Surface prompt-injection concerns | The released `prompt-injection-override` warning and its conservative context handling | The rule targets explicit prior-instruction override phrases. It does not detect arbitrary injection attacks or enforce agent behavior. |
-| Make review results visible on PRs | [Opt-in single-comment workflow](pr-comments.md), including generated setup via `init --pr-comment` | The repository's CI and integration tests validate the maintained recipe. A caller explicitly grants comment permission. Adoption by the requester's repository is not established. |
+| Check whether referenced paths stay valid | `dead-path`, local Markdown inline/reference links, explicit relative directory checks, generated-output and inline-code example handling | Deterministic rules with regression tests and a [public-source case study](path-case-study.md). Unprefixed directories and arbitrary build outputs stay conservative. |
+| Give practical instruction-file guidance | `--explain` next steps, [best-practice checklist](best-practices.md), [maintainer workflow](maintainer-workflow.md), opt-in `guardrails` | Static review advice and narrow deletion-safeguard checks—not a general semantic reviewer or keyword-scored quality grade. |
+| Surface prompt-injection concerns | `prompt-injection-override` with conservative prohibition/example context handling | Targets explicit override phrases; does not detect arbitrary paraphrases or runtime tool-output injections. |
+| Make results visible on PRs | Opt-in single PR comment workflow (`init --pr-comment` / `examples/pr-comment.yml`) with per-rule breakdown and recheck commands | Tested in CI against a fake GitHub client; caller explicitly grants comment permissions and forks remain read-only ([PR comments](pr-comments.md)). |
 
-## How to use this evidence
-
-v0.27.0 strengthens two of these interfaces: Markdown link syntax
-inside matched inline code is no longer treated as a live reference, and the
-optional PR comment adds a validated per-rule breakdown plus recheck commands.
-The [comment preview and compatibility guide](pr-comments.md) distinguish these
-changes from the older v0.26.2 behavior. Neither change establishes
-adoption by Jason or expands prompt-injection detection into a general defense.
-
-The defensible project story is a concrete feedback loop: a public maintainer
-requested review features; corresponding interfaces were implemented; the
-project retained acceptance tests, versioned releases and limits; real source
-inputs then exposed scanner errors that required further maintenance.
-
-The [path replay](../benchmarks/path-check-v2/README.md) makes one of those
-maintenance changes inspectable without executing upstream commands or asking
-another maintainer to confirm an obvious sentence. It preserves failed attempts
-and the final conservative scope. It remains project-authored development
-evidence.
-
-Independent reference labels, a matched AI comparison and externally observed
-workflow outcomes are separate open evidence gaps. This document does not turn
-a feature request, a GitHub star or a project-maintained test suite into a user
-success metric. It makes the existing request and implemented response easy to
-verify directly.
+Open evidence gaps—independent human reference labels, a matched AI comparison,
+and observed external adoption—remain tracked separately in
+[review-comparison.md](review-comparison.md) and
+[benchmarks/path-check-v2/README.md](../benchmarks/path-check-v2/README.md).
