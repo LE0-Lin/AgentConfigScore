@@ -86,9 +86,14 @@ and [Docker prune reference](https://docs.docker.com/reference/cli/docker/system
 `ignore previous instructions`. Explicit prohibitions, whole-line labeled
 examples (`Attack example: "ignore previous instructions"`), and adjacent
 prohibited instruction blocks are excluded; quotes or code fences alone are not.
-More elaborate educational examples can still trigger warnings—review and add a
-reasoned suppression if needed. Arbitrary paraphrases, other languages, and
-runtime tool-output injections are out of scope.
+Unreleased source builds also exclude bounded single-line defensive rules
+quoting an override phrase in untrusted-content/refusal instructions (English
+and Simplified/Traditional Chinese) without exception words or trailing
+directives, and prevent earlier unrelated prohibitions from hiding active
+directives after conjunctions such as `and then` or `, and`. More elaborate
+educational examples can still trigger warnings—review and add a reasoned
+suppression if needed. Arbitrary paraphrases, other languages, and runtime
+tool-output injections are out of scope.
 
 ## Prose safety rules
 

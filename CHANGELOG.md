@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Tighten prompt-injection and danger-command prohibition context: prevent
+  unrelated earlier prohibitions from hiding active directives after
+  conjunctions such as `and then`, `and instead`, `, then`, `, and always`, or
+  coordinated `, and` overrides.
+- Avoid `prompt-injection-override` false positives on bounded whole-line
+  defensive refusals, untrusted-data handling rules, and labeled examples
+  (English and Simplified/Traditional Chinese) that quote an override phrase
+  without exception words, double negatives, or trailing active directives.
+- Support single-quoted and parenthesized CommonMark titles on inline Markdown
+  links consistently with reference-link definitions, including escaped/in-code
+  link examples.
+
 ## v0.27.0
 
 - Add privacy-minimized `new-rule-counts` Action output and an optional PR
