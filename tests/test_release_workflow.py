@@ -73,7 +73,7 @@ class ReleaseWorkflowContractTests(unittest.TestCase):
     def test_privileged_third_party_publish_action_is_commit_pinned(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn(
-            "pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33",
+            "pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086",
             workflow,
         )
 

@@ -2,19 +2,6 @@
 
 [English](README.md) | 简体中文 | [繁體中文](README.traditional.md)
 
-<!-- acs-safety-overview:start -->
-## 安全方案与验证：从这里开始
-
-**AI Safety Challenge 评委入口：**[观看一分钟演示](assets/agent-config-score-approval.mp4) · [查看证据与限制](#safety-review-evidence) · [复跑演示](docs/ai-safety-challenge.md#run-and-inspect)。
-
-具体场景是：配置改动移除了删除授权保护，代理随后请求删除文件。项目演示两道检查：
-
-- **合并前：**ACS 将指令与可信基线比较；即使前后分数都是 100，也能针对已识别的保护丢失拒绝改动。
-- **删除前：**独立示例宿主在允许单文件操作前，核验操作员签发的授权是否与确切目标及已审核文件状态相符。
-
-发布的 CLI 负责静态审核，安装后不会拦截代理行为。执行器原型依赖受控宿主和稳定工作区。证据分别标注脚本测试、调用方操作观察和仍未验证的真实使用效果。
-
-<!-- acs-safety-overview:end -->
 
 在合并前发现 AI 编程助手指令中的已知退化。
 
@@ -42,7 +29,7 @@ AgentConfigScore 检查 `AGENTS.md`、`CLAUDE.md`、Cursor、Copilot、Gemini �
 <!-- acs-challenge-review:start -->
 <a id="safety-review-evidence"></a>
 
-## 安全证据与复跑入口
+## 删除审批与宿主门禁原型
 
 AgentConfigScore 审核持久化代理指令的改动。安全演示把静态检查与一个**独立、由宿主控制的删除授权门禁**结合，实际操作仅涉及一个可丢弃的演示文件。
 
